@@ -63,7 +63,7 @@
       </nav>
     </div>
     <div class="p-6 border-t border-[#222]">
-      <button class="w-full flex items-center justify-center gap-3 border border-[#333] hover:border-red-500 hover:text-red-500 text-gray-400 py-3 text-xs tracking-widest uppercase transition">
+      <button onclick="adminLogout()" class="w-full flex items-center justify-center gap-3 border border-[#333] hover:border-red-500 hover:text-red-500 text-gray-400 py-3 text-xs tracking-widest uppercase transition">
         <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
       </button>
     </div>
@@ -88,7 +88,6 @@
         </div>
       </div>
     </div>
-
     <div id="view-orders" class="admin-section hidden">
       <div class="flex justify-between items-center mb-8">
         <h2 class="display-font text-3xl uppercase">Manage Orders</h2>
@@ -202,8 +201,7 @@
           
           <h2 class="text-white text-xl display-font uppercase tracking-widest mb-6 border-b border-[#222] pb-4">Order Details</h2>
           
-          <div id="modal-order-content" class="text-gray-300 space-y-4 mb-8 text-sm">
-              </div>
+          <div id="modal-order-content" class="text-gray-300 space-y-4 mb-8 text-sm"></div>
           
           <div class="flex gap-4 items-end border-t border-[#222] pt-6">
               <div class="flex-1">
@@ -227,7 +225,7 @@
   const ADMIN_SUPA_KEY = 'sb_publishable_F8LXj9xjlkJKv4VQJDzoxQ_P3io41th';
   
   let adminClient;
-  let allOrders = []; // مصفوفة لحفظ كل الطلبات
+  let allOrders = [];
 
   try {
       if (window.supabase) {
@@ -392,7 +390,7 @@
           const { data: orders, error } = await adminClient.from('orders').select('*').order('created_at', { ascending: false });
           if (error) throw error;
           
-          allOrders = orders; // حفظ الطلبات
+          allOrders = orders;
           
           if (orders.length === 0) {
               tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">No orders found.</td></tr>';
@@ -428,6 +426,7 @@
 
           tbody.innerHTML = products.map(product => {
               let stockClass = product.stock_status === 'In Stock' ? 'text-green-500' : 'text-red-500';
+              // تم إصلاح مشكلة علامات التنصيص هنا لحماية كود الحذف
               return `
               <tr class="border-b border-[#222] hover:bg-[#111] transition">
                   <td class="p-4"><img src="${product.image_url}" class="w-10 h-10 object-cover border border-[#333] grayscale"></td>
@@ -436,7 +435,7 @@
                   <td class="p-4 text-white">${product.price} EGP</td>
                   <td class="p-4 ${stockClass}">${product.stock_status}</td>
                   <td class="p-4 text-right flex justify-end gap-4 mt-2">
-                      <button onclick="deleteProduct(${product.id})" class="hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button>
+                      <button onclick="deleteProduct('${product.id}')" class="hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button>
                   </td>
               </tr>`;
           }).join('');
@@ -485,15 +484,20 @@
       }
   }
 
-  document.addEventListener('DOMContentLoaded', () => { fetchDashboardData(); });
+  // دالة تسجيل الخروج الجديدة المربوطة بالسيرفر
+  window.adminLogout = async function() {
+      if(adminClient) {
+          await adminClient.auth.signOut();
+          location.reload();
+      }
+  };
+
   async function checkAdminLogin() {
       const { data: { session } } = await adminClient.auth.getSession();
-      // لو مسجل دخول وإيميله هو إيميل الأدمن يفتح اللوحة
       if (session && session.user.email === 'mohamedsabae50@gmail.com') {
           document.getElementById('admin-login-overlay').style.display = 'none';
           fetchDashboardData();
       } else {
-          // لو مش مسجل يظهرله شاشة الدخول
           document.getElementById('admin-login-overlay').style.display = 'flex';
       }
   }
@@ -507,9 +511,11 @@
       
       const { data, error } = await adminClient.auth.signInWithPassword({ email: email, password: pass });
       
-      if (error) { 
-          alert("Access Denied! Wrong credentials."); 
+      // إغلاق الثغرة الأمنية لضمان عدم دخول أي يوزر عادي للوحة
+      if (error || (data.user && data.user.email !== 'mohamedsabae50@gmail.com')) { 
+          alert("Access Denied! Not an Admin or Wrong credentials."); 
           btn.innerHTML = "Secure Login"; 
+          if (!error && data.user) await adminClient.auth.signOut();
           return; 
       }
       
@@ -517,8 +523,10 @@
       fetchDashboardData();
   };
 
+  // تشغيل التحقق التلقائي عند التحميل ومنع التعارض والتكرار
   document.addEventListener('DOMContentLoaded', () => { checkAdminLogin(); });
 </script>
+
 <div id="admin-login-overlay" style="display: none;" class="fixed inset-0 bg-[#030303] z-[999] flex flex-col items-center justify-center p-4">
     <div class="bg-[#0a0a0a] border border-[#333] p-8 w-full max-w-md shadow-2xl">
         <h2 class="display-font text-3xl text-white uppercase mb-8 text-center border-b border-[#222] pb-4">Admin Login</h2>
