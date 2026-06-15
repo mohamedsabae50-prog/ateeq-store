@@ -1,24 +1,17 @@
-// ==========================================
-// 1. SUPABASE CONFIGURATION
-// ==========================================
 const SUPABASE_URL = 'https://kkbejeioqltbllshhlcp.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_F8LXj9xjlkJKv4VQJDzoxQ_P3io41th';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ==========================================
-// 2. GLOBAL STATE & LOCAL STORAGE (نظام الحفظ الجديد)
-// ==========================================
 let isLoggedIn = false;
 let currentUser = null;
-
-// استدعاء السلة والمفضلة من ذاكرة المتصفح لو موجودين
+let appliedDiscount = 0;
+let activeCouponCode = null;
 let cart = JSON.parse(localStorage.getItem('ateeq_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
 
 const BLANK_PRICE = 800;
 const CUSTOM_PRICE = 850;
 
-// دوال الحفظ في ذاكرة المتصفح
 function saveCart() {
     localStorage.setItem('ateeq_cart', JSON.stringify(cart));
     updateCartUI();
@@ -29,9 +22,6 @@ function saveWishlist() {
     renderWishlist();
 }
 
-// ==========================================
-// 3. CORE NAVIGATION (SPA)
-// ==========================================
 window.switchView = function(viewId) {
     document.querySelectorAll('.view-section').forEach(el => {
         el.classList.add('hidden');
@@ -68,7 +58,6 @@ window.switchView = function(viewId) {
 
 window.goHome = () => switchView('home');
 window.goToShop = () => switchView('shop');
-
 window.openStudio = function(mode, color = 'Black') {
     switchView('studio');
     if (mode === 'blank') {
@@ -82,37 +71,24 @@ window.openStudio = function(mode, color = 'Black') {
     if (targetSwatch) targetSwatch.click();
 };
 
-// ==========================================
-// 4. FETCH PRODUCTS FOR SHOP & PDP (الداتابيز)
-// ==========================================
 window.shopProductsData = [];
 
 window.loadShopProducts = async function() {
     const container = document.getElementById('products-container');
     if (!container) return;
-
     container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-3xl"></i></div>';
-
     try {
-        const { data: products, error } = await supabaseClient
-            .from('products')
-            .select('*')
-            .order('id', { ascending: false });
-
+        const { data: products, error } = await supabaseClient.from('products').select('*').order('id', { ascending: false });
         if (error) throw error;
         window.shopProductsData = products;
-
         if (products.length === 0) {
             container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">No products available right now.</div>';
             return;
         }
-
         container.innerHTML = products.map(product => {
             const hoverImg = product.hover_image_url ? product.hover_image_url : product.image_url;
             const category = product.category ? product.category.toLowerCase() : 'hoodies';
-            const stockBadge = product.stock_status === 'Out of Stock' 
-                ? '<span class="text-red-500 text-[9px] uppercase tracking-widest">Sold Out</span>' : '';
-
+            const stockBadge = product.stock_status === 'Out of Stock' ? '<span class="text-red-500 text-[9px] uppercase tracking-widest">Sold Out</span>' : '';
             return `
             <div class="product-card is-visible group cursor-pointer" data-category="${category}" data-price="${product.price}" onclick="goToPDP(${product.id})">
                 <div class="w-full aspect-[4/5] bg-[#0a0a0a] border border-[#222] overflow-hidden relative mb-4 flex items-center justify-center transition-colors duration-300 group-hover:border-white">
@@ -130,58 +106,81 @@ window.loadShopProducts = async function() {
             </div>
             `;
         }).join('');
-
         const resultsCount = document.getElementById('results-count');
         if(resultsCount) resultsCount.textContent = products.length + ' Results';
-
         if(typeof applyFilters === 'function') applyFilters();
-
     } catch (error) {
-        console.error("Error loading products:", error);
         container.innerHTML = '<div class="col-span-full text-center text-red-500 py-10">Failed to load products. Check console.</div>';
     }
 }
+window.applyCouponCode = async function() {
+    const code = document.getElementById('coupon-code').value.trim().toUpperCase();
+    const msg = document.getElementById('coupon-message');
+    if (!code) { showToast("Please enter a coupon code", "error"); return; }
 
+    try {
+        const { data, error } = await supabaseClient
+            .from('coupons')
+            .select('*')
+            .eq('code', code)
+            .eq('active', true)
+            .single();
+
+        msg.classList.remove('hidden', 'text-red-500', 'text-green-500');
+
+        if (error || !data) {
+            appliedDiscount = 0;
+            activeCouponCode = null;
+            msg.textContent = "Invalid or Expired Coupon";
+            msg.classList.add('text-red-500');
+            showToast("Coupon not found", "error");
+        } else {
+            appliedDiscount = data.discount_percent;
+            activeCouponCode = data.code;
+            msg.textContent = `Coupon Applied: ${data.discount_percent}% Discount`;
+            msg.classList.add('text-green-500');
+            showToast("Discount applied successfully", "success");
+            
+            let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
+            let discountAmount = (totalAmount * (appliedDiscount / 100));
+            let finalTotal = totalAmount - discountAmount;
+            
+            showToast(`New Total: ${finalTotal} EGP`, "info");
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
 window.goToPDP = function(productId) {
     const product = window.shopProductsData.find(p => p.id === productId);
     if(!product) return;
-
     document.getElementById('pdp-title').textContent = product.name;
     document.getElementById('pdp-price').textContent = product.price + ' EGP';
     document.getElementById('main-pdp-img').src = product.image_url;
-
     const galleryContainer = document.getElementById('pdp-gallery');
     let galleryHTML = `<img src="${product.image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 grayscale hover:grayscale-0 transition">`;
-    
     if (product.hover_image_url) {
         galleryHTML += `<img src="${product.hover_image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 grayscale hover:grayscale-0 transition">`;
     }
-    
     if (product.gallery_urls && product.gallery_urls.length > 0) {
         product.gallery_urls.forEach(url => {
             galleryHTML += `<img src="${url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 grayscale hover:grayscale-0 transition">`;
         });
     }
-    
     galleryContainer.innerHTML = galleryHTML;
     switchView('pdp');
 }
-// ==========================================
-// 5. TOAST & UI COMPONENTS
-// ==========================================
+
 window.showToast = function(message, type = 'info') {
     const toast = document.getElementById('toast-notification');
     const toastMsg = document.getElementById('toast-message');
     const toastIcon = document.getElementById('toast-icon');
-
     if (type === 'error') toastIcon.className = 'fa-solid fa-circle-exclamation text-red-500 text-lg';
     else if (type === 'success') toastIcon.className = 'fa-solid fa-circle-check text-green-500 text-lg';
     else toastIcon.className = 'fa-solid fa-circle-info text-white text-lg';
-
     toastMsg.textContent = message;
     toast.classList.remove('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
     toast.classList.add('opacity-100', 'translate-y-0');
-
     setTimeout(() => {
         toast.classList.remove('opacity-100', 'translate-y-0');
         toast.classList.add('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
@@ -223,21 +222,14 @@ function toggleSizeGuide() {
     modal.classList.toggle('hidden');
     setTimeout(() => modal.classList.toggle('opacity-0'), 10);
 }
-
-// ==========================================
-// 6. AUTH LOGIC
-// ==========================================
 window.parent.handleLogin = async function(e) {
     if (e) e.preventDefault(); 
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
-
     if (!email || !password) { showToast("Please enter your email and password.", "error"); return; }
-
     try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
         if (error) throw error; 
-
         if (data.user) {
             isLoggedIn = true;
             currentUser = data.user;
@@ -256,23 +248,18 @@ window.parent.handleRegister = async function(e) {
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
     const fullName = document.getElementById('reg-name').value;
-
     if (!email || !password || !fullName) { showToast("Please fill all fields.", "error"); return; }
-
     try {
         const { data, error } = await supabaseClient.auth.signUp({ email: email, password: password });
         if (error) throw error;
-
         if (data.user) {
             try { await supabaseClient.from('profiles').insert([{ id: data.user.id, full_name: fullName }]); } 
-            catch (pErr) { console.error("Profile DB insert skipped:", pErr.message); }
-
+            catch (pErr) {}
             isLoggedIn = true;
             currentUser = data.user;
             document.getElementById('nav-auth-btn').style.display = 'none';
             document.getElementById('nav-profile-btn').classList.remove('hidden');
             document.getElementById('nav-profile-btn').style.display = 'block';
-
             showToast("Account created successfully!", "success");
             toggleAuthModal();
             switchView('profile');
@@ -290,9 +277,6 @@ window.handleLogout = function() {
     showToast("Logged out successfully.", "info");
 }
 
-// ==========================================
-// 7. CART LOGIC (مع حفظ البيانات)
-// ==========================================
 window.animateCartIcon = function() {
     const cartLink = document.querySelector('a[onclick="toggleCart(); return false;"]');
     if(cartLink) {
@@ -313,15 +297,12 @@ window.toggleCart = function() {
     panel.classList.add('translate-x-full');
   }
 }
-
 window.updateCartUI = function() {
   const cartCount = document.getElementById('cart-count');
   const cartItemsContainer = document.getElementById('cart-items');
   const cartTotal = document.getElementById('cart-total');
-
   if(cartCount) cartCount.textContent = cart.length;
   if(!cartItemsContainer) return;
-  
   if(cart.length === 0) {
       cartItemsContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center h-full text-center mt-10">
@@ -336,7 +317,6 @@ window.updateCartUI = function() {
       if(cartTotal) cartTotal.textContent = '0 EGP';
       return;
   }
-
   let total = 0;
   cartItemsContainer.innerHTML = '';
   cart.forEach((item, index) => {
@@ -368,26 +348,46 @@ window.addPdpToCart = function() {
     const title = document.getElementById('pdp-title').textContent;
     const priceText = document.getElementById('pdp-price').textContent;
     const price = parseFloat(priceText.replace(' EGP', ''));
-    
     cart.push({ id: Date.now(), type: 'STORE', title: title, size: size, price: price });
     saveCart();
     toggleCart();
     animateCartIcon(); 
 }
 
-// ==========================================
-// 8. CHECKOUT LOGIC
-// ==========================================
 window.goToCheckout = function() {
     if (!isLoggedIn) {
         toggleCart(); toggleAuthModal(); 
         showToast("Please Log In or Register first to proceed.", "error"); return;
     }
     if(cart.length === 0) { showToast("Your cart is empty!", "error"); return; }
-    
     toggleCart(); switchView('checkout');
 }
 
+window.trackOrder = async function(event) {
+    const serial = document.getElementById('track-serial').value.trim();
+    if(!serial) { showToast("Please enter a valid serial number", "error"); return; }
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Searching...';
+    btn.disabled = true;
+    try {
+        const { data, error } = await supabaseClient.from('orders').select('status, total_amount, created_at').eq('serial_number', serial).single();
+        const resDiv = document.getElementById('track-result');
+        resDiv.classList.remove('hidden');
+        if (error || !data) {
+            resDiv.innerHTML = '<span class="text-red-500 font-bold uppercase tracking-widest"><i class="fa-solid fa-circle-xmark mr-2"></i>Order Not Found</span>';
+        } else {
+            const date = new Date(data.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            let statusColor = data.status === 'Pending' ? 'text-yellow-500' : data.status === 'Shipped' ? 'text-blue-500' : 'text-green-500';
+            resDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Date:</span> <span class="text-white">${date}</span></div>
+                <div class="flex justify-between items-center mb-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Amount:</span> <span class="text-white font-bold">${data.total_amount} EGP</span></div>
+                <div class="flex justify-between items-center"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Status:</span> <span class="${statusColor} font-bold uppercase tracking-widest">${data.status}</span></div>
+            `;
+        }
+    } catch(err) {} 
+    finally { btn.innerHTML = originalText; btn.disabled = false; }
+};
 window.submitOrder = async function(event) {
     event.preventDefault();
     const email = document.getElementById('chk-email').value;
@@ -395,77 +395,74 @@ window.submitOrder = async function(event) {
 
     if (!isLoggedIn || !currentUser) { showToast("Please log in to complete your order.", "error"); return; }
 
-    let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
-    let serialNumber = 'ATQ-2026-' + Math.floor(100000 + Math.random() * 900000);
-
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
+    
+    const p1 = document.getElementById('chk-phone1') ? document.getElementById('chk-phone1').value : '';
+    const p2 = document.getElementById('chk-phone2') ? document.getElementById('chk-phone2').value : '';
+    
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(p1)) {
+        showToast("Please enter a valid 11-digit Egyptian phone number", "error");
+        return; 
+    }
+    const customerPhone = p2 ? `${p1} (WhatsApp: ${p2})` : p1;
+
     submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
     submitBtn.disabled = true;
 
     try {
-        // سحب كل التفاصيل من الفورم الاحترافي بتاعك
-        const customerName = document.getElementById('chk-name') ? document.getElementById('chk-name').value : 'N/A';
-        
-        // تجميع أرقام التليفون (الأساسي والواتساب)
-        const p1 = document.getElementById('chk-phone1') ? document.getElementById('chk-phone1').value : '';
-        const p2 = document.getElementById('chk-phone2') ? document.getElementById('chk-phone2').value : '';
-        const customerPhone = p2 ? `${p1} (WhatsApp: ${p2})` : p1 || 'N/A';
+        let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
+        if (appliedDiscount > 0) {
+            totalAmount = totalAmount - (totalAmount * (appliedDiscount / 100));
+        }
 
-        // تجميع العنوان بالكامل (الشارع، العمارة، الدور، الشقة، العلامة المميزة)
+        let serialNumber = 'ATQ-2026-' + Math.floor(100000 + Math.random() * 900000);
+        const customerName = document.getElementById('chk-name') ? document.getElementById('chk-name').value : 'N/A';
         const mainAddr = document.getElementById('chk-address') ? document.getElementById('chk-address').value : '';
         const bldg = document.getElementById('chk-building') ? document.getElementById('chk-building').value : '';
         const floor = document.getElementById('chk-floor') ? document.getElementById('chk-floor').value : '';
         const apt = document.getElementById('chk-apt') ? document.getElementById('chk-apt').value : '';
         const mark = document.getElementById('chk-landmark') ? document.getElementById('chk-landmark').value : '';
-        
         const customerAddress = `${mainAddr}, Bldg: ${bldg}, Floor: ${floor}, Apt: ${apt} ${mark ? '(Mark: '+mark+')' : ''}`;
 
-        // 1. تسجيل الطلب في قاعدة البيانات (Supabase) بكل التفاصيل
         const { error } = await supabaseClient.from('orders').insert([{
-            user_id: currentUser.id, 
-            serial_number: serialNumber, 
-            total_amount: totalAmount,
-            payment_method: paymentMethod, 
-            status: 'Pending',
-            full_name: customerName,
-            phone: customerPhone,
-            address: customerAddress,
-            items: cart // المنتجات بالكامل هتتبعت هنا
+            user_id: currentUser.id, serial_number: serialNumber, total_amount: totalAmount,
+            payment_method: paymentMethod, status: 'Pending', full_name: customerName,
+            phone: customerPhone, address: customerAddress, items: cart 
         }]);
         if (error) throw error;
 
-        // 2. إرسال إيميل الفاتورة للعميل (EmailJS)
-        try {
-            await emailjs.send("service_58ov5us", "template_kmoa9gi", {
-                serial_number: serialNumber,
-                email: email,
-                total_amount: totalAmount,
-                payment_method: paymentMethod
-            });
-            console.log("Email invoice sent successfully!");
-        } catch (emailErr) {
-            console.error("Failed to send email:", emailErr);
+        for (const item of cart) {
+            if (item.type === 'STORE' && item.title) {
+                const { data: prod } = await supabaseClient.from('products').select('stock_count').eq('name', item.title).single();
+                if (prod) {
+                    let newCount = prod.stock_count - 1;
+                    let newStatus = newCount <= 0 ? 'Out of Stock' : 'In Stock';
+                    await supabaseClient.from('products').update({ stock_count: newCount, stock_status: newStatus }).eq('name', item.title);
+                }
+            }
         }
 
-        // 3. إظهار رسالة النجاح للعميل
+        try {
+            await emailjs.send("service_58ov5us", "template_kmoa9gi", {
+                serial_number: serialNumber, email: email, total_amount: totalAmount, payment_method: paymentMethod
+            });
+        } catch (emailErr) {}
+
         document.getElementById('order-serial').textContent = serialNumber;
         document.getElementById('user-email-confirm').textContent = email;
-        
         const modal = document.getElementById('success-modal');
-        modal.classList.remove('hidden');
-        setTimeout(() => { modal.classList.remove('opacity-0'); }, 50);
+        modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); }, 50);
 
-        // تفريغ السلة
         cart = []; 
+        appliedDiscount = 0;
+        activeCouponCode = null;
         saveCart();
-
     } catch (error) { 
-        console.error(error);
         showToast("Failed to place order.", "error"); 
     } finally {
-        submitBtn.innerHTML = originalBtnText;
-        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText; submitBtn.disabled = false;
     }
 }
 
@@ -474,9 +471,7 @@ window.closeSuccessModal = function() {
     modal.classList.add('opacity-0');
     setTimeout(() => { modal.classList.add('hidden'); switchView('home'); }, 500);
 }
-// ==========================================
-// 9. WISHLIST & PROFILE (مع حفظ البيانات)
-// ==========================================
+
 window.addToWishlist = function() {
     if (!isLoggedIn) {
         toggleAuthModal(); showToast("Please Log In to add items to your wishlist.", "error"); return;
@@ -484,12 +479,10 @@ window.addToWishlist = function() {
     const title = document.getElementById('pdp-title').textContent;
     const exists = wishlist.find(item => item.title === title);
     if(exists) { showToast('Item is already in your Wishlist!', 'info'); return; }
-    
     const product = window.shopProductsData.find(p => p.name === title);
     const imgUrl = product ? product.image_url : "";
     const priceText = document.getElementById('pdp-price').textContent;
     const price = parseFloat(priceText.replace(' EGP', ''));
-
     wishlist.push({ title: title, price: price, image_url: imgUrl });
     saveWishlist();
     showToast('Added to wishlist!', 'success');
@@ -498,12 +491,10 @@ window.addToWishlist = function() {
 window.renderWishlist = function() {
     const container = document.getElementById('wishlist-container');
     if(!container) return;
-    
     if(wishlist.length === 0) {
         container.innerHTML = '<p class="text-gray-500 text-xs tracking-widest uppercase text-center col-span-full mt-10">Your wishlist is empty.</p>';
         return;
     }
-    
     container.innerHTML = wishlist.map((item, index) => `
     <div class="bg-[#0a0a0a] border border-[#222] p-4 group relative transition hover:border-white">
         <button onclick="removeFromWishlist(${index})" class="absolute top-4 right-4 z-10 text-gray-500 hover:text-red-500 transition text-lg"><i class="fa-solid fa-trash"></i></button>
@@ -517,9 +508,7 @@ window.renderWishlist = function() {
 }
 
 window.removeFromWishlist = function(index) {
-    wishlist.splice(index, 1);
-    saveWishlist();
-    showToast('Removed from wishlist.', 'info');
+    wishlist.splice(index, 1); saveWishlist(); showToast('Removed from wishlist.', 'info');
 }
 
 window.goToPDP_ByName = function(name) {
@@ -532,7 +521,6 @@ window.switchProfileTab = function(tabName) {
     const tabWishlist = document.getElementById('tab-wishlist');
     const ordersContent = document.getElementById('tab-orders');
     const wishlistContent = document.getElementById('wishlist-container');
-
     if (tabName === 'history') {
         if(tabHistory) { tabHistory.classList.remove('border-transparent', 'text-gray-500'); tabHistory.classList.add('border-white', 'text-white'); }
         if(tabWishlist) { tabWishlist.classList.remove('border-white', 'text-white'); tabWishlist.classList.add('border-transparent', 'text-gray-500'); }
@@ -555,7 +543,6 @@ window.fetchUserOrders = async function() {
     try {
         const { data: orders, error } = await supabaseClient.from('orders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
         if (error) throw error;
-
         if (orders.length === 0) {
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center text-center mt-10">
@@ -565,7 +552,6 @@ window.fetchUserOrders = async function() {
                 </div>`;
             return;
         }
-
         container.innerHTML = orders.map(order => {
             const date = new Date(order.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
             const statusColor = order.status === 'Pending' ? 'text-yellow-500 border-yellow-500' : 'text-green-500 border-green-500';
@@ -593,7 +579,6 @@ window.toggleSettingsModal = async function() {
     if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden'); modal.classList.add('flex');
         setTimeout(() => modal.classList.remove('opacity-0'), 10);
-        
         if (isLoggedIn && currentUser) {
             try {
                 const emailInput = document.getElementById('edit-email');
@@ -633,14 +618,9 @@ window.parent.saveProfileData = async function(e) {
     } catch (error) { showToast("Failed to update profile.", "error"); }
 }
 
-// ==========================================
-// 10. INITIALIZATION & FILTERS
-// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-   
    updateCartUI();
    renderWishlist();
-
    async function checkUserStatus() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session && session.user) {
@@ -660,7 +640,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
    loadShopProducts(); 
 
-   // ================= STUDIO LOGIC =================
    const designLayer = document.getElementById('designLayer');
    const uploadInput = document.getElementById('designUpload');
    const placementSelect = document.getElementById('placement');
@@ -727,7 +706,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
    }
 
-   // ================= FILTERS LOGIC =================
    let activeFilters = { category: 'all', size: 'all', color: 'all', fit: 'all' };
    let currentSort = 'default';
 
@@ -767,104 +745,102 @@ document.addEventListener('DOMContentLoaded', () => {
    if(sortSelect) { sortSelect.addEventListener('change', function() { currentSort = this.value; applyFilters(); }); }
 
    document.querySelectorAll('.filter-category-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            document.querySelectorAll('.filter-category-checkbox').forEach(cb => cb.checked = false);
-            this.checked = true; activeFilters.category = this.value; applyFilters();
-        });
+       checkbox.addEventListener('change', function() {
+           document.querySelectorAll('.filter-category-checkbox').forEach(cb => cb.checked = false);
+           this.checked = true; activeFilters.category = this.value; applyFilters();
+       });
    });
 
    document.querySelectorAll('.filter-fit-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            document.querySelectorAll('.filter-fit-checkbox').forEach(cb => cb.checked = false);
-            this.checked = true; activeFilters.fit = this.value; applyFilters();
-        });
+       checkbox.addEventListener('change', function() {
+           document.querySelectorAll('.filter-fit-checkbox').forEach(cb => cb.checked = false);
+           this.checked = true; activeFilters.fit = this.value; applyFilters();
+       });
    });
 
    document.querySelectorAll('.filter-size-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const size = this.getAttribute('data-size');
-            if (activeFilters.size === size) { activeFilters.size = 'all'; this.classList.remove('bg-white', 'text-black'); } 
-            else {
-                document.querySelectorAll('.filter-size-btn').forEach(b => b.classList.remove('bg-white', 'text-black'));
-                this.classList.add('bg-white', 'text-black'); activeFilters.size = size;
-            }
-            applyFilters();
-        });
+       btn.addEventListener('click', function() {
+           const size = this.getAttribute('data-size');
+           if (activeFilters.size === size) { activeFilters.size = 'all'; this.classList.remove('bg-white', 'text-black'); } 
+           else {
+               document.querySelectorAll('.filter-size-btn').forEach(b => b.classList.remove('bg-white', 'text-black'));
+               this.classList.add('bg-white', 'text-black'); activeFilters.size = size;
+           }
+           applyFilters();
+       });
    });
 
    document.querySelectorAll('.filter-color-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const color = this.getAttribute('data-color');
-            if (activeFilters.color === color) { activeFilters.color = 'all'; this.classList.remove('ring-2', 'ring-white'); } 
-            else {
-                document.querySelectorAll('.filter-color-btn').forEach(b => b.classList.remove('ring-2', 'ring-white'));
-                this.classList.add('ring-2', 'ring-white'); activeFilters.color = color;
-            }
-            applyFilters();
-        });
+       btn.addEventListener('click', function() {
+           const color = this.getAttribute('data-color');
+           if (activeFilters.color === color) { activeFilters.color = 'all'; this.classList.remove('ring-2', 'ring-white'); } 
+           else {
+               document.querySelectorAll('.filter-color-btn').forEach(b => b.classList.remove('ring-2', 'ring-white'));
+               this.classList.add('ring-2', 'ring-white'); activeFilters.color = color;
+           }
+           applyFilters();
+       });
    });
 
-   // ================= INTERSECTION OBSERVER =================
    if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) { entry.target.classList.add('active'); obs.unobserve(entry.target); }
-            });
-        }, { root: null, rootMargin: '0px', threshold: 0.15 });
-        document.querySelectorAll('.slow-reveal').forEach(el => observer.observe(el));
+       const observer = new IntersectionObserver((entries, obs) => {
+           entries.forEach(entry => {
+               if (entry.isIntersecting) { entry.target.classList.add('active'); obs.unobserve(entry.target); }
+           });
+       }, { root: null, rootMargin: '0px', threshold: 0.15 });
+       document.querySelectorAll('.slow-reveal').forEach(el => observer.observe(el));
    } else { document.querySelectorAll('.slow-reveal').forEach(el => el.classList.add('active')); }
 
-   // ================= MUSIC & CURSOR =================
    const music = document.getElementById('bg-music');
    const musicBtn = document.getElementById('music-toggle');
    const musicIcon = document.getElementById('music-icon');
    let isPlaying = false;
 
    if (music && musicBtn) {
-        music.volume = 0.3; 
-        let playPromise = music.play();
-        if (playPromise !== undefined) {
-            playPromise.then(_ => { isPlaying = true; musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; })
-            .catch(error => {
-                isPlaying = false; musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300';
-                document.body.addEventListener('click', function playOnFirstClick() {
-                    if (!isPlaying) { music.currentTime = 20; music.play(); isPlaying = true; musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; }
-                    document.body.removeEventListener('click', playOnFirstClick);
-                }, { once: true });
-            });
-        }
-        music.addEventListener('ended', function() { this.currentTime = 20; this.play(); });
-        musicBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            if (isPlaying) { music.pause(); musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300'; } 
-            else { if (music.currentTime < 20) music.currentTime = 20; music.play(); musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; }
-            isPlaying = !isPlaying;
-        });
+       music.volume = 0.3; 
+       let playPromise = music.play();
+       if (playPromise !== undefined) {
+           playPromise.then(_ => { isPlaying = true; musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; })
+           .catch(error => {
+               isPlaying = false; musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300';
+               document.body.addEventListener('click', function playOnFirstClick() {
+                   if (!isPlaying) { music.currentTime = 20; music.play(); isPlaying = true; musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; }
+                   document.body.removeEventListener('click', playOnFirstClick);
+               }, { once: true });
+           });
+       }
+       music.addEventListener('ended', function() { this.currentTime = 20; this.play(); });
+       musicBtn.addEventListener('click', (e) => {
+           e.stopPropagation(); 
+           if (isPlaying) { music.pause(); musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300'; } 
+           else { if (music.currentTime < 20) music.currentTime = 20; music.play(); musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; }
+           isPlaying = !isPlaying;
+       });
    }
 
    let originalTitle = document.title;
    document.addEventListener("visibilitychange", () => {
-        if (document.hidden) document.title = cart.length > 0 ? `(${cart.length}) عـتـيـق | طقمك في انتظارك 🖤` : "عـتـيـق | We miss you 🖤";
-        else document.title = originalTitle;
+       if (document.hidden) document.title = cart.length > 0 ? `(${cart.length}) عـتـيـق | طقمك في انتظارك 🖤` : "عـتـيـق | We miss you 🖤";
+       else document.title = originalTitle;
    });
 
    const cursor = document.getElementById('custom-cursor');
    document.addEventListener('mousemove', (e) => {
-        if (cursor) { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; }
+       if (cursor) { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; }
    });
 
    const mainAddBtn = document.getElementById('main-add-btn');
    const stickyBar = document.getElementById('sticky-cart-bar');
    if (mainAddBtn && stickyBar) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting && !document.getElementById('pdp-view').classList.contains('hidden')) {
-                    stickyBar.classList.remove('translate-y-full');
-                    document.getElementById('sticky-title').textContent = document.getElementById('pdp-title').textContent;
-                    document.getElementById('sticky-img').src = document.getElementById('main-pdp-img').src;
-                } else stickyBar.classList.add('translate-y-full');
-            });
-        }, { threshold: 0 }); 
-        observer.observe(mainAddBtn);
+       const observer = new IntersectionObserver((entries) => {
+           entries.forEach(entry => {
+               if (!entry.isIntersecting && !document.getElementById('pdp-view').classList.contains('hidden')) {
+                   stickyBar.classList.remove('translate-y-full');
+                   document.getElementById('sticky-title').textContent = document.getElementById('pdp-title').textContent;
+                   document.getElementById('sticky-img').src = document.getElementById('main-pdp-img').src;
+               } else stickyBar.classList.add('translate-y-full');
+           });
+       }, { threshold: 0 }); 
+       observer.observe(mainAddBtn);
    }
 });
