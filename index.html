@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عـتـيـق | ATEEQ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Space+Grotesk:wght@400;600;700&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+  (function(){
+    emailjs.init("knN6m8jjCj28sjTL5"); 
+  })();
+</script>
+</head>
+<body>
+  <div id="toast-notification" class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[300] bg-[#0a0a0a] border border-[#333] px-6 py-4 flex items-center gap-4 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-none shadow-2xl">
+    <i id="toast-icon" class="fa-solid fa-circle-info text-white text-lg"></i>
+    <span id="toast-message" class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-white"></span>
+  </div>
+
+  <div class="noise"></div>
+
+  <div id="splash-screen" class="fixed inset-0 z-[120] bg-[#030303] flex flex-col items-center justify-center">
+    <h1 class="brand-ar text-7xl text-white tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] animate-pulse">عـتـيـق</h1>
+  </div>
+
+  <div id="success-modal" class="fixed inset-0 bg-[#030303] z-[200] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500 p-6 text-center">
+     <i class="fa-solid fa-circle-check text-6xl text-white mb-6 animate-bounce"></i>
+     <h2 class="display-font text-4xl text-white uppercase mb-4">Order Confirmed</h2>
+     <p class="text-gray-400 text-sm tracking-widest uppercase mb-2">Your Order Serial Number is:</p>
+     <p id="order-serial" class="text-white text-3xl tracking-widest font-bold border border-[#333] px-8 py-4 bg-[#0a0a0a] mb-6 shadow-[0_0_20px_rgba(255,255,255,0.1)]"></p>
+     <p class="text-gray-400 text-[10px] md:text-xs tracking-widest uppercase mb-10 max-w-md">An automated email with your invoice and carrier tracking number has been sent to <span id="user-email-confirm" class="text-white font-bold"></span>.</p>
+     <button onclick="closeSuccessModal()" class="text-xs tracking-widest uppercase font-bold text-black bg-white hover:bg-gray-300 transition px-10 py-4">
+      Return to Home
+     </button>
+  </div>
+
+  <div id="auth-modal" class="fixed inset-0 bg-black/90 z-[200] hidden flex-col items-center justify-center p-4 backdrop-blur-sm">
+      <button onclick="toggleAuthModal()" class="absolute top-8 right-8 text-white text-3xl hover:text-gray-500 transition"><i class="fa-solid fa-xmark"></i></button>
+      <div class="w-full max-w-md bg-[#050505] border border-[#222] p-10 relative">
+          <div id="login-form-container" class="block">
+              <h2 class="display-font text-5xl text-white uppercase mb-2">Log In</h2>
+              <p class="text-xs text-gray-500 tracking-widest uppercase mb-10">Access your orders and wishlist</p>
+              <form onsubmit="window.parent.handleLogin(event)" class="flex flex-col gap-6">
+                  <div class="border-b border-[#333] pb-2">
+                      <input type="email" id="login-email" placeholder="Email Address" class="w-full bg-transparent text-white text-xs tracking-widest outline-none" required>
+                  </div>
+                  <div class="border-b border-[#333] pb-2">
+                      <input type="password" id="login-password" placeholder="Password" class="w-full bg-transparent text-white text-xs tracking-widest outline-none" required>
+                  </div>
+                  <button type="submit" class="w-full bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition mt-4">Sign In</button>
+              </form>
+              <p class="text-center text-[10px] text-gray-500 tracking-widest uppercase mt-8">
+                  Don't have an account? <button type="button" onclick="document.getElementById('login-form-container').classList.add('hidden'); document.getElementById('register-form-container').classList.remove('hidden');" class="text-white hover:text-gray-400 border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition">REGISTER</button>
+              </p>
+          </div>
+          <div id="register-form-container" class="hidden">
+              <h2 class="display-font text-5xl text-white uppercase mb-2">Register</h2>
+              <p class="text-xs text-gray-500 tracking-widest uppercase mb-10">Create an account to track orders</p>
+              <form onsubmit="window.parent.handleRegister(event)" class="flex flex-col gap-6">
+                  <div class="border-b border-[#333] pb-2">
+                      <input type="text" id="reg-name" placeholder="Full Name" class="w-full bg-transparent text-white text-xs tracking-widest outline-none" required>
+                  </div>
+                  <div class="border-b border-[#333] pb-2">
+                      <input type="email" id="reg-email" placeholder="Email Address" class="w-full bg-transparent text-white text-xs tracking-widest outline-none" required>
+                  </div>
+                  <div class="border-b border-[#333] pb-2">
+                      <input type="password" id="reg-password" placeholder="Password" class="w-full bg-transparent text-white text-xs tracking-widest outline-none" required>
+                  </div>
+                  <button type="submit" class="w-full bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition mt-4">Create Account</button>
+              </form>
+              <p class="text-center text-[10px] text-gray-500 tracking-widest uppercase mt-8">
+                  Already have an account? <button type="button" onclick="document.getElementById('register-form-container').classList.add('hidden'); document.getElementById('login-form-container').classList.remove('hidden');" class="text-white hover:text-gray-400 border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition">LOG IN</button>
+              </p>
+          </div>
+      </div>
+  </div>
+
+  <div id="size-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-6">
+    <div class="bg-[#050505] border border-[#333] w-full max-w-2xl p-8 md:p-12 relative">
+      <button onclick="toggleSizeGuide()" class="absolute top-6 right-6 text-white text-xl hover:text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+      <h2 class="display-font text-3xl text-white uppercase mb-6">Size Guide</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-400">
+          <thead class="text-xs uppercase bg-[#111] text-white tracking-widest">
+            <tr><th class="p-4 border-b border-[#333]">Size</th><th class="p-4 border-b border-[#333]">Chest (cm)</th><th class="p-4 border-b border-[#333]">Length (cm)</th><th class="p-4 border-b border-[#333]">Sleeve (cm)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="p-4 border-b border-[#222] text-white">L</td><td class="p-4 border-b border-[#222]">62</td><td class="p-4 border-b border-[#222]">72</td><td class="p-4 border-b border-[#222]">60</td></tr>
+            <tr><td class="p-4 border-b border-[#222] text-white">XL</td><td class="p-4 border-b border-[#222]">65</td><td class="p-4 border-b border-[#222]">75</td><td class="p-4 border-b border-[#222]">62</td></tr>
+            <tr><td class="p-4 border-b border-[#222] text-white">XXL</td><td class="p-4 border-b border-[#222]">68</td><td class="p-4 border-b border-[#222]">78</td><td class="p-4 border-b border-[#222]">64</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-gray-500 text-[10px] tracking-widest uppercase mt-6">* All measurements are approximate. Fit is deliberately oversized.</p>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-6">
+    <div class="bg-[#050505] border border-[#333] w-full max-w-md p-8 relative max-h-[90vh] flex flex-col">
+      <button onclick="toggleSettingsModal()" class="absolute top-6 right-6 text-white text-xl hover:text-gray-400 z-10"><i class="fa-solid fa-xmark"></i></button>
+      <div class="flex items-center gap-4 mb-6 border-b border-[#222] pb-6 mt-2 shrink-0">
+          <div class="w-14 h-14 bg-[#1a1a1a] rounded-full border border-[#333] flex items-center justify-center text-xl">
+              <i class="fa-solid fa-user-pen text-gray-400"></i>
+          </div>
+          <div>
+              <h2 class="display-font text-xl text-white uppercase">Edit Profile</h2>
+              <p class="text-gray-500 text-[10px] tracking-widest uppercase"><i class="fa-solid fa-circle-check text-green-500 mr-1"></i> Verified Member</p>
+          </div>
+      </div>
+      <div class="overflow-y-auto hide-scroll pr-2 mb-4">
+         <form onsubmit="window.parent.saveProfileData(event)" class="space-y-4 text-sm tracking-widest uppercase mt-4">
+      <div>
+          <label class="text-gray-500 text-[10px] block mb-1">Full Name</label>
+          <input type="text" id="edit-name" class="w-full bg-transparent border border-[#333] text-white p-3 text-xs tracking-widest outline-none focus:border-white transition" required>
+      </div>
+      <div>
+          <label class="text-gray-500 text-[10px] block mb-1">Email Address</label>
+          <input type="email" id="edit-email" class="w-full bg-[#111] border border-[#333] text-gray-500 p-3 text-xs tracking-widest outline-none cursor-not-allowed" readonly>
+      </div>
+      <div class="flex gap-4">
+          <div class="w-2/3">
+              <label class="text-gray-500 text-[10px] block mb-1">Phone Number</label>
+              <input type="tel" id="edit-phone" class="w-full bg-transparent border border-[#333] text-white p-3 text-xs tracking-widest outline-none focus:border-white transition">
+          </div>
+          <div class="w-1/3">
+              <label class="text-gray-500 text-[10px] block mb-1">Age</label>
+              <input type="number" id="edit-age" class="w-full bg-transparent border border-[#333] text-white p-3 text-xs tracking-widest outline-none focus:border-white transition">
+          </div>
+      </div>
+      <div>
+          <label class="text-gray-500 text-[10px] block mb-1">City / Governorate</label>
+          <input type="text" id="edit-city" class="w-full bg-transparent border border-[#333] text-white p-3 text-xs tracking-widest outline-none focus:border-white transition">
+      </div>
+      <div class="mt-6 flex flex-col gap-3 pt-2">
+          <button type="submit" class="w-full bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition">Save Changes</button>
+      </div>
+  </form>
+      </div>
+      <div class="shrink-0 border-t border-[#222] pt-4 mt-2">
+          <button onclick="handleLogout()" class="w-full border border-red-900 text-red-500 py-3 text-[10px] tracking-widest font-bold uppercase hover:bg-red-900 hover:text-white transition">Log Out</button>
+      </div>
+    </div>
+  </div>
+  <div id="cart-overlay" class="fixed inset-0 bg-black/80 z-[100] opacity-0 pointer-events-none transition-opacity duration-300" onclick="toggleCart()"></div>
+  <div id="cart-panel" class="fixed top-0 right-0 h-full w-full md:w-[400px] bg-[#050505] border-l border-[#222] z-[101] transform translate-x-full transition-transform duration-500 flex flex-col">
+    <div class="flex justify-between items-center p-8 border-b border-[#222]">
+      <h2 class="display-font text-3xl text-white uppercase">CART</h2>
+      <button onclick="toggleCart()" class="text-white text-2xl hover:text-gray-400 transition"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="cart-items" class="flex-grow overflow-y-auto p-8 space-y-6">
+        <div class="flex flex-col items-center justify-center h-full text-center mt-10">
+            <i class="fa-solid fa-cart-shopping text-5xl text-[#222] mb-6"></i>
+            <p class="text-gray-500 text-xs tracking-widest uppercase mb-6">Your cart is feeling empty.</p>
+            <div class="flex flex-col gap-3 w-full max-w-[250px] mx-auto">
+                <button onclick="toggleCart(); switchView('shop');" class="w-full border border-[#333] text-white py-4 text-[10px] uppercase tracking-widest font-bold hover:border-white hover:bg-white hover:text-black transition">Shop The Collection</button>
+                <button onclick="toggleCart(); openStudio('custom');" class="w-full border border-[#333] text-gray-500 py-4 text-[10px] uppercase tracking-widest hover:border-white hover:text-white transition">Design Custom</button>
+            </div>
+        </div>
+    </div>
+    <div class="p-8 border-t border-[#222] bg-[#0a0a0a]">
+      <div class="flex justify-between text-white font-bold tracking-widest uppercase text-sm mb-6">
+        <span>Total</span>
+        <span id="cart-total">0 EGP</span>
+      </div>
+      <button onclick="goToCheckout()" class="w-full bg-white text-black py-5 text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3">
+        PROCEED TO CHECKOUT
+      </button>
+    </div>
+  </div>
+
+  <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#0a0a0a] border border-[#333] px-4 py-2 rounded-full backdrop-blur-md shadow-2xl">
+    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+    <span class="text-[10px] tracking-widest uppercase font-bold text-white">Drop 01 : Live</span>
+  </div>
+
+  <nav class="fixed top-0 left-0 w-full z-40 mix-blend-difference px-6 py-6 flex justify-between items-center text-white">
+    <div class="hidden md:flex items-center gap-8 text-xs tracking-widest uppercase font-bold w-1/3">
+      <a href="#" onclick="switchView('home'); return false;" class="hover:opacity-50 transition">Home</a>
+      <a href="#" onclick="switchView('shop'); return false;" class="hover:opacity-50 transition">Shop</a>
+      <a href="#" onclick="switchView('about'); return false;" class="hover:opacity-50 transition">Story</a>
+      <a href="#" onclick="document.getElementById('search-bar').classList.toggle('hidden');" class="hover:opacity-50 transition"><i class="fa-solid fa-magnifying-glass"></i></a>
+    </div>
+    <div class="md:hidden w-1/3 flex justify-start">
+      <button onclick="toggleMobileMenu()" class="text-white text-xl"><i class="fa-solid fa-bars"></i></button>
+    </div>
+    <div class="w-1/3 flex justify-center">
+      <a href="#" onclick="switchView('home'); return false;" class="brand-ar text-4xl md:text-5xl hover:opacity-70 transition cursor-pointer leading-none">عـتـيـق</a>
+    </div>
+    <div class="w-1/3 flex justify-end items-center gap-6 text-xs tracking-widest uppercase font-bold relative z-50">
+  <a href="#" id="nav-auth-btn" onclick="toggleAuthModal(); return false;" class="hidden md:block hover:opacity-50 transition uppercase">Log In</a>    
+      <a href="#" id="nav-profile-btn" onclick="switchView('profile'); return false;" class="hover:opacity-50 transition" style="display: none;">
+          <i class="fa-regular fa-user text-lg"></i>
+      </a>
+      <a href="#" onclick="toggleCart(); return false;" class="hover:opacity-50 transition flex items-center gap-2 cursor-pointer transition-transform duration-300">
+        CART <span id="cart-count" class="bg-white text-black rounded-full w-5 h-5 flex items-center justify-center text-[10px]">0</span>
+      </a>
+    </div>
+  </nav>
+
+  <div id="search-bar" class="fixed top-20 left-0 w-full bg-[#050505] border-b border-[#333] z-30 hidden p-6 px-10">
+    <div class="max-w-4xl mx-auto flex items-center gap-4">
+      <i class="fa-solid fa-magnifying-glass text-gray-500"></i>
+      <input type="text" placeholder="Search for products, colors, collections..." class="w-full bg-transparent border-none text-white focus:outline-none text-sm tracking-widest uppercase placeholder-gray-600">
+      <button onclick="document.getElementById('search-bar').classList.add('hidden')" class="text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="fixed inset-0 z-50 bg-[#030303] opacity-0 invisible flex flex-col justify-center px-10 transition-all duration-300">
+    <button onclick="toggleMobileMenu()" class="absolute top-8 right-8 text-white text-3xl"><i class="fa-solid fa-xmark"></i></button>
+    <nav class="flex flex-col gap-8 display-font text-4xl text-white uppercase relative z-50">
+      <a href="#" onclick="switchView('home'); return false;" class="hover:text-gray-500 transition">Home</a>
+      <a href="#" onclick="switchView('shop'); return false;" class="hover:text-gray-500 transition">Shop All</a>
+      <a href="#" onclick="switchView('about'); return false;" class="hover:text-gray-500 transition">Our Story</a>
+      <a href="#" onclick="switchView('profile'); return false;" class="hover:text-gray-500 transition">My Account</a>
+      <a href="#" onclick="toggleAuthModal(); toggleMobileMenu(); return false;" class="hover:text-gray-500 transition">Log In</a>
+    </nav>
+  </div>
+
+  <main id="home-view" class="view-section block w-full min-h-screen">
+    <section class="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-[#030303]">
+      <div class="absolute inset-0 w-full h-full">
+        <img src="https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?q=80&w=1600&auto=format&fit=crop" class="w-full h-full object-cover opacity-30 grayscale zoom-bg" alt="Hero">
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/50"></div>
+      <h1 class="relative z-10 display-font text-[20vw] md:text-[18vw] leading-none uppercase text-center mt-10 hero-title tracking-tighter">ATEEQ</h1>
+      <div class="absolute bottom-10 left-10 hidden md:block text-[10px] tracking-widest uppercase text-gray-500 w-48 text-left">Redefining modern silhouettes. <br>Crafted from ultra-heavyweight premium blends.</div>
+      <div class="absolute bottom-10 right-10 hidden md:block text-[10px] tracking-widest uppercase text-gray-500 text-right">Alexandria, EG <br> Est. 2026</div>
+    </section>
+
+    <div class="border-y border-[#222] py-4 marquee display-font text-xl md:text-3xl text-white uppercase tracking-tighter bg-black relative z-20 slow-reveal">
+      <div class="marquee-content pr-8 gap-8">
+        <span>عـتـيـق STUDIOS • PREMIUM HEAVYWEIGHT • TRUE OVERSIZED FIT • NO DRAWSTRINGS • PURE LUXURY • MADE IN EGYPT • </span>
+        <span>عـتـيـق STUDIOS • PREMIUM HEAVYWEIGHT • TRUE OVERSIZED FIT • NO DRAWSTRINGS • PURE LUXURY • MADE IN EGYPT • </span>
+      </div>
+      <div class="marquee-content pr-8 gap-8">
+        <span>عـتـيـق STUDIOS • PREMIUM HEAVYWEIGHT • TRUE OVERSIZED FIT • NO DRAWSTRINGS • PURE LUXURY • MADE IN EGYPT • </span>
+        <span>عـتـيـق STUDIOS • PREMIUM HEAVYWEIGHT • TRUE OVERSIZED FIT • NO DRAWSTRINGS • PURE LUXURY • MADE IN EGYPT • </span>
+      </div>
+    </div>
+
+    <section id="featured-shop" class="w-full flex flex-col md:flex-row min-h-[80vh] border-b border-[#222] slow-reveal">
+      <div onclick="window.goToShop()" class="relative w-full md:w-1/2 h-[50vh] md:h-auto group cursor-pointer overflow-hidden border-b md:border-b-0 md:border-r border-[#222]">
+        <img src="https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" alt="Blank">
+        <div class="absolute inset-0 flex flex-col justify-between p-10">
+          <span class="text-xs tracking-widest uppercase border border-white px-3 py-1 w-max rounded-full backdrop-blur text-white">The Essentials</span>
+          <div><h2 class="display-font text-5xl md:text-7xl mb-2 text-white group-hover:translate-x-4 transition-transform duration-500">BLANKS</h2><p class="font-bold text-sm text-gray-400">View Collection</p></div>
+        </div>
+      </div>
+      <div onclick="openStudio('custom')" class="relative w-full md:w-1/2 h-[50vh] md:h-auto group cursor-pointer overflow-hidden">
+        <img src="https://i5.walmartimages.com/seo/Custom-Hoodies-Design-Your-Own-Personalized-Photo-Text-Hoodie-Custom-Sweatshirt-4-Side-Print_59c2e1b8-019d-4751-855e-6d2b0b467a52.33353a5540fe0613cd3ce2f7dcb527a4.jpeg" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" alt="Custom">
+        <div class="absolute inset-0 flex flex-col justify-between p-10 text-right md:text-left items-end md:items-start">
+          <span class="text-xs tracking-widest uppercase border border-white px-3 py-1 w-max rounded-full backdrop-blur text-white">DTF Print</span>
+          <div class="w-full flex flex-col items-end"><h2 class="display-font text-5xl md:text-7xl mb-2 text-white group-hover:-translate-x-4 transition-transform duration-500">CUSTOM</h2><p class="font-bold text-sm text-gray-400">View Collection</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="relative w-full min-h-screen bg-[#050505] border-b border-[#222] flex flex-col items-center justify-center overflow-hidden py-20 slow-reveal">
+      <div class="absolute top-10 md:top-20 text-center z-20 w-full px-6">
+        <h2 class="display-font text-3xl md:text-5xl text-white uppercase mb-2">360° Prototype</h2>
+        <p class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-gray-500">Virtual Clothing Showroom</p>
+      </div>
+      <div class="relative w-full max-w-4xl h-[60vh] md:h-[70vh] flex items-center justify-center mt-10">
+        <div class="absolute bottom-10 w-[60%] h-[15vw] bg-[#1a1a1a] rounded-full blur-2xl podium border border-[#333] z-0"></div>
+        <video autoplay loop muted playsinline width="100%" class="relative z-10 pointer-events-none">
+          <source src="hoodie.mp4" type="video/mp4">
+          متصفحك لا يدعم تشغيل الفيديو.
+        </video>
+        <div class="absolute bottom-10 left-10 z-20 hidden md:block">
+          <p class="text-[9px] font-mono text-gray-500 uppercase">File: Drop01_Hoodie_V3.obj<br>Material: Heavyweight Cotton 450gsm<br>Render: Realtime 60fps</p>
+        </div>
+        <div class="absolute bottom-10 right-10 z-20 flex gap-4 text-xs tracking-widest uppercase font-bold text-white">
+          <span class="flex items-center gap-2 border border-[#333] bg-black/50 backdrop-blur px-4 py-2 rounded-full">
+            <i class="fa-solid fa-rotate text-gray-400"></i> Auto-Spin
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="w-full py-24 px-8 bg-[#030303] border-b border-[#222] slow-reveal">
+      <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-end mb-16">
+          <h2 class="display-font text-3xl md:text-5xl text-white uppercase">Collection</h2>
+          <a href="#" onclick="window.goToShop(); return false;" class="text-xs tracking-widest uppercase font-bold text-gray-400 hover:text-white transition border-b border-gray-400 hover:border-white pb-1">View Full Shop</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="w-full h-[60vh] md:h-[80vh] overflow-hidden group border border-[#222]">
+            <img src="https://th.bing.com/th/id/OIP._YlWcFapcMbCa98FzHej2gHaHa?rs=1&pid=ImgDetMain" alt="Look 1" class="w-full h-full object-cover grayscale opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
+          </div>
+          <div class="w-full h-[60vh] md:h-[80vh] overflow-hidden group border border-[#222] md:mt-16">
+            <img src="https://m.media-amazon.com/images/I/61DzLJHS27L._AC_UY1000_.jpg" alt="Look 2" class="w-full h-full object-cover grayscale opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
+          </div>
+          <div class="w-full h-[60vh] md:h-[80vh] overflow-hidden group border border-[#222]">
+            <img src="https://i5.walmartimages.com/seo/Womens-Oversized-Hoodies-Fleece-Sweatshirts-Long-Sleeve-Sweaters-Pullover-Fall-Outfits-with-Pocket_f7e46bfd-ffd7-4468-92d4-77505d811915.f8c37ec4a3a4c124107ac2eb5ddebaa2.jpeg" alt="Look 3" class="w-full h-full object-cover grayscale opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <main id="about-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-40 pb-24 relative z-20">
+    <div class="max-w-5xl mx-auto px-6 text-center">
+      <h1 class="display-font text-5xl md:text-7xl text-white uppercase mb-8">More Than Fabric.</h1>
+      <p class="text-gray-400 text-sm md:text-base leading-relaxed tracking-widest uppercase mb-24 max-w-3xl mx-auto border-l border-r border-[#333] px-8">
+        Ateeq was born in Alexandria out of a desire to redefine modern streetwear. We don't just make clothes; we craft heavyweight silhouettes designed to last a lifetime. No compromises, no shortcuts. Just pure, unadulterated luxury blending the past with the future.
+      </p>
+
+      <h2 class="display-font text-3xl md:text-5xl text-white mb-4 uppercase">The Visionaries</h2>
+      <p class="text-gray-400 text-xs md:text-sm mb-16 tracking-widest uppercase">Three minds. One vision.</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div class="flex flex-col items-center group">
+          <div class="w-32 h-32 md:w-40 md:h-40 bg-[#0a0a0a] rounded-full border border-[#333] mb-5 overflow-hidden group-hover:border-white transition-colors duration-300">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mohamed&backgroundColor=transparent&accessoriesProbability=10" alt="Mohamed" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+          </div>
+          <h3 class="display-font text-xl text-white mb-1">MOHAMED</h3>
+          <span class="text-[10px] tracking-widest uppercase text-gray-500">Co-Founder</span>
+        </div>
+
+        <div class="flex flex-col items-center group">
+          <div class="w-32 h-32 md:w-40 md:h-40 bg-[#0a0a0a] rounded-full border border-[#333] mb-5 overflow-hidden group-hover:border-white transition-colors duration-300">
+            <img src="https://api.dicebear.com/7.x/micah/svg?seed=AbdelrahmanBoy&backgroundColor=transparent" alt="Abdelrahman" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+          </div>
+          <h3 class="display-font text-xl text-white mb-1">ABDELRAHMAN</h3>
+          <span class="text-[10px] tracking-widest uppercase text-gray-500">Co-Founder</span>
+        </div>
+
+        <div class="flex flex-col items-center group">
+          <div class="w-32 h-32 md:w-40 md:h-40 bg-[#0a0a0a] rounded-full border border-[#333] mb-5 overflow-hidden group-hover:border-white transition-colors duration-300">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Yahia&backgroundColor=transparent" alt="Yahia" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+          </div>
+          <h3 class="display-font text-xl text-white mb-1">YAHIA</h3>
+          <span class="text-[10px] tracking-widest uppercase text-gray-500">Co-Founder</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <main id="shop-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-32 relative z-20">
+    <div class="max-w-7xl mx-auto px-6 pb-24 flex flex-col md:flex-row gap-10">
+      <aside class="w-full md:w-1/4 flex flex-col gap-8 border-r border-[#222] pr-6">
+         <div>
+           <h3 class="text-white tracking-widest uppercase font-bold text-sm mb-4 border-b border-[#222] pb-2">Category</h3>
+           <div class="flex flex-col gap-2 text-gray-400 text-xs tracking-widest uppercase">
+              <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" value="all" class="filter-category-checkbox accent-white" checked> All Products</label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" value="hoodies" class="filter-category-checkbox accent-white"> Hoodies</label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" value="graphic tees" class="filter-category-checkbox accent-white"> Graphic Tees</label>
+           </div>
+         </div>
+         <div>
+           <h3 class="text-white tracking-widest uppercase font-bold text-sm mb-4 border-b border-[#222] pb-2">Fit</h3>
+           <div class="flex flex-col gap-2 text-gray-400 text-xs tracking-widest uppercase">
+              <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" value="all" class="filter-fit-checkbox accent-white" checked> All Fits</label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" value="oversized" class="filter-fit-checkbox accent-white"> Oversized</label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" value="boxy" class="filter-fit-checkbox accent-white"> Boxy</label>
+           </div>
+         </div>
+         <div>
+           <h3 class="text-white tracking-widest uppercase font-bold text-sm mb-4 border-b border-[#222] pb-2">Size</h3>
+           <div class="flex flex-wrap gap-2 text-gray-400 text-xs tracking-widest uppercase">
+              <button class="filter-size-btn border border-[#333] px-3 py-1 hover:border-white hover:text-white transition" data-size="m">M</button>
+              <button class="filter-size-btn border border-[#333] px-3 py-1 hover:border-white hover:text-white transition" data-size="l">L</button>
+              <button class="filter-size-btn border border-[#333] px-3 py-1 hover:border-white hover:text-white transition" data-size="xl">XL</button>
+              <button class="filter-size-btn border border-[#333] px-3 py-1 hover:border-white hover:text-white transition" data-size="xxl">XXL</button>
+           </div>
+         </div>
+         <div>
+           <h3 class="text-white tracking-widest uppercase font-bold text-sm mb-4 border-b border-[#222] pb-2">Color</h3>
+           <div class="flex gap-2">
+              <button class="filter-color-btn w-6 h-6 rounded-full bg-[#1a1a1a] border border-[#333]" data-color="black"></button>
+              <button class="filter-color-btn w-6 h-6 rounded-full bg-[#9b9b9b] border border-[#333]" data-color="grey"></button>
+              <button class="filter-color-btn w-6 h-6 rounded-full bg-[#c2b29c] border border-[#333]" data-color="sand"></button>
+           </div>
+         </div>
+      </aside>
+
+      <div class="w-full md:w-3/4">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-[#222] pb-4 gap-4">
+             <h3 class="text-white display-font text-3xl uppercase">Products</h3>
+             <div class="flex items-center gap-6">
+                 <span id="results-count" class="text-gray-500 text-xs tracking-widest uppercase">4 Results</span>
+                 <select id="sort-select" class="bg-transparent text-white text-xs tracking-widest uppercase font-bold border border-[#333] p-2 focus:outline-none cursor-pointer">
+                     <option value="default" class="bg-black">Sort: Featured</option>
+                     <option value="price-asc" class="bg-black">Price: Low to High</option>
+                     <option value="price-desc" class="bg-black">Price: High to Low</option>
+                 </select>
+             </div>
+          </div>
+          
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-20" id="products-container">
+            </div>
+    </div>
+  </div>
+</main>
+  <main id="pdp-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-32 pb-24 relative z-20">
+    <div class="max-w-7xl mx-auto px-6">
+      <button onclick="switchView('shop')" class="mb-8 text-xs tracking-widest uppercase font-bold hover:opacity-50 transition text-gray-500"><i class="fa-solid fa-arrow-left"></i> Back to Shop</button>
+      
+      <div class="flex flex-col lg:flex-row gap-16">
+        <div class="w-full lg:w-1/2 flex gap-4">
+           <div id="pdp-gallery" class="w-20 flex flex-col gap-4 overflow-y-auto hide-scroll h-[60vh]">
+              </div>
+           
+           <div class="flex-grow bg-[#0a0a0a] border border-[#222] p-10 flex items-center justify-center">
+              <img id="main-pdp-img" src="" class="w-full h-auto max-h-[70vh] object-contain" alt="Main Product">
+           </div>
+        </div>
+        
+        <div class="w-full lg:w-1/2 text-white">
+           <h1 id="pdp-title" class="display-font text-5xl uppercase mb-2">Product Title</h1>
+           <div class="flex items-center gap-4 mb-6">
+              <p id="pdp-price" class="font-bold text-xl tracking-widest">0 EGP</p>
+              <span class="text-gray-500">|</span>
+              <div class="flex text-yellow-500 text-xs">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                <a href="#reviews" class="text-gray-400 ml-2 underline">2 Reviews</a>
+              </div>
+           </div>
+             The ultimate essential. Cut from 380GSM heavyweight Milton fabric, featuring a true dropped-shoulder oversized fit. No drawstrings for a clean, minimalist silhouette. Designed to last a lifetime.
+           </p>
+
+           <div class="mb-8 border-t border-b border-[#222] py-6">
+              <div class="flex justify-between items-center mb-4">
+                 <span class="text-xs tracking-widest uppercase font-bold text-gray-400">Size</span>
+                 <button onclick="toggleSizeGuide()" class="text-[10px] tracking-widest uppercase underline text-white">Size Guide</button>
+              </div>
+              <div class="grid grid-cols-4 gap-4">
+                <label class="cursor-pointer"><input type="radio" name="pdp-size" value="M" class="size-radio hidden"><div class="py-3 text-center border border-[#333] text-sm tracking-widest font-bold transition uppercase">M</div></label>
+                <label class="cursor-pointer"><input type="radio" name="pdp-size" value="L" class="size-radio hidden" checked><div class="py-3 text-center border border-[#333] text-sm tracking-widest font-bold transition uppercase">L</div></label>
+                <label class="cursor-pointer"><input type="radio" name="pdp-size" value="XL" class="size-radio hidden"><div class="py-3 text-center border border-[#333] text-sm tracking-widest font-bold transition uppercase">XL</div></label>
+                <label class="cursor-pointer"><input type="radio" name="pdp-size" value="XXL" class="size-radio hidden"><div class="py-3 text-center border border-[#333] text-sm tracking-widest font-bold transition uppercase">XXL</div></label>
+              </div>
+           </div>
+
+           <div class="flex gap-4">
+              <button id="main-add-btn" onclick="addPdpToCart()" class="flex-grow bg-white text-black py-5 text-sm tracking-widest font-bold uppercase hover:bg-gray-300 transition">Add To Cart</button>
+              <button onclick="addToWishlist()" class="w-16 flex items-center justify-center border border-[#333] hover:border-white transition group"><i class="fa-regular fa-heart text-xl group-hover:text-red-500 transition"></i></button>
+           </div>
+
+           <ul class="mt-10 space-y-4 text-xs tracking-widest uppercase text-gray-500">
+              <li><i class="fa-solid fa-box mr-3 text-white"></i> In stock. Ships in 2-4 days.</li>
+              <li><i class="fa-solid fa-rotate-left mr-3 text-white"></i> 14-Day Returns & Exchanges.</li>
+           </ul>
+        </div>
+      </div>
+
+      <div id="reviews" class="mt-32 border-t border-[#222] pt-16 text-white max-w-4xl mx-auto">
+         <div class="flex justify-between items-end mb-10">
+             <h2 class="display-font text-3xl uppercase">Comments (2)</h2>
+             <button class="text-xs tracking-widest uppercase font-bold text-gray-400 hover:text-white transition border-b border-gray-400 hover:border-white pb-1">Write a Review</button>
+         </div>
+         <div class="space-y-8">
+            <div class="flex gap-4 border-b border-[#111] pb-8">
+               <div class="w-12 h-12 bg-[#1a1a1a] rounded-full flex items-center justify-center text-gray-500 shrink-0 border border-[#333]"><i class="fa-solid fa-user"></i></div>
+               <div class="w-full">
+                  <div class="flex justify-between items-start mb-2">
+                      <div>
+                          <h5 class="text-white text-xs font-bold uppercase tracking-widest">Omar K. <i class="fa-solid fa-circle-check text-green-500 ml-1" title="Verified Buyer"></i></h5>
+                          <div class="flex text-yellow-500 text-[10px] mt-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                      </div>
+                      <span class="text-gray-600 text-[10px] uppercase tracking-widest">2 Days Ago</span>
+                  </div>
+                  <p class="text-gray-400 text-sm leading-relaxed mt-2">The material is incredibly thick and heavy. The drop shoulder fits exactly how it should. Finally a local brand doing it right without cutting corners.</p>
+                  <div class="flex gap-4 mt-3 text-[10px] text-gray-500 tracking-widest uppercase font-bold">
+                      <button class="hover:text-white transition"><i class="fa-regular fa-thumbs-up mr-1"></i> Helpful (12)</button>
+                      <button class="hover:text-white transition">Reply</button>
+                  </div>
+               </div>
+            </div>
+            <div class="flex gap-4 border-b border-[#111] pb-8">
+               <div class="w-12 h-12 bg-[#1a1a1a] rounded-full flex items-center justify-center text-gray-500 shrink-0 border border-[#333]"><i class="fa-solid fa-user"></i></div>
+               <div class="w-full">
+                  <div class="flex justify-between items-start mb-2">
+                      <div>
+                          <h5 class="text-white text-xs font-bold uppercase tracking-widest">Youssef M. <i class="fa-solid fa-circle-check text-green-500 ml-1" title="Verified Buyer"></i></h5>
+                          <div class="flex text-yellow-500 text-[10px] mt-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></div>
+                      </div>
+                      <span class="text-gray-600 text-[10px] uppercase tracking-widest">1 Week Ago</span>
+                  </div>
+                  <p class="text-gray-400 text-sm leading-relaxed mt-2">Washed it 3 times so far and the fabric holds up perfectly, no lint inside. Fits a bit bigger than expected but I like the baggy look.</p>
+                  <div class="flex gap-4 mt-3 text-[10px] text-gray-500 tracking-widest uppercase font-bold">
+                      <button class="hover:text-white transition"><i class="fa-regular fa-thumbs-up mr-1"></i> Helpful (4)</button>
+                      <button class="hover:text-white transition">Reply</button>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+    </div>
+  </main>
+
+  <main id="profile-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-32 pb-24 relative z-20 text-white">
+    <div class="max-w-5xl mx-auto px-6 relative">
+      <div class="relative flex justify-center items-center mb-10">
+          <h2 class="display-font text-5xl md:text-6xl uppercase text-center">My Account</h2>
+          <button onclick="toggleSettingsModal()" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition text-3xl" title="Settings & Info">
+              <i class="fa-solid fa-user-gear"></i>
+          </button>
+      </div>
+      <div class="flex justify-center gap-10 border-b border-[#222] mb-10">
+         <button id="tab-history" onclick="switchProfileTab('history')" class="pb-4 border-b-2 border-white tracking-widest uppercase text-sm font-bold text-white transition">Order History</button>
+         <button id="tab-wishlist" onclick="switchProfileTab('wishlist')" class="pb-4 border-b-2 border-transparent text-gray-500 hover:text-white tracking-widest uppercase text-sm font-bold transition">Wishlist</button>
+      </div>
+      <div id="tab-orders" class="block">
+      <div id="orders-container" class="space-y-6 flex flex-col">
+          <p class="text-center text-gray-500 text-xs tracking-widest uppercase mt-10">
+              <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-4"></i><br>
+              Loading your orders...
+          </p>
+      </div>
+  </div>
+      <div id="wishlist-container" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 transition-all duration-300">
+      </div>
+    </div>
+  </main>
+  <main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#030303] flex flex-col relative z-20">
+    <div class="flex flex-col lg:flex-row w-full flex-grow relative z-10">
+      <div class="w-full lg:w-1/2 h-[60vh] lg:h-screen lg:sticky top-0 relative bg-[#0a0a0a] border-r border-[#222] flex items-center justify-center overflow-hidden">
+        <button onclick="switchView('shop')" class="absolute top-24 left-8 z-30 text-xs tracking-widest uppercase font-bold hover:opacity-50 transition border border-[#333] px-4 py-2 rounded-full backdrop-blur flex items-center gap-2 text-white"><i class="fa-solid fa-arrow-left"></i> BACK</button>
+        <div class="absolute top-24 right-8 z-30 text-[10px] tracking-widest uppercase text-gray-500">Live Studio Preview</div>
+        <img id="hoodieBase" class="hoodie-black w-full h-full object-contain transition duration-500 p-10" src="https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?q=80&w=1200&auto=format&fit=crop" alt="Hoodie preview">
+        <img id="designLayer" class="design-overlay absolute hidden" style="width: 25%; max-height: 35%; left: 50%; top: 48%; transform: translate(-50%,-50%);" alt="Your design">
+      </div>
+      <div class="w-full lg:w-1/2 min-h-screen p-8 md:p-16 pt-10 lg:pt-32 flex flex-col justify-between text-white">
+        <div>
+          <h2 id="studio-title" class="display-font text-5xl md:text-6xl mb-12 uppercase">CUSTOM LAB</h2>
+          <form id="orderForm" class="space-y-12">
+          <div>
+            <div class="flex justify-between items-end border-b border-[#222] pb-2 mb-6">
+              <span class="text-xs tracking-widest uppercase font-bold text-gray-400">01 / Color</span>
+              <span id="colorLabel" class="text-xs tracking-widest uppercase font-bold text-white">Black</span>
+            </div>
+            <div class="flex gap-4">
+              <button type="button" data-color="Black" data-filter="hoodie-black" class="swatch active w-12 h-12 rounded-full border border-[#333] transition ring-2 ring-white" style="background:#0a0a0a;"></button>
+              <button type="button" data-color="Grey" data-filter="hoodie-grey" class="swatch w-12 h-12 rounded-full border border-[#333] transition" style="background:#555;"></button>
+              <button type="button" data-color="Sand" data-filter="hoodie-sand" class="swatch w-12 h-12 rounded-full border border-[#333] transition" style="background:#c2b29c;"></button>
+            </div>
+          </div>
+          <div>
+            <div class="border-b border-[#222] pb-2 mb-6"><span class="text-xs tracking-widest uppercase font-bold text-gray-400">02 / Size</span></div>
+            <div class="grid grid-cols-3 gap-4">
+              <label class="cursor-pointer"><input type="radio" name="size" value="L" class="size-radio hidden" checked><div class="py-4 text-center border border-[#333] text-sm tracking-widest font-bold transition uppercase">L</div></label>
+              <label class="cursor-pointer"><input type="radio" name="size" value="XL" class="size-radio hidden"><div class="py-4 text-center border border-[#333] text-sm tracking-widest font-bold transition uppercase">XL</div></label>
+              <label class="cursor-pointer"><input type="radio" name="size" value="XXL" class="size-radio hidden"><div class="py-4 text-center border border-[#333] text-sm tracking-widest font-bold transition uppercase">XXL</div></label>
+            </div>
+          </div>
+          <div id="custom-fields" class="space-y-12">
+              <div>
+                <div class="border-b border-[#222] pb-2 mb-6"><span class="text-xs tracking-widest uppercase font-bold text-gray-400">03 / Artwork</span></div>
+                <label class="flex flex-col items-center justify-center border border-[#333] bg-[#0a0a0a] py-12 cursor-pointer hover:border-white transition group">
+                  <i class="fa-solid fa-arrow-up-from-bracket text-2xl mb-4 text-gray-500 group-hover:text-white transition"></i>
+                  <span id="uploadLabel" class="text-xs tracking-widest uppercase font-bold text-gray-400 group-hover:text-white transition">Upload PNG/JPG</span>
+                  <input type="file" id="designUpload" accept="image/png, image/jpeg" class="hidden">
+                </label>
+              </div>
+              <div>
+                <div class="border-b border-[#222] pb-2 mb-6"><span class="text-xs tracking-widest uppercase font-bold text-gray-400">04 / Placement</span></div>
+                <select id="placement" class="field w-full py-4 text-sm font-bold uppercase tracking-widest bg-transparent cursor-pointer">
+                  <option value="center" data-label="Center Chest">Center Chest</option>
+                  <option value="pocket" data-label="Pocket Logo">Pocket Logo</option>
+                  <option value="back" data-label="Back Print">Back Print</option>
+                </select>
+              </div>
+          </div>
+          <button type="submit" class="w-full bg-white text-black py-6 text-sm tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3 mt-8">ADD TO CART <i class="fa-solid fa-cart-plus text-xl"></i></button>
+        </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <main id="checkout-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-32 relative z-20">
+    <div class="max-w-4xl mx-auto px-6 pb-24">
+      <button onclick="toggleCart(); switchView('shop');" class="mb-10 text-xs tracking-widest uppercase font-bold hover:opacity-50 transition border border-[#333] px-4 py-2 rounded-full backdrop-blur flex items-center gap-2 text-white w-max"><i class="fa-solid fa-arrow-left"></i> BACK TO CART</button>
+      <h2 class="display-font text-5xl md:text-7xl text-white uppercase mb-4 text-center">Checkout</h2>
+      <p class="text-gray-400 text-xs tracking-widest uppercase mb-16 text-center">Secure Payment & Shipping</p>
+
+      <form id="checkoutForm" onsubmit="submitOrder(event)" class="space-y-8 bg-[#0a0a0a] p-8 md:p-12 border border-[#222]">
+        <div class="space-y-4">
+          <h3 class="text-white display-font text-xl uppercase border-b border-[#333] pb-2 mb-4">Contact Info</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" id="chk-name" required placeholder="Full Name" class="field w-full py-3 bg-transparent text-white text-sm">
+            <input type="email" id="chk-email" required placeholder="Email Address" class="field w-full py-3 bg-transparent text-white text-sm">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="tel" id="chk-phone1" required placeholder="Phone Number" class="field w-full py-3 bg-transparent text-white text-sm">
+            <input type="tel" id="chk-phone2" placeholder="WhatsApp Number" class="field w-full py-3 bg-transparent text-white text-sm">
+          </div>
+        </div>
+        <div class="space-y-4 pt-6">
+          <h3 class="text-white display-font text-xl uppercase border-b border-[#333] pb-2 mb-4">Shipping Address</h3>
+          <input type="text" id="chk-address" required placeholder="Detailed Address (Street, Area)" class="field w-full py-3 bg-transparent text-white text-sm">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="text" id="chk-building" required placeholder="Building No." class="field w-full py-3 bg-transparent text-white text-sm">
+            <input type="text" id="chk-floor" required placeholder="Floor" class="field w-full py-3 bg-transparent text-white text-sm">
+            <input type="text" id="chk-apt" required placeholder="Apartment" class="field w-full py-3 bg-transparent text-white text-sm">
+          </div>
+          <input type="text" id="chk-landmark" placeholder="Landmark / Special Mark" class="field w-full py-3 bg-transparent text-white text-sm">
+        </div>
+        <div class="space-y-4 pt-6">
+          <h3 class="text-white display-font text-xl uppercase border-b border-[#333] pb-2 mb-4">Payment Method</h3>
+          <div class="flex flex-col gap-3">
+            <label class="flex items-center gap-3 text-white cursor-pointer p-4 border border-[#333] hover:border-white transition">
+              <input type="radio" name="payment" value="Cash on Delivery" checked class="accent-white">
+              <span class="text-sm tracking-widest uppercase">Cash on Delivery</span>
+            </label>
+            <label class="flex items-center gap-3 text-white cursor-pointer p-4 border border-[#333] hover:border-white transition">
+              <input type="radio" name="payment" value="InstaPay" class="accent-white">
+              <span class="text-sm tracking-widest uppercase">InstaPay</span>
+            </label>
+            <label class="flex items-center gap-3 text-white cursor-pointer p-4 border border-[#333] hover:border-white transition">
+              <input type="radio" name="payment" value="Orange Cash" class="accent-white">
+              <span class="text-sm tracking-widest uppercase">Orange Cash / Vodafone Cash</span>
+            </label>
+          </div>
+        </div>
+        <button type="submit" class="w-full bg-white text-black py-6 text-sm tracking-widest font-bold uppercase hover:bg-gray-300 transition mt-8">Confirm & Place Order</button>
+      </form>
+    </div>
+  </main>
+
+  <div id="sticky-cart-bar" class="fixed bottom-0 left-0 w-full bg-[#0a0a0a]/90 backdrop-blur-md border-t border-[#333] z-40 transform translate-y-full transition-transform duration-500 flex justify-between items-center px-6 py-4 md:px-10">
+      <div class="flex items-center gap-4">
+          <img id="sticky-img" src="" class="w-10 h-12 object-cover border border-[#222]">
+          <div class="hidden md:block">
+              <h4 id="sticky-title" class="text-white text-xs font-bold tracking-widest uppercase">Product</h4>
+              <p id="sticky-price" class="text-gray-500 text-[10px] tracking-widest uppercase mt-1">800 EGP</p>
+          </div>
+      </div>
+      <div class="flex items-center gap-4">
+          <button onclick="addPdpToCart()" class="bg-white text-black px-8 py-3 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition shadow-[0_0_15px_rgba(255,255,255,0.3)]">Add To Cart</button>
+      </div>
+  </div>
+
+  <div id="shared-footer" class="w-full relative z-20 bg-[#030303] block">
+    <section class="w-full py-24 px-8 bg-[#050505] border-t border-b border-[#222] slow-reveal text-white">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="display-font text-4xl md:text-6xl text-white uppercase mb-16 text-center">Our Policies</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
+          <div><h3 class="font-bold tracking-widest uppercase mb-4 text-sm border-b border-[#333] pb-3 text-gray-300"><i class="fa-solid fa-truck-fast mr-2"></i> Shipping</h3><p class="text-gray-500 text-sm leading-relaxed tracking-wide">Delivery within Alexandria takes 2-4 working days. All orders are hand-delivered locally by our team to ensure premium handling and condition upon arrival.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-4 text-sm border-b border-[#333] pb-3 text-gray-300"><i class="fa-solid fa-rotate-left mr-2"></i> Returns & Exchanges</h3><p class="text-gray-500 text-sm leading-relaxed tracking-wide">Returns and exchanges are accepted within 14 days of receiving your order, provided the item is unworn, unwashed, and in its original packaging.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-4 text-sm border-b border-[#333] pb-3 text-gray-300"><i class="fa-solid fa-shirt mr-2"></i> Care Instructions</h3><p class="text-gray-500 text-sm leading-relaxed tracking-wide">To protect the 380GSM fabric and DTF prints: Machine wash cold, inside out. Do not iron directly on the print. Hang dry naturally to maintain the oversized structure.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-4 text-sm border-b border-[#333] pb-3 text-gray-300"><i class="fa-solid fa-pen-ruler mr-2"></i> Custom Orders</h3><p class="text-gray-500 text-sm leading-relaxed tracking-wide">Custom printed items are non-refundable unless there is a manufacturing defect. We ensure the highest quality DTF printing, but please ensure your uploaded artwork is clear.</p></div>
+        </div>
+      </div>
+    </section>
+    <section class="w-full py-20 px-8 bg-[#030303] slow-reveal text-center">
+        <h2 class="display-font text-3xl md:text-5xl text-white uppercase mb-4">Contact Us</h2>
+        <p class="text-gray-400 text-xs tracking-widest uppercase mb-12">We're here to help.</p>
+        <div class="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16 text-white font-bold tracking-widest uppercase text-sm">
+            <a href="mailto:info@ateeq.com" class="hover:text-gray-500 transition border border-[#333] px-8 py-4 rounded-full w-full md:w-auto"><i class="fa-regular fa-envelope mr-2"></i> info@ateeq.com</a>
+            <a href="https://wa.me/201000000000" target="_blank" class="hover:text-gray-500 transition border border-[#333] px-8 py-4 rounded-full w-full md:w-auto"><i class="fa-brands fa-whatsapp mr-2"></i> +20 100 000 0000</a>
+            <a href="#" class="hover:text-gray-500 transition border border-[#333] px-8 py-4 rounded-full w-full md:w-auto"><i class="fa-brands fa-instagram mr-2"></i> @Ateeq.eg</a>
+        </div>
+    </section>
+    <footer class="w-full py-16 border-t border-[#222] bg-[#050505] text-center slow-reveal">
+        <h2 class="brand-ar text-5xl md:text-7xl text-white mb-8 opacity-90">عـتـيـق</h2>
+        <p class="text-[10px] tracking-widest uppercase font-bold text-gray-500">© 2026 ATEEQ STUDIOS. CRAFTED IN ALEXANDRIA, EGYPT.</p>
+    </footer>
+  </div>
+
+  <audio id="bg-music" autoplay>
+      <source src="bg-music.mp3" type="audio/mpeg">
+  </audio>
+  <button id="music-toggle" class="fixed top-28 left-6 z-50 bg-white/5 border border-white/10 w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition shadow-lg backdrop-blur-md">
+    <i class="fa-solid fa-volume-high text-xs text-gray-300" id="music-icon"></i>
+</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
