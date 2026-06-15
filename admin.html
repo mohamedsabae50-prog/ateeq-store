@@ -486,6 +486,48 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => { fetchDashboardData(); });
+  async function checkAdminLogin() {
+      const { data: { session } } = await adminClient.auth.getSession();
+      // لو مسجل دخول وإيميله هو إيميل الأدمن يفتح اللوحة
+      if (session && session.user.email === 'mohamedsabae50@gmail.com') {
+          document.getElementById('admin-login-overlay').style.display = 'none';
+          fetchDashboardData();
+      } else {
+          // لو مش مسجل يظهرله شاشة الدخول
+          document.getElementById('admin-login-overlay').style.display = 'flex';
+      }
+  }
+
+  window.adminLogin = async function() {
+      const email = document.getElementById('admin-email').value;
+      const pass = document.getElementById('admin-pass').value;
+      const btn = document.getElementById('login-btn');
+      
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Checking...';
+      
+      const { data, error } = await adminClient.auth.signInWithPassword({ email: email, password: pass });
+      
+      if (error) { 
+          alert("Access Denied! Wrong credentials."); 
+          btn.innerHTML = "Secure Login"; 
+          return; 
+      }
+      
+      document.getElementById('admin-login-overlay').style.display = 'none';
+      fetchDashboardData();
+  };
+
+  document.addEventListener('DOMContentLoaded', () => { checkAdminLogin(); });
 </script>
+<div id="admin-login-overlay" style="display: none;" class="fixed inset-0 bg-[#030303] z-[999] flex flex-col items-center justify-center p-4">
+    <div class="bg-[#0a0a0a] border border-[#333] p-8 w-full max-w-md shadow-2xl">
+        <h2 class="display-font text-3xl text-white uppercase mb-8 text-center border-b border-[#222] pb-4">Admin Login</h2>
+        <input type="email" id="admin-email" placeholder="Admin Email" class="admin-input mb-4 w-full">
+        <input type="password" id="admin-pass" placeholder="Password" class="admin-input mb-8 w-full">
+        <button id="login-btn" onclick="adminLogin()" class="w-full bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition">
+            Secure Login
+        </button>
+    </div>
+</div>
 </body>
 </html>
