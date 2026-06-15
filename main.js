@@ -22,7 +22,7 @@ function saveWishlist() {
     renderWishlist();
 }
 
-window.switchView = function(viewId) {
+window.switchView = function(viewId, addToHistory = true) {
     document.querySelectorAll('.view-section').forEach(el => {
         el.classList.add('hidden');
         el.classList.remove('block', 'flex'); 
@@ -54,7 +54,32 @@ window.switchView = function(viewId) {
     if (viewId === 'profile' && typeof fetchUserOrders === 'function') {
         fetchUserOrders();
     }
+
+    // 🟢 السطر الجديد: تسجيل الحركة في شريط المتصفح
+    if (addToHistory) {
+        history.pushState({ view: viewId }, '', `#${viewId}`);
+    }
 }
+// 🟢 الاستماع لزرار الرجوع والأمام في المتصفح
+window.addEventListener('popstate', (event) => {
+    if (event.state && event.state.view) {
+        // بنبعت false عشان منسجلش الحركة دي تاني وإحنا بنرجع
+        switchView(event.state.view, false);
+    } else {
+        switchView('home', false);
+    }
+});
+
+// 🟢 تظبيط أول صفحة بتفتح
+window.addEventListener('load', () => {
+    if (!window.location.hash) {
+        history.replaceState({ view: 'home' }, '', '#home');
+    } else {
+        // الميزة الإضافية: لو حد دخل على لينك معين مباشرة زي /#shop يفتحله الشوب
+        const initialView = window.location.hash.replace('#', '');
+        setTimeout(() => switchView(initialView, false), 100);
+    }
+});
 
 window.goHome = () => switchView('home');
 window.goToShop = () => switchView('shop');
