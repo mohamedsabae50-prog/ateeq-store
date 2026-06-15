@@ -92,8 +92,8 @@ window.loadShopProducts = async function() {
             return `
             <div class="product-card is-visible group cursor-pointer" data-category="${category}" data-price="${product.price}" onclick="goToPDP(${product.id})">
                 <div class="w-full aspect-[4/5] bg-[#0a0a0a] border border-[#222] overflow-hidden relative mb-4 flex items-center justify-center transition-colors duration-300 group-hover:border-white">
-                    <img src="${product.image_url}" class="absolute inset-0 w-full h-full object-cover grayscale opacity-80 group-hover:opacity-0 transition duration-700">
-                    <img src="${hoverImg}" class="absolute inset-0 w-full h-full object-cover grayscale opacity-0 group-hover:opacity-80 transition duration-700">
+                    <img src="${product.image_url}" class="absolute inset-0 w-full h-full object-cover group-hover:opacity-0 transition duration-700">
+<img src="${hoverImg}" class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition duration-700">
                     <div class="absolute bottom-0 left-0 w-full bg-[#050505]/80 backdrop-blur-sm p-4 transform translate-y-full transition-transform duration-500 group-hover:translate-y-0 flex justify-center gap-4 border-t border-[#333]">
                         <span class="text-[10px] text-white font-bold tracking-widest uppercase">View Details</span>
                     </div>
@@ -158,13 +158,13 @@ window.goToPDP = function(productId) {
     document.getElementById('pdp-price').textContent = product.price + ' EGP';
     document.getElementById('main-pdp-img').src = product.image_url;
     const galleryContainer = document.getElementById('pdp-gallery');
-    let galleryHTML = `<img src="${product.image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 grayscale hover:grayscale-0 transition">`;
+    let galleryHTML = `<img src="${product.image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100  transition">`;
     if (product.hover_image_url) {
-        galleryHTML += `<img src="${product.hover_image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 grayscale hover:grayscale-0 transition">`;
+        galleryHTML += `<img src="${product.hover_image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100  transition">`;
     }
     if (product.gallery_urls && product.gallery_urls.length > 0) {
         product.gallery_urls.forEach(url => {
-            galleryHTML += `<img src="${url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 grayscale hover:grayscale-0 transition">`;
+            galleryHTML += `<img src="${url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100  transition">`;
         });
     }
     galleryContainer.innerHTML = galleryHTML;
