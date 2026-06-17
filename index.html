@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عـتـيـق | ATEEQ</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Space+Grotesk:wght@400;600;700&family=Syncopate:wght@700&display=block" rel="stylesheet">
@@ -102,9 +103,7 @@
       </div>
       <p class="text-gray-500 text-[9px] md:text-[10px] tracking-widest uppercase mt-6">* All measurements are approximate. Fit is deliberately oversized.</p>
     </div>
-  </div>
-
-  <div id="settings-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-4">
+  </div><div id="settings-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-4">
     <div class="bg-[#050505] border border-[#333] w-full max-w-md p-6 md:p-8 relative max-h-[90vh] flex flex-col">
       <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white text-xl hover:text-gray-400 z-10"><i class="fa-solid fa-xmark"></i></button>
       <div class="flex items-center gap-4 mb-4 border-b border-[#222] pb-4 shrink-0">
@@ -159,7 +158,8 @@
           <button onclick="handleLogout()" class="w-full border border-red-900 text-red-500 py-3 text-[10px] tracking-widest font-bold uppercase hover:bg-red-900 hover:text-white transition">Log Out</button>
       </div>
     </div>
-  </div><div id="cart-overlay" class="fixed inset-0 bg-black/80 z-[100] opacity-0 pointer-events-none transition-opacity duration-300" onclick="toggleCart()"></div>
+  </div>
+  <div id="cart-overlay" class="fixed inset-0 bg-black/80 z-[100] opacity-0 pointer-events-none transition-opacity duration-300" onclick="toggleCart()"></div>
   <div id="cart-panel" class="fixed top-0 right-0 h-full w-full md:w-[400px] bg-[#050505] border-l border-[#222] z-[101] transform translate-x-full transition-transform duration-500 flex flex-col">
     <div class="flex justify-between items-center p-6 md:p-8 border-b border-[#222]">
       <h2 class="display-font text-2xl md:text-3xl text-white uppercase">CART</h2>
@@ -175,9 +175,7 @@
         PROCEED TO CHECKOUT
       </button>
     </div>
-  </div>
-
-  <div class="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-50 flex items-center gap-3 bg-[#0a0a0a] border border-[#333] px-3 py-2 md:px-4 md:py-2 rounded-full backdrop-blur-md shadow-2xl">
+  </div><div class="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-50 flex items-center gap-3 bg-[#0a0a0a] border border-[#333] px-3 py-2 md:px-4 md:py-2 rounded-full backdrop-blur-md shadow-2xl">
     <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-500 animate-pulse"></span>
     <span class="text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-white">Drop 01 : Live</span>
   </div>
@@ -311,15 +309,14 @@
         </div>
         <div class="flex flex-col items-center group">
           <div class="w-24 h-24 md:w-40 md:h-40 bg-[#0a0a0a] rounded-full border border-[#333] mb-4 md:mb-5 overflow-hidden group-hover:border-white transition-colors duration-300">
-            <img src="https://api.dicebear.com/7.x/micah/svg?seed=AbdelrahmanBoy            &backgroundColor=transparent" alt="Abdelrahman" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <img src="https://api.dicebear.com/7.x/micah/svg?seed=AbdelrahmanBoy&backgroundColor=transparent" alt="Abdelrahman" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
           </div>
           <h3 class="display-font text-lg md:text-xl text-white mb-1">ABDELRAHMAN</h3>
           <span class="text-[9px] md:text-[10px] tracking-widest uppercase text-gray-500">Co-Founder</span>
+        </div>
+      </div>
     </div>
-  </main>
-
-
-  <main id="shop-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 relative z-20">
+  </main><main id="shop-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 relative z-20">
     <div class="max-w-7xl mx-auto px-6 pb-16 md:pb-24 flex flex-col md:flex-row gap-8 md:gap-10">
       <aside class="w-full md:w-1/4 flex flex-col gap-6 border-b md:border-b-0 md:border-r border-[#222] pb-6 md:pb-0 md:pr-6">
          <div>
@@ -395,14 +392,39 @@
                 <label class="cursor-pointer"><input type="radio" name="pdp-size" value="XXL" class="size-radio hidden"><div class="py-2 md:py-3 text-center border border-[#333] text-xs md:text-sm tracking-widest font-bold transition uppercase">XXL</div></label>
               </div>
            </div>
-           <div class="flex gap-3 md:gap-4">
-              <button id="main-add-btn" onclick="addPdpToCart()" class="flex-grow bg-white text-black py-4 md:py-5 text-[10px] md:text-sm tracking-widest font-bold uppercase hover:bg-gray-300 transition">Add To Cart</button>
-              <button onclick="addToWishlist()" class="w-14 md:w-16 flex items-center justify-center border border-[#333] hover:border-white transition group"><i class="fa-regular fa-heart text-lg md:text-xl group-hover:text-red-500 transition"></i></button>
+           <div class="flex gap-4 mt-6">
+              <button onclick="addPdpToCart()" class="flex-1 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition">ADD TO CART</button>
+              <button onclick="toggleWishlistFromPDP(event, this)" class="border border-[#333] hover:border-white w-14 h-14 shrink-0 flex items-center justify-center transition text-white">
+                  <i class="fa-regular fa-heart text-xl"></i>
+              </button>
            </div>
+           
+           <div class="mt-12 pt-8 border-t border-[#222]">
+             <h3 class="text-white text-xs tracking-widest uppercase font-bold mb-6">Customer Reviews ⭐⭐⭐⭐⭐</h3>
+             <div class="space-y-4">
+               <div class="bg-[#0a0a0a] p-4 border border-[#222]">
+                 <div class="flex justify-between mb-2">
+                   <span class="text-white text-xs font-bold uppercase">Ahmed M.</span>
+                   <span class="text-green-500 text-[10px] uppercase tracking-widest"><i class="fa-solid fa-check-circle"></i> Verified</span>
+                 </div>
+                 <p class="text-gray-400 text-xs">خامة الهودي ممتازة جداً والطباعة 3D طالعة بالظبط زي ما صممتها على الموقع. عاش يا عتيق 🖤</p>
+               </div>
+               <div class="bg-[#0a0a0a] p-4 border border-[#222]">
+                 <div class="flex justify-between mb-2">
+                   <span class="text-white text-xs font-bold uppercase">Youssef K.</span>
+                   <span class="text-green-500 text-[10px] uppercase tracking-widest"><i class="fa-solid fa-check-circle"></i> Verified</span>
+                 </div>
+                 <p class="text-gray-400 text-xs">The oversized fit is perfect. Fast delivery and premium packaging!</p>
+               </div>
+             </div>
+           </div>
+
         </div>
       </div>
     </div>
-  </main><main id="profile-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20 text-white">
+  </main>
+
+  <main id="profile-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20 text-white">
     <div class="max-w-5xl mx-auto px-6 relative">
       <div class="relative flex justify-center items-center mb-8 md:mb-10">
           <h2 class="display-font text-4xl md:text-6xl uppercase text-center">My Account</h2>
@@ -414,48 +436,90 @@
          <button id="tab-history" onclick="switchProfileTab('history')" class="pb-3 md:pb-4 border-b-2 border-white tracking-widest uppercase text-xs md:text-sm font-bold text-white transition">Orders</button>
          <button id="tab-wishlist" onclick="switchProfileTab('wishlist')" class="pb-3 md:pb-4 border-b-2 border-transparent text-gray-500 hover:text-white tracking-widest uppercase text-xs md:text-sm font-bold transition">Wishlist</button>
       </div>
-      <div id="tab-orders" class="block"><div id="orders-container" class="space-y-4 md:space-y-6 flex flex-col"></div></div>
-      <div id="wishlist-container" class="hidden grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 transition-all duration-300"></div>
+      <div id="tab-orders" class="block">
+          <div id="orders-container" class="space-y-6 flex flex-col"></div>
+      </div>
+      <div id="tab-wishlist-content" class="tab-content hidden mt-10">
+          <div id="wishlist-container" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+      </div>
     </div>
   </main>
 
-  <main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#030303] flex flex-col relative z-20">
-    <div class="flex flex-col lg:flex-row w-full flex-grow relative z-10">
-      <div class="w-full lg:w-1/2 h-[50vh] lg:h-screen lg:sticky top-0 relative bg-[#0a0a0a] border-b lg:border-b-0 lg:border-r border-[#222] flex items-center justify-center overflow-hidden">
-        <button onclick="switchView('shop')" class="absolute top-20 md:top-24 left-4 md:left-8 z-30 text-[9px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition border border-[#333] px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur flex items-center gap-2 text-white"><i class="fa-solid fa-arrow-left"></i> BACK</button>
-        <img id="hoodieBase" class="hoodie-black w-full h-full object-contain transition duration-500 p-6 md:p-10" src="https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?q=80&w=1200&auto=format&fit=crop" alt="Hoodie preview">
-        <img id="designLayer" class="design-overlay absolute hidden" style="width: 25%; max-height: 35%; left: 50%; top: 48%; transform: translate(-50%,-50%);" alt="Your design">
-      </div>
-      <div class="w-full lg:w-1/2 min-h-screen p-6 md:p-16 pt-8 lg:pt-32 flex flex-col justify-between text-white">
-        <div>
-          <h2 id="studio-title" class="display-font text-4xl md:text-6xl mb-8 md:mb-12 uppercase">CUSTOM LAB</h2>
-          <form id="orderForm" class="space-y-8 md:space-y-12">
-          <div>
-            <div class="flex justify-between items-end border-b border-[#222] pb-2 mb-4 md:mb-6">
-              <span class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-gray-400">01 / Color</span>
-            </div>
-            <div class="flex gap-4">
-              <button type="button" data-color="Black" data-filter="hoodie-black" class="swatch active w-10 h-10 md:w-12 md:h-12 rounded-full border border-[#333] transition ring-2 ring-white" style="background:#0a0a0a;"></button>
+ <main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#050505] flex-col lg:flex-row relative z-20 overflow-hidden">
+    <div class="relative w-full lg:w-[65%] h-[60vh] lg:h-screen flex items-center justify-center bg-[#f0f0f0]">
+      <button onclick="switchView('shop')" class="absolute top-8 md:top-10 left-6 md:left-10 z-30 text-[10px] tracking-widest uppercase font-bold text-black border border-black hover:bg-black hover:text-white transition flex items-center gap-2 px-4 py-2 rounded-full">
+        <i class="fa-solid fa-arrow-left"></i> Return to Shop
+      </button>
+
+      <div class="relative w-full max-w-[500px] aspect-[4/5] flex items-center justify-center mt-6">
+        <img id="hoodieBase" class="absolute inset-0 w-full h-full object-contain mix-blend-darken opacity-95 drop-shadow-xl" src="front.webp" alt="3D Hoodie">
+        
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="top: 2%;">
+          <div class="w-[85%] h-[85%] relative flex items-center justify-center" id="canvas-wrapper">
+            <div class="pointer-events-auto w-full h-full flex items-center justify-center">
+              <canvas id="studioCanvas"></canvas>
             </div>
           </div>
-          <div id="custom-fields" class="space-y-8 md:space-y-12">
-              <div>
-                <div class="border-b border-[#222] pb-2 mb-4 md:mb-6"><span class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-gray-400">Artwork</span></div>
-                <label class="flex flex-col items-center justify-center border border-[#333] bg-[#0a0a0a] py-8 md:py-12 cursor-pointer hover:border-white transition group">
-                  <i class="fa-solid fa-arrow-up-from-bracket text-xl md:text-2xl mb-3 md:mb-4 text-gray-500 group-hover:text-white transition"></i>
-                  <span id="uploadLabel" class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-gray-400 group-hover:text-white transition">Upload PNG/JPG</span>
-                  <input type="file" id="designUpload" accept="image/png, image/jpeg" class="hidden">
-                </label>
-              </div>
-          </div>
-          <button type="submit" class="w-full bg-white text-black py-4 md:py-6 text-[10px] md:text-sm tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3 mt-6 md:mt-8">ADD TO CART <i class="fa-solid fa-cart-plus text-lg md:text-xl"></i></button>
-        </form>
         </div>
       </div>
     </div>
-  </main>
 
-  <main id="checkout-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 relative z-20">
+    <div class="w-full lg:w-[35%] h-full lg:h-screen overflow-y-auto bg-[#0a0a0a] border-l border-[#222] p-8 md:p-12 flex flex-col justify-between shadow-[-10px_0_30px_rgba(0,0,0,0.5)] z-10">
+      <div>
+        <h2 class="display-font text-3xl md:text-4xl text-white uppercase tracking-tighter mb-2">CUSTOM LAB</h2>
+        <p class="text-gray-500 text-[10px] tracking-widest uppercase mb-10">Design your own 3D prototype</p>
+
+        <div class="space-y-8">
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#222] pb-2">01 / View & Color</h3>
+            <div class="flex items-center gap-4">
+              <button type="button" onclick="changeStudioColor('Black')" class="w-10 h-10 rounded-full border border-[#333] ring-2 ring-white bg-[#0a0a0a] transition"></button>
+              <button type="button" id="flip-btn" onclick="toggleHoodieSide()" class="bg-[#111] border border-[#333] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition flex items-center gap-2">
+                <i class="fa-solid fa-rotate"></i> View Back
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#222] pb-2">02 / Graphic Artwork</h3>
+            <label class="flex flex-col items-center justify-center border border-[#333] bg-[#050505] py-8 cursor-pointer hover:border-white transition group rounded-md">
+              <i class="fa-solid fa-cloud-arrow-up text-2xl mb-3 text-gray-600 group-hover:text-white transition"></i>
+              <span class="text-[10px] tracking-widest uppercase font-bold text-gray-500 group-hover:text-white transition">Upload Image</span>
+              <input type="file" id="studioImageUpload" accept="image/png, image/jpeg" class="hidden">
+            </label>
+          </div>
+
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#222] pb-2">03 / Typography</h3>
+            <div class="flex flex-col gap-3">
+              <input type="text" id="studioTextContainer" placeholder="TYPE SOMETHING..." class="bg-[#050505] border border-[#333] text-white p-4 text-xs tracking-widest uppercase outline-none focus:border-white transition w-full">
+              <button type="button" onclick="addTextToStudio()" class="bg-[#111] border border-[#333] text-white py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition">Add Text</button>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#222] pb-2">04 / Select Size</h3>
+            <div class="grid grid-cols-4 gap-2">
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="M" class="hidden"><div class="py-3 text-center border border-[#333] bg-[#050505] text-white text-xs font-bold tracking-widest transition uppercase hover:border-white">M</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="L" class="hidden" checked><div class="py-3 text-center border border-[#333] bg-[#050505] text-white text-xs font-bold tracking-widest transition uppercase hover:border-white">L</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="XL" class="hidden"><div class="py-3 text-center border border-[#333] bg-[#050505] text-white text-xs font-bold tracking-widest transition uppercase hover:border-white">XL</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="XXL" class="hidden"><div class="py-3 text-center border border-[#333] bg-[#050505] text-white text-xs font-bold tracking-widest transition uppercase hover:border-white">XXL</div></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-12 space-y-3 pt-8 border-t border-[#222]">
+        <button type="button" onclick="deleteActiveObject()" class="w-full border border-[#333] bg-[#111] text-white py-3 text-[10px] tracking-widest uppercase hover:bg-red-900 hover:border-red-500 transition flex items-center justify-center gap-2">
+           <i class="fa-solid fa-trash"></i> Delete Selected Item
+        </button>
+
+        <button type="button" onclick="addStudioToCart()" class="w-full bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3">
+          ADD CUSTOM TO CART <i class="fa-solid fa-cart-plus text-base"></i>
+        </button>
+      </div>
+    </div>
+  </main><main id="checkout-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 relative z-20">
     <div class="max-w-4xl mx-auto px-4 md:px-6 pb-16 md:pb-24">
       <button onclick="toggleCart(); switchView('shop');" class="mb-6 md:mb-10 text-[9px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition border border-[#333] px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur flex items-center gap-2 text-white w-max"><i class="fa-solid fa-arrow-left"></i> BACK</button>
       <h2 class="display-font text-4xl md:text-7xl text-white uppercase mb-4 text-center">Checkout</h2>
@@ -489,19 +553,27 @@
           </div>
           <p id="coupon-message" class="text-[9px] md:text-xs font-bold uppercase tracking-widest mt-2 hidden"></p>
         </div>
+        
         <div class="space-y-4 pt-4 md:pt-6">
           <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#333] pb-2 mb-3 md:mb-4">Payment Method</h3>
           <div class="flex flex-col gap-2 md:gap-3">
             <label class="flex items-center gap-3 text-white cursor-pointer p-3 md:p-4 border border-[#333] hover:border-white transition">
-              <input type="radio" name="payment" value="Cash on Delivery" checked class="accent-white">
+              <input type="radio" name="payment" value="Cash on Delivery" checked onchange="toggleInstapayUI(false)" class="accent-white">
               <span class="text-xs md:text-sm tracking-widest uppercase">Cash on Delivery</span>
             </label>
             <label class="flex items-center gap-3 text-white cursor-pointer p-3 md:p-4 border border-[#333] hover:border-white transition">
-              <input type="radio" name="payment" value="InstaPay" class="accent-white">
+              <input type="radio" name="payment" value="Instapay" onchange="toggleInstapayUI(true)" class="accent-white">
               <span class="text-xs md:text-sm tracking-widest uppercase">InstaPay</span>
             </label>
           </div>
+          <div id="instapay-block" class="hidden mt-4 bg-[#0a0a0a] border border-[#333] p-4 md:p-6">
+            <p class="text-gray-400 text-[10px] tracking-widest uppercase mb-2">1. Transfer the total amount to:</p>
+            <p class="text-white font-bold text-lg md:text-xl mb-6">01220543105</p>
+            <p class="text-gray-400 text-[10px] tracking-widest uppercase mb-2">2. Upload Payment Screenshot</p>
+            <input type="file" id="instapay-receipt" accept="image/*" class="w-full bg-[#050505] border border-[#222] text-white p-3 text-xs outline-none">
+          </div>
         </div>
+
         <button type="submit" class="w-full bg-white text-black py-4 md:py-6 text-[10px] md:text-sm tracking-widest font-bold uppercase hover:bg-gray-300 transition mt-6 md:mt-8">Confirm & Place Order</button>
       </form>
     </div>
@@ -534,7 +606,7 @@
     <section class="w-full py-12 md:py-20 px-6 md:px-8 bg-[#030303] slow-reveal text-center">
         <h2 class="display-font text-2xl md:text-5xl text-white uppercase mb-3 md:mb-4">Contact Us</h2>
         <div class="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16 text-white font-bold tracking-widest uppercase text-[10px] md:text-sm mt-6 md:mt-8">
-            <a href="mailto:info@ateeq.com" class="hover:text-gray-500 transition border border-[#333] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-regular fa-envelope mr-2"></i> info@000.ateeq.000@gmail.com</a>
+            <a href="mailto:info@ateeq.com" class="hover:text-gray-500 transition border border-[#333] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-regular fa-envelope mr-2"></i> info@ateeq.com</a>
             <a href="#" class="hover:text-gray-500 transition border border-[#333] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-brands fa-instagram mr-2"></i> @Ateeq.eg</a>
         </div>
     </section>
@@ -549,11 +621,22 @@
     <i class="fa-solid fa-volume-high text-[10px] md:text-xs text-gray-300" id="music-icon"></i>
   </button>
 
-  <a href="https://wa.me/201000000000" target="_blank" rel="noopener noreferrer" class="fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-[#25D366] text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-2xl md:text-3xl shadow-[0_0_15px_rgba(37,211,102,0.4)] hover:scale-110 transition-transform z-[100]">
-      <i class="fa-brands fa-whatsapp"></i>
-  </a>
+  <div class="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[100]">
+    <button onclick="openWhatsApp()" class="bg-[#25D366] hover:bg-green-600 text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] transition hover:scale-110">
+      <i class="fa-brands fa-whatsapp text-2xl md:text-3xl"></i>
+    </button>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="main.js"></script>
+  <div id="user-order-modal" class="fixed inset-0 bg-black/90 z-[250] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-[#050505] border border-[#333] w-full max-w-lg p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+        <button onclick="closeUserOrderModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white transition">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <h2 class="text-white text-xl display-font uppercase tracking-widest mb-6 border-b border-[#222] pb-4">Order Summary</h2>
+        <div id="user-modal-order-content" class="text-gray-300 space-y-4 text-sm"></div>
+    </div>
+  </div>
 </body>
 </html>
