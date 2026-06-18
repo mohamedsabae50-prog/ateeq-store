@@ -9,9 +9,11 @@ body {
   color: var(--fg);
   font-family: 'Space Grotesk', sans-serif;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Grain/Noise Effect */
 .noise {
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
@@ -24,12 +26,11 @@ body {
 .brand-ar { font-family: 'Aref Ruqaa', serif; }
 .display-font { font-family: 'Syncopate', sans-serif; letter-spacing: -1px; }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #333; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
 
-/* Marquee */
 .marquee { 
   display: flex; 
   overflow: hidden; 
@@ -45,7 +46,6 @@ body {
   100% { transform: translateX(-100%); }
 }
 
-/* SPLASH SCREEN ANIMATIONS */
 #splash-screen { transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1); }
 .slide-up { transform: translateY(-100%); }
 
@@ -55,7 +55,7 @@ body {
   transition: color 1s ease, -webkit-text-stroke 1s ease;
 }
 .hero-title:hover {
-  color: white;
+  color: var(--accent);
   -webkit-text-stroke: 0px transparent;
 }
 
@@ -64,13 +64,12 @@ body {
   0% { transform: scale(1); }
   100% { transform: scale(1.15); }
 }
-/* 3D Podium Effect */
+
 .podium {
   transform: rotateX(75deg);
   box-shadow: 0 0 50px 10px rgba(255, 255, 255, 0.05);
 }
 
-/* Slow Reveal */
 .slow-reveal {
   opacity: 0;
   transform: translateY(40px);
@@ -78,24 +77,20 @@ body {
 }
 .slow-reveal.active { opacity: 1; transform: translateY(0); }
 
-/* Mobile Menu */
 #mobile-menu { transition: opacity 0.4s ease, visibility 0.4s ease; }
 #mobile-menu.active { opacity: 1; visibility: visible; }
 
-/* STUDIO CLASSES */
 .field {
   background: transparent; border: none; border-bottom: 1px solid #333;
-  color: var(--fg); transition: border-color 0.3s; border-radius: 0;
+  color: var(--fg); transition: border-color 0.3s ease; border-radius: 0;
 }
 .field:focus { outline: none; border-bottom-color: var(--fg); }
-.field::placeholder { color: #555; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;}
+.field::placeholder { color: #555; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
 
-/* Flat Lay Hoodie Colors */
 .hoodie-black { filter: brightness(0.7) contrast(1.2); }
 .hoodie-grey { filter: brightness(1.5) saturate(0) contrast(1.1); }
 .hoodie-sand { filter: brightness(1.4) saturate(0.6) sepia(0.5) hue-rotate(-15deg) contrast(1.1); }
 
-/* Live Preview Overlay fix */
 .design-overlay {
   mix-blend-mode: hard-light;
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
@@ -107,47 +102,21 @@ body {
 }
 select option { background: var(--bg); color: var(--fg); padding: 10px; }
 
-/* Hide scrollbar for carousel */
 .hide-scroll::-webkit-scrollbar { display: none; }
 
-/* ==========================================
-   5. LUXURY CUSTOM SCROLLBAR & CURSOR
-========================================= */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #030303; }
-::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #444; }
-
-@media (min-width: 768px) {
-    body, a, button, select, input, .cursor-pointer { cursor: none !important; }
-    #custom-cursor {
-        position: fixed; top: 0; left: 0;
-        width: 15px; height: 15px;
-        background-color: white;
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 999999;
-        transform: translate(-50%, -50%);
-        transition: width 0.2s, height 0.2s, background-color 0.2s;
-        mix-blend-mode: difference;
-    }
-    #custom-cursor.cursor-hover {
-        width: 40px; height: 40px;
-        background-color: transparent;
-        border: 1px solid white;
-    }
-}
-/* إجبار ظهور الماوس الطبيعي في كل الموقع */
-* {
-    cursor: default !important;
+a, button, input, textarea, select, [onclick], .cursor-pointer, label {
+  cursor: pointer;
 }
 
-/* إظهار علامة اليد (Pointer) عند الوقوف على الأزرار والروابط وحقول الإدخال */
-a, button, input, textarea, select, [onclick], .cursor-pointer {
-    cursor: pointer !important;
+.insta-slider {
+  display: flex;
+  width: max-content;
+  animation: scrollInsta 30s linear infinite;
 }
-
-/* التأكد من إخفاء أي بقايا للماوس الدائري القديم */
-#custom-cursor, .custom-cursor {
-    display: none !important;
+.insta-slider:hover {
+  animation-play-state: paused;
+}
+@keyframes scrollInsta {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-50%)); }
 }
