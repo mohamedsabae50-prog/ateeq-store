@@ -1244,3 +1244,25 @@ window.closePolicy = function() {
         modal.classList.remove('flex');
     }, 300);
 };
+window.shareDesign = async function() {
+    const shareText = "🔥 صممت الهودي بتاعي بنفسي على ATEEQ STUDIOS! \nادخل صمم طقمك المخصوص من هنا:\n";
+    const shareUrl = window.location.origin; 
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'My Custom ATEEQ Design',
+                text: shareText,
+                url: shareUrl
+            });
+            showToast("Thanks for sharing! 🖤", "success");
+        } catch (err) {
+            console.log("Share cancelled or failed.", err);
+        }
+    } else {
+        // لو فاتح من لابتوب ومفيش Share أصلي، يفتحله الواتساب ويب
+        const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
+        window.open(waUrl, '_blank');
+        showToast("Opening WhatsApp...", "info");
+    }
+};
