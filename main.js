@@ -18,8 +18,34 @@ const CUSTOM_PRICE = 850;
 function saveCart() {
     localStorage.setItem('ateeq_cart', JSON.stringify(cart));
     updateCartUI();
+    trackAbandonedCart(); // تشغيل متتبع السلة المتروكة
 }
 
+// الدالة الذكية لتسجيل السلة المتروكة في الداتابيز
+async function trackAbandonedCart() {
+    // لو العميل مش مسجل دخول، مش هنعرف نبعتله إيميل فمش هنسجلها
+    if (!isLoggedIn || !currentUser) return; 
+    
+    try {
+        if (cart.length > 0) {
+            // تنظيف السلة من الصور الضخمة قبل الحفظ زي ما عملنا في الأوردر
+            const cleanCart = cart.map(item => {
+                if (item.type === 'CUSTOM') { const { preview, ...rest } = item; return rest; }
+                return item;
+            });
+
+            await supabaseClient.from('abandoned_carts').upsert({
+                user_id: currentUser.id,
+                email: currentUser.email,
+                cart_data: cleanCart,
+                last_updated: new Date().toISOString()
+            });
+        } else {
+            // لو السلة فضيت (أو اشترى خلاص)، نمسح السلة المتروكة عشان منبعتلوش إيميل بالغلط
+            await supabaseClient.from('abandoned_carts').delete().eq('user_id', currentUser.id);
+        }
+    } catch (error) { console.error("Cart tracking error:", error); }
+}
 function saveWishlist() {
     localStorage.setItem('ateeq_wishlist', JSON.stringify(wishlist));
     renderWishlist();
@@ -924,8 +950,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     let originalTitle = document.title;
     document.addEventListener("visibilitychange", () => {
-        if (document.hidden) document.title = cart.length > 0 ? `(${cart.length}) عـتـيـق | طقمك في انتظارك 🖤` : "عـتـيـق | We miss you 🖤";
-        else document.title = originalTitle;
+        if (document.hidden) {
+            document.title = cart.length > 0 ? `(${cart.length}) عـتـيـق | طقمك في انتظارك 🖤` : "عـتـيـق | We miss you 🖤";
+            if (music && isPlaying) music.pause(); 
+        } else {
+            document.title = originalTitle;
+            if (music && isPlaying) music.play(); 
+        }
     });
     const cursor = document.getElementById('custom-cursor');
     document.addEventListener('mousemove', (e) => {
@@ -1180,4 +1211,36 @@ window.toggleInstapayUI = function(show) {
         }
     }
 };
+// نصوص السياسات الرسمية المطابقة لمعايير فيسبوك وتيك توك
+const legalPolicies = {
+    'privacy': {
+        title: 'Privacy Policy',
+        content: '<p>At ATEEQ, we are committed to protecting your privacy. We collect personal information such as your name, email, phone number, and shipping address solely for the purpose of fulfilling your orders and providing customer support.</p><p>We do not sell, rent, or share your personal data with third parties. Your payment information is processed securely. By using our website, you consent to our collection and use of your information as described in this policy.</p>'
+    },
+    'terms': {
+        title: 'Terms of Service',
+        content: '<p>Welcome to ATEEQ. By accessing or using our website, you agree to be bound by these Terms of Service. All content, designs, and graphics on this site are the exclusive property of ATEEQ STUDIOS.</p><p>We reserve the right to refuse service, cancel orders, or correct any errors, inaccuracies, or omissions at any time without prior notice. Custom products generated via our Custom Lab are created specifically for you and are subject to specific return guidelines.</p>'
+    },
+    'refund': {
+        title: 'Refund & Return Policy',
+        content: '<p>We want you to be completely satisfied with your purchase. ATEEQ accepts returns and exchanges within 14 days of delivery, provided the items are unworn, unwashed, and in their original packaging.</p><p><b>Exceptions:</b> Please note that custom-designed pieces (orders made via the Custom Lab) are final sale and non-refundable unless defective. To initiate a return, please contact our support team via WhatsApp or Email.</p>'
+    }
+};
 
+window.openPolicy = function(type) {
+    document.getElementById('policy-title').textContent = legalPolicies[type].title;
+    document.getElementById('policy-content').innerHTML = legalPolicies[type].content;
+    const modal = document.getElementById('policy-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+};
+
+window.closePolicy = function() {
+    const modal = document.getElementById('policy-modal');
+    modal.classList.add('opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+};
