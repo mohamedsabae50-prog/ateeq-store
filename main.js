@@ -1310,3 +1310,177 @@ async function fetchInstagramFeed() {
 }
 
 document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
+function dataURLtoBlob(dataurl) {
+    let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], {type:mime});
+}
+window.submitOrder = async function(event) {
+    event.preventDefault();
+    const emailEl = document.getElementById('chk-email');
+    
+    // تعديل: لو خانة الإيميل فاضية، هنسحب إيميل العميل من حسابه مباشرة عشان ميطلعش فاضي في النهاية
+    const email = (emailEl && emailEl.value) ? emailEl.value : (currentUser ? currentUser.email : '');
+    
+    const paymentInput = document.querySelector('input[name="payment"]:checked');
+    if (!paymentInput) { showToast("Please select a payment method.", "error"); return; }
+    const paymentMethod = paymentInput.value;
+    
+    if (!isLoggedIn || !currentUser) { showToast("Please log in to complete your order.", "error"); return; }
+    
+    const receiptInput = document.getElementById('instapay-receipt');
+    let receiptFile = null;
+    if (paymentMethod === 'Instapay') {
+        if (!receiptInput || !receiptInput.files || receiptInput.files.length === 0) {
+            showToast("Please upload your Instapay payment screenshot.", "error");
+            return; 
+        }
+        receiptFile = receiptInput.files[0];
+    }
+
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    
+    const p1 = document.getElementById('chk-phone1') ? document.getElementById('chk-phone1').value : '';
+    const p2 = document.getElementById('chk-phone2') ? document.getElementById('chk-phone2').value : '';
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    
+    if (!phoneRegex.test(p1)) {
+        showToast("Please enter a valid 11-digit Egyptian phone number", "error");
+        return; 
+    }
+    const customerPhone = p2 ? `${p1} (WhatsApp: ${p2})` : p1;
+    
+    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+    submitBtn.disabled = true;
+    
+    try {
+        let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
+        if (appliedDiscount > 0) {
+            totalAmount = totalAmount - (totalAmount * (appliedDiscount / 100));
+        }
+        
+        let serialNumber = 'ATQ-2026-' + Math.floor(100000 + Math.random() * 900000);
+        const customerName = document.getElementById('chk-name') ? document.getElementById('chk-name').value : 'N/A';
+        const mainAddr = document.getElementById('chk-address') ? document.getElementById('chk-address').value : '';
+        const bldg = document.getElementById('chk-building') ? document.getElementById('chk-building').value : '';
+        const floor = document.getElementById('chk-floor') ? document.getElementById('chk-floor').value : '';
+        const apt = document.getElementById('chk-apt') ? document.getElementById('chk-apt').value : '';
+        const mark = document.getElementById('chk-landmark') ? document.getElementById('chk-landmark').value : '';
+        const customerAddress = `${mainAddr}, Bldg: ${bldg}, Floor: ${floor}, Apt: ${apt} ${mark ? '(Mark: '+mark+')' : ''}`;
+
+        let receiptUrl = null;
+        if (receiptFile) {
+            showToast("Uploading receipt image...", "info");
+            const fileExt = receiptFile.name.split('.').pop();
+            const fileName = `receipt-${serialNumber}.${fileExt}`;
+            
+            const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                .from('receipts')
+                .upload(`public/${fileName}`, receiptFile);
+                
+            if (uploadError) throw new Error("Failed to upload receipt. Please try again.");
+            
+            const { data: publicUrlData } = supabaseClient.storage.from('receipts').getPublicUrl(`public/${fileName}`);
+            receiptUrl = publicUrlData.publicUrl;
+        }
+
+        // 🚀 الحل الجذري: الصرامة في رفع صورة التصميم
+        let customDesignUrl = null;
+                const hasCustomItem = cart.some(item => item.type === 'CUSTOM');
+        const customItemWithPreview = cart.find(item => item.type === 'CUSTOM' && item.preview);
+if (hasCustomItem) {
+            if (!customItemWithPreview) {
+                throw new Error("Design image is missing! Please remove the item from cart and design it again.");
+            }
+
+            showToast("Uploading custom design...", "info");
+            const blob = dataURLtoBlob(customItemWithPreview.preview);
+            const designFileName = `design-${serialNumber}.png`;
+            
+            const { data: designData, error: designError } = await supabaseClient.storage
+                .from('custom-designs')
+                .upload(designFileName, blob, { contentType: 'image/png' });
+                
+            if (designError) {
+                console.error("Supabase Upload Error:", designError);
+                throw new Error("Storage Error: " + designError.message);
+            }
+              const { data: designUrlData } = supabaseClient.storage.from('custom-designs').getPublicUrl(designFileName);
+            customDesignUrl = designUrlData.publicUrl;
+        }
+
+        const cleanCartForDB = cart.map(item => {
+            if (item.type === 'CUSTOM') {
+                const { preview, ...restOfItem } = item; 
+                return restOfItem; 
+            }
+            return item;
+        });
+
+        // 🚀 حفظ الأوردر بالكامل في قاعدة البيانات + رابط التصميم
+        const { error } = await supabaseClient.from('orders').insert([{
+            user_id: currentUser.id, 
+            serial_number: serialNumber, 
+            total_amount: totalAmount,
+            payment_method: paymentMethod, 
+            status: 'Pending', 
+            full_name: customerName,
+            phone: customerPhone, 
+            address: customerAddress, 
+            items: cleanCartForDB,
+            receipt_url: receiptUrl,
+            custom_design_url: customDesignUrl // ✨ ضفنا اللينك هنا
+        }]);
+        
+        if (error) throw error;
+
+        for (const item of cart) {
+            if (item.type === 'STORE' && item.title) {
+                const { data: prod } = await supabaseClient.from('products').select('stock_count').eq('name', item.title).single();
+                if (prod) {
+                    let newCount = prod.stock_count - 1;
+                    let newStatus = newCount <= 0 ? 'Out of Stock' : 'In Stock';
+                    await supabaseClient.from('products').update({ stock_count: newCount, stock_status: newStatus }).eq('name', item.title);
+                }
+            }
+        }
+        
+        try {
+            await emailjs.send("service_58ov5us", "template_kmoa9gi", {
+                serial_number: serialNumber, email: email, total_amount: totalAmount, payment_method: paymentMethod
+            });
+        } catch (emailErr) {}
+        
+        // 🐛 حل مشكلة ظهور المربع فاضي في شاشة النجاح
+        const serialEl = document.getElementById('order-serial');
+        if (serialEl) {
+            if (serialEl.tagName === 'INPUT') serialEl.value = serialNumber;
+            else serialEl.textContent = serialNumber;
+        }
+        
+        const emailConfirmEl = document.getElementById('user-email-confirm');
+        if (emailConfirmEl) {
+            emailConfirmEl.textContent = email || (currentUser ? currentUser.email : '');
+        }
+
+        const modal = document.getElementById('success-modal');
+        modal.classList.remove('hidden'); 
+        setTimeout(() => { modal.classList.remove('opacity-0'); }, 50);
+        
+        cart = []; 
+        appliedDiscount = 0;
+        activeCouponCode = null;
+        saveCart();
+        
+    } catch (error) { 
+        console.error("Order Failed: ", error);
+        showToast(error.message || "Failed to place order.", "error"); 
+    } finally {
+        submitBtn.innerHTML = originalBtnText; 
+        submitBtn.disabled = false;
+    }
+};
