@@ -134,3 +134,14 @@ a, button, input, textarea, select, [onclick], .cursor-pointer, label {
   0% { transform: translateX(0); }
   100% { transform: translateX(calc(-50%)); }
 }
+@keyframes infinite-slider {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-100% / 3)); } 
+}
+.infinite-scroll {
+    width: max-content;
+    animation: infinite-slider 30s linear infinite;
+}
+.infinite-scroll:hover {
+    animation-play-state: paused;
+}
