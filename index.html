@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عـتـيـق | ATEEQ</title>
+<link rel="icon" type="image/png" href="logo.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -267,7 +268,6 @@
           <source src="hoodie.mp4" type="video/mp4">
         </video>
         <div class="absolute bottom-6 md:bottom-10 left-6 md:left-10 z-20 hidden md:block">
-          <p class="text-[8px] md:text-[9px] font-mono text-gray-500 uppercase">File: Drop01_Hoodie_V3.obj<br>Material: Heavyweight Cotton 450gsm<br>Render: Realtime 60fps</p>
         </div>
       </div>
     </section>
@@ -547,12 +547,15 @@
         <button type="button" onclick="deleteActiveObject()" class="w-full border border-[#333] bg-[#111] text-white py-3 text-[10px] tracking-widest uppercase hover:bg-red-900 hover:border-red-500 transition flex items-center justify-center gap-2">
            <i class="fa-solid fa-trash"></i> Delete Selected Item
         </button>
-
-        <button type="button" onclick="addStudioToCart()" class="w-full bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3">
-          ADD CUSTOM TO CART <i class="fa-solid fa-cart-plus text-base"></i>
-        </button>
+        <div class="flex gap-3">
+            <button type="button" onclick="shareDesign()" class="w-1/4 bg-[#25D366] text-white py-4 text-xs tracking-widest font-bold uppercase hover:bg-green-600 transition flex items-center justify-center shadow-[0_0_15px_rgba(37,211,102,0.2)]" title="Share with friends">
+                <i class="fa-brands fa-whatsapp text-xl md:text-2xl"></i>
+            </button>
+            <button type="button" onclick="addStudioToCart()" class="w-3/4 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3">
+              ADD TO CART <i class="fa-solid fa-cart-plus text-base"></i>
+            </button>
+        </div>
       </div>
-    </div>
   </main><main id="checkout-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 relative z-20">
     <div class="max-w-4xl mx-auto px-4 md:px-6 pb-16 md:pb-24">
       <button onclick="toggleCart(); switchView('shop');" class="mb-6 md:mb-10 text-[9px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition border border-[#333] px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur flex items-center gap-2 text-white w-max"><i class="fa-solid fa-arrow-left"></i> BACK</button>
