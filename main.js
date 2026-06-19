@@ -197,10 +197,9 @@ window.goToPDP = function(productId) {
     galleryContainer.innerHTML = galleryHTML;
     const categoryName = product.category ? product.category.toLowerCase() : 'hoodies';
     if(typeof renderSizes === 'function') renderSizes('pdp-size-container', categoryName, 'pdp-size');
-window.currentProductId = product.id; // بنحفظ الـ ID بتاع المنتج الحالي
-    if(typeof fetchReviews === 'function') fetchReviews(product.id); // بننده التقييمات بتاعته
+window.currentProductId = product.id; 
+    if(typeof fetchReviews === 'function') fetchReviews(product.id); 
     switchView('pdp');
-
 }
 window.showToast = function(message, type = 'info') {
     const toast = document.getElementById('toast-notification');
@@ -304,25 +303,17 @@ async function __handleRegister(e) {
         }
     } catch (error) { showToast(error.message || 'Registration failed', "error"); }
 }
-
 window.handleLogin = __handleLogin;
 window.handleRegister = __handleRegister;
 try { if (window.parent) { window.parent.handleLogin = __handleLogin; window.parent.handleRegister = __handleRegister; } } catch(e) {}
-
 window.handleLogout = async function() {
-    // 1. إرسال أمر فعلي لقاعدة البيانات بإنهاء الجلسة تماماً
     await supabaseClient.auth.signOut();
-    
     isLoggedIn = false;
     currentUser = null;
-    
-    // 2. تصفير السلة والمفضلة عشان الأكونت الجديد يبدأ على نظافة
     cart = [];
     wishlist = [];
     saveCart();
     saveWishlist();
-    
-    // 3. مسح الإيميل القديم من صفحة الدفع
     const chkEmail = document.getElementById('chk-email');
     if (chkEmail) chkEmail.value = '';
     
@@ -418,12 +409,11 @@ window.goToCheckout = function() {
     }
     if(cart.length === 0) { showToast("Your cart is empty!", "error"); return; }
     
-    // 4. سحب إيميل الأكونت الحالي ووضعه أوتوماتيك في خانة الدفع
     if (currentUser && currentUser.email) {
         const chkEmail = document.getElementById('chk-email');
         if (chkEmail) {
             chkEmail.value = currentUser.email;
-            chkEmail.readOnly = true; // اختياري: عشان العميل ميغيروش ويبوظ تأكيد الطلب
+            chkEmail.readOnly = true; 
             chkEmail.classList.add('opacity-70', 'cursor-not-allowed');
         }
     }
@@ -466,14 +456,12 @@ window.submitOrder = async function(event) {
     const paymentMethod = paymentInput.value;
     
     if (!isLoggedIn || !currentUser) { showToast("Please log in to complete your order.", "error"); return; }
-    
-    // 🚀 فحص وجود إيصال الدفع لو العميل اختار إنستاباي
-    const receiptInput = document.getElementById('instapay-receipt');
+        const receiptInput = document.getElementById('instapay-receipt');
     let receiptFile = null;
     if (paymentMethod === 'Instapay') {
         if (!receiptInput || !receiptInput.files || receiptInput.files.length === 0) {
             showToast("Please upload your Instapay payment screenshot.", "error");
-            return; // توقيف الدفع لو مرفعش الصورة
+            return; 
         }
         receiptFile = receiptInput.files[0];
     }
@@ -508,8 +496,6 @@ window.submitOrder = async function(event) {
         const apt = document.getElementById('chk-apt') ? document.getElementById('chk-apt').value : '';
         const mark = document.getElementById('chk-landmark') ? document.getElementById('chk-landmark').value : '';
         const customerAddress = `${mainAddr}, Bldg: ${bldg}, Floor: ${floor}, Apt: ${apt} ${mark ? '(Mark: '+mark+')' : ''}`;
-
-        // 🚀 رفع صورة الإيصال للـ Storage وتوليد الرابط الخاص بيها
         let receiptUrl = null;
         if (receiptFile) {
             showToast("Uploading receipt image...", "info");
@@ -536,8 +522,6 @@ window.submitOrder = async function(event) {
             }
             return item;
         });
-
-        // 🚀 حفظ الأوردر بالكامل في قاعدة البيانات + رابط الإيصال
         const { error } = await supabaseClient.from('orders').insert([{
             user_id: currentUser.id, 
             serial_number: serialNumber, 
@@ -548,7 +532,7 @@ window.submitOrder = async function(event) {
             phone: customerPhone, 
             address: customerAddress, 
             items: cleanCartForDB,
-            receipt_url: receiptUrl // ربط الإيصال بالأوردر
+            receipt_url: receiptUrl 
         }]);
         
         if (error) throw error;
@@ -1204,21 +1188,15 @@ window.deleteActiveObject = function() {
         showToast("Please select an item to delete first", "error");
     }
 };
-// 🚀 دالة ذكية بترسم المقاسات لوحدها بناءً على نوع المنتج
 window.renderSizes = function(containerId, category, inputName) {
     const container = document.getElementById(containerId);
     if (!container) return;
-
-    // تحديد المقاسات
     let sizes = [];
     if (category === 'pants') {
         sizes = ['30', '32', '34', '36', '38', '40'];
     } else {
-        // للهوديز والتيشرتات
         sizes = ['S', 'M', 'L', 'XL', 'XXL'];
     }
-
-    // رسم الزراير في الشاشة
     container.innerHTML = sizes.map((size, index) => `
         <label class="cursor-pointer group">
             <input type="radio" name="${inputName}" value="${size}" class="hidden peer" ${index === 2 ? 'checked' : ''}>
@@ -1233,11 +1211,14 @@ window.changeStudioProduct = function(productType) {
     const baseImg = document.getElementById('hoodieBase');
     if (!baseImg) return;
     
-    baseImg.src = `${currentProduct}-${currentSide}.webp`; 
+    // 🚀 التعديل هنا: لو تيشرت هياخد مسار بصيغة png، لو هودي هياخد webp
+    const ext = productType === 'tshirt' ? 'png' : 'webp';
+    baseImg.src = `${currentProduct}-${currentSide}.${ext}`; 
+    const colorLayer = document.getElementById('garment-color-layer');
+    if (colorLayer) colorLayer.style.webkitMaskImage = `url('${currentProduct}-${currentSide}.${ext}')`;
     
     if(canvasInstance) canvasInstance.clear();
     designState = { front: null, back: null };
-    renderSizes('studio-size-container', currentProduct, 'studio-size');
     
     showToast(`Switched to ${productType.toUpperCase()}`, "info");
     
@@ -1250,6 +1231,11 @@ window.changeStudioProduct = function(productType) {
         activeBtn.classList.remove('border-[#333]', 'text-gray-500');
         activeBtn.classList.add('border-white', 'text-white');
     }
+
+    // تحديث مقاسات الاستوديو فوراً
+    if (typeof renderSizes === 'function') {
+        renderSizes('studio-size-container', currentProduct, 'studio-size');
+    }
 };
 
 window.toggleHoodieSide = function() {
@@ -1259,13 +1245,20 @@ window.toggleHoodieSide = function() {
     
     designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
     
+    // 🚀 تحديد الامتداد صح
+    const ext = currentProduct === 'tshirt' ? 'png' : 'webp';
+
     if (currentSide === 'front') {
         currentSide = 'back';
-        hoodie.src = `${currentProduct}-back.webp`; // التعديل هنا
+        hoodie.src = `${currentProduct}-back.${ext}`; 
+        const colorLayer = document.getElementById('garment-color-layer');
+    if (colorLayer) colorLayer.style.webkitMaskImage = `url('${hoodie.getAttribute('src')}')`;
         flipBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Front';
     } else {
         currentSide = 'front';
-        hoodie.src = `${currentProduct}-front.webp`; // والتعديل هنا
+        hoodie.src = `${currentProduct}-front.${ext}`; 
+        const colorLayer = document.getElementById('garment-color-layer');
+    if (colorLayer) colorLayer.style.webkitMaskImage = `url('${hoodie.getAttribute('src')}')`;
         flipBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Back';
     }
     
@@ -1275,19 +1268,23 @@ window.toggleHoodieSide = function() {
     }
     showToast("Switched to " + currentSide + " view", "info");
 };
-window.changeStudioColor = function(color) {
-    const hoodie = document.getElementById('hoodieBase');
-    if (!hoodie) return;
-    if (color === 'Black') {
-        hoodie.src = currentSide === 'front' ? "front.webp" : "back.webp";
-    }
+window.changeStudioColor = function(color, btn) {
+    // السر هنا: بنلون طبقة الماسك بس
+    const colorLayer = document.getElementById('garment-color-layer');
+    if (colorLayer) colorLayer.style.backgroundColor = color; 
+    
+    // تظبيط شكل زراير الألوان
+    document.querySelectorAll('.color-swatch-btn').forEach(b => {
+        b.classList.remove('active-color', 'border-white', 'border-2');
+        b.classList.add('border-[#333]', 'border');
+    });
+    btn.classList.remove('border-[#333]', 'border');
+    btn.classList.add('active-color', 'border-white', 'border-2');
 };
-// 1. الواتساب الذكي
 window.openWhatsApp = function() {
-    let phone = "201220543105"; // رقمك
+    let phone = "201220543105"; 
     let message = "أهلاً عتيق، محتاج مساعدة 🖤";
     
-    // لو العميل فاتح صفحة منتج، نسحب اسم المنتج وسعره
     const pdpView = document.getElementById('pdp-view');
     if (pdpView && !pdpView.classList.contains('hidden')) {
         let productName = document.getElementById('pdp-title').textContent;
@@ -1298,7 +1295,6 @@ window.openWhatsApp = function() {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
 };
 
-// 2. إظهار وإخفاء بلوك الإنستاباي
 window.toggleInstapayUI = function(show) {
     const block = document.getElementById('instapay-block');
     if (block) {
@@ -1422,7 +1418,6 @@ window.submitOrder = async function(event) {
     event.preventDefault();
     const emailEl = document.getElementById('chk-email');
     
-    // تعديل: لو خانة الإيميل فاضية، هنسحب إيميل العميل من حسابه مباشرة عشان ميطلعش فاضي في النهاية
     const email = (emailEl && emailEl.value) ? emailEl.value : (currentUser ? currentUser.email : '');
     
     const paymentInput = document.querySelector('input[name="payment"]:checked');
@@ -1488,7 +1483,6 @@ window.submitOrder = async function(event) {
             receiptUrl = publicUrlData.publicUrl;
         }
 
-        // 🚀 الحل الجذري: الصرامة في رفع صورة التصميم
         let customDesignUrl = null;
                 const hasCustomItem = cart.some(item => item.type === 'CUSTOM');
         const customItemWithPreview = cart.find(item => item.type === 'CUSTOM' && item.preview);
@@ -1520,8 +1514,6 @@ if (hasCustomItem) {
             }
             return item;
         });
-
-        // 🚀 حفظ الأوردر بالكامل في قاعدة البيانات + رابط التصميم
         const { error } = await supabaseClient.from('orders').insert([{
             user_id: currentUser.id, 
             serial_number: serialNumber, 
@@ -1533,7 +1525,7 @@ if (hasCustomItem) {
             address: customerAddress, 
             items: cleanCartForDB,
             receipt_url: receiptUrl,
-            custom_design_url: customDesignUrl // ✨ ضفنا اللينك هنا
+            custom_design_url: customDesignUrl 
         }]);
         
         if (error) throw error;
@@ -1554,9 +1546,7 @@ if (hasCustomItem) {
                 serial_number: serialNumber, email: email, total_amount: totalAmount, payment_method: paymentMethod
             });
         } catch (emailErr) {}
-        
-        // 🐛 حل مشكلة ظهور المربع فاضي في شاشة النجاح
-        const serialEl = document.getElementById('order-serial');
+                const serialEl = document.getElementById('order-serial');
         if (serialEl) {
             if (serialEl.tagName === 'INPUT') serialEl.value = serialNumber;
             else serialEl.textContent = serialNumber;
@@ -1583,12 +1573,10 @@ if (hasCustomItem) {
         submitBtn.innerHTML = originalBtnText; 
         submitBtn.disabled = false;
     }
-};// فتح وقفل فورم التقييم
+};
 window.toggleReviewForm = function() {
     document.getElementById('add-review-form').classList.toggle('hidden');
 };
-
-// جلب التقييمات من الداتابيز
 window.fetchReviews = async function(productId) {
     const container = document.getElementById('reviews-container');
     container.innerHTML = '<p class="text-gray-500 text-[10px] tracking-widest uppercase">Loading reviews...</p>';
@@ -1630,8 +1618,6 @@ window.fetchReviews = async function(productId) {
         container.innerHTML = '<p class="text-red-500 text-[10px] uppercase">Failed to load reviews.</p>';
     }
 };
-
-// رفع تقييم جديد
 window.submitReview = async function(event) {
     event.preventDefault();
     if (!window.currentProductId) return;
@@ -1659,13 +1645,148 @@ window.submitReview = async function(event) {
         showToast("Review submitted successfully!", "success");
         document.getElementById('add-review-form').reset();
         toggleReviewForm();
-        fetchReviews(window.currentProductId); // تحديث التقييمات فوراً
-        
+        fetchReviews(window.currentProductId); 
     } catch (error) {
         console.error("Error submitting review:", error);
         showToast("Failed to submit review.", "error");
     } finally {
         btn.innerHTML = 'SUBMIT REVIEW';
         btn.disabled = false;
+    }
+};
+window.openStudioWith = function(productType) {
+    if (typeof switchView === 'function') {
+        switchView('studio');
+    }
+    if (typeof changeStudioProduct === 'function') {
+        setTimeout(() => {
+            changeStudioProduct(productType);
+        }, 100);
+    }
+};
+window.deleteSelected = function() {
+    if (!canvasInstance) return;
+    const activeObject = canvasInstance.getActiveObject();
+    if (activeObject) {
+        canvasInstance.remove(activeObject); 
+        canvasInstance.discardActiveObject(); 
+        canvasInstance.requestRenderAll(); 
+        document.getElementById('editing-toolbar').classList.add('hidden');
+        showToast("Item deleted", "info");
+    }
+};
+
+window.updateSelectedColor = function(color) {
+    if (!canvasInstance) return;
+    const activeObject = canvasInstance.getActiveObject();
+    if (activeObject && activeObject.type === 'text') {
+        activeObject.set('fill', color);
+        canvasInstance.requestRenderAll();
+    }
+};
+
+window.updateSelectedFont = function(font) {
+    if (!canvasInstance) return;
+    const activeObject = canvasInstance.getActiveObject();
+    if (activeObject && activeObject.type === 'text') {
+        activeObject.set('fontFamily', font);
+        canvasInstance.requestRenderAll();
+    }
+};
+
+function setupCanvasEvents() {
+    if (!canvasInstance) return;
+    
+    canvasInstance.on('selection:created', handleSelection);
+    canvasInstance.on('selection:updated', handleSelection);
+    
+    canvasInstance.on('selection:cleared', function() {
+        document.getElementById('editing-toolbar').classList.add('hidden');
+    });
+}
+
+function handleSelection(e) {
+    const activeObject = e.selected[0];
+    const toolbar = document.getElementById('editing-toolbar');
+    const colorWrapper = document.getElementById('edit-color-wrapper');
+    const fontWrapper = document.getElementById('edit-font-wrapper');
+    const opacityWrapper = document.getElementById('edit-opacity-wrapper'); // الجديد
+    
+    if (!activeObject) {
+        toolbar.classList.add('hidden'); // لو ملغيش التحديد، نخفي الشريط
+        return;
+    }
+    
+    toolbar.classList.remove('hidden'); // إظهار الشريط
+    
+    // 🚀 المنطق الذكي لإظهار/إخفاء الأدوات بناءً على نوع العنصر
+    if (activeObject.type === 'text') {
+        // لو اللي محدده نص، نظهر تغيير اللون والخط، ونخفي الشفافية
+        colorWrapper.style.display = 'flex';
+        fontWrapper.style.display = 'flex';
+        opacityWrapper.style.display = 'none'; // نخفيه
+        
+        // تحديث قيم الـ Inputs في الـ Toolbar عشان تطابق العنصر المحدد
+        document.getElementById('item-color').value = activeObject.fill || '#ffffff';
+        document.getElementById('item-font').value = activeObject.fontFamily || 'Arial';
+    } else {
+        // لو اللي محدده صورة، نخفي تغيير اللون والخط، ونظهر الشفافية
+        colorWrapper.style.display = 'none';
+        fontWrapper.style.display = 'none';
+        opacityWrapper.style.display = 'flex'; // نظهره
+        
+        // تحديث قيمة مؤشر الشفافية عشان تطابق الصورة المحددة
+        const currentOpacity = activeObject.opacity !== undefined ? activeObject.opacity : 1;
+        document.getElementById('item-opacity').value = currentOpacity;
+        document.getElementById('opacity-value').innerText = Math.round(currentOpacity * 100) + '%';
+    }
+}
+window.toggleAlignmentGrid = function(input) {
+    if (!canvasInstance) return;
+    
+    if (input.checked) {
+        drawGridPattern();
+    } else {
+        canvasInstance.setBackgroundColor('#00000000', canvasInstance.renderAll.bind(canvasInstance));
+        canvasInstance.setBackgroundPattern(null, canvasInstance.renderAll.bind(canvasInstance));
+    }
+    
+    showToast(`Alignment grid ${input.checked ? 'on' : 'off'}`, "info");
+};
+
+function drawGridPattern() {
+    const gridSize = 25; // حجم المربع (25 بكسل)
+    
+    const pattern = new fabric.Pattern({
+        source: function() {
+            const patternCanvas = fabric.util.createCanvasElement(gridSize, gridSize);
+            const ctx = patternCanvas.getContext('2d');
+            
+            ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            
+            ctx.moveTo(0, 0);
+            ctx.lineTo(gridSize, 0);
+            ctx.lineTo(gridSize, gridSize);
+            
+            ctx.stroke();
+            return patternCanvas;
+        },
+        repeat: 'repeat' 
+    });
+    
+    canvasInstance.setBackgroundColor(pattern, canvasInstance.renderAll.bind(canvasInstance));
+}
+// دالة تحديث شفافية العنصر المحدد
+window.updateSelectedOpacity = function(opacity) {
+    if (!canvasInstance) return;
+    const activeObject = canvasInstance.getActiveObject();
+    if (activeObject) {
+        activeObject.set('opacity', parseFloat(opacity)); // تطبيق الشفافية
+        canvasInstance.requestRenderAll(); // تحديث الكانفاس
+        
+        // تحديث الرقم اللي بيظهر للعميل
+        document.getElementById('opacity-value').innerText = Math.round(opacity * 100) + '%';
     }
 };
