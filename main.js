@@ -1,1912 +1,804 @@
-const SUPABASE_URL = 'https://kkbejeioqltbllshhlcp.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_F8LXj9xjlkJKv4VQJDzoxQ_P3io41th';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عـتـيـق | ATEEQ</title>
+<link rel="icon" type="image/png" href="logo.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Oswald:wght@700&family=Permanent+Marker&family=Cinzel:wght@700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Space+Grotesk:wght@400;600;700&family=Syncopate:wght@700&display=block" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<style>
+  #pdp-gallery img { width: 80px !important; flex-shrink: 0; }
+  @media (min-width: 1024px) { #pdp-gallery img { width: 100% !important; } }
+</style>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+  (function(){
+    emailjs.init("knN6m8jjCj28sjTL5"); 
+  })();
+</script>
+</head>
+<body>
+  <div id="toast-notification" class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[300] bg-[#131b23] border border-[#2b3a4a] px-4 py-3 md:px-6 md:py-4 flex items-center gap-3 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-none shadow-2xl w-[90%] md:w-auto">
+    <i id="toast-icon" class="fa-solid fa-circle-info text-white text-lg"></i>
+    <span id="toast-message" class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-white"></span>
+  </div>
 
-let isLoggedIn = false;
-let currentSide = 'front';
-let currentProduct = 'hoodie'; 
-let designState = { front: null, back: null };
-let currentUser = null;
-let appliedDiscount = 0;
-let activeCouponCode = null;
-let cart = JSON.parse(localStorage.getItem('ateeq_cart')) || [];
-let wishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
-let userOrders = []; 
+  <div class="noise"></div>
 
-const BLANK_PRICE = 800;
-const CUSTOM_PRICE = 850;
+  <div id="splash-screen" class="fixed inset-0 z-[120] bg-[#090e13] flex flex-col items-center justify-center">
+    <h1 id="splash-text" class="brand-ar text-5xl md:text-7xl text-white tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] animate-pulse opacity-0 transition-opacity duration-300">عـتـيـق</h1>
+  </div>
 
-function saveCart() {
-    localStorage.setItem('ateeq_cart', JSON.stringify(cart));
-    updateCartUI();
-    trackAbandonedCart(); 
-}
-async function trackAbandonedCart() {
-    if (!isLoggedIn || !currentUser) return; 
-    
-    try {
-        if (cart.length > 0) {
-            const cleanCart = cart.map(item => {
-                if (item.type === 'CUSTOM') { const { preview, ...rest } = item; return rest; }
-                return item;
-            });
+  <div id="success-modal" class="fixed inset-0 bg-[#090e13] z-[200] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500 p-6 text-center">
+     <i class="fa-solid fa-circle-check text-5xl md:text-6xl text-white mb-6 animate-bounce"></i>
+     <h2 class="display-font text-3xl md:text-4xl text-white uppercase mb-4">Order Confirmed</h2>
+     <p class="text-[#8ea4be] text-xs md:text-sm tracking-widest uppercase mb-2">Your Order Serial Number is:</p>
+     <p id="order-serial" class="text-white text-xl md:text-3xl tracking-widest font-bold border border-[#2b3a4a] px-6 py-3 md:px-8 md:py-4 bg-[#131b23] mb-6 shadow-[0_0_20px_rgba(255,255,255,0.1)]"></p>
+     <p class="text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase mb-10 max-w-md">An automated email with your invoice and carrier tracking number has been sent to <span id="user-email-confirm" class="text-white font-bold"></span>.</p>
+     <button onclick="closeSuccessModal()" class="text-xs tracking-widest uppercase font-bold text-black bg-white hover:bg-gray-300 transition px-8 py-4">
+      Return to Home
+     </button>
+  </div>
 
-            await supabaseClient.from('abandoned_carts').upsert({
-                user_id: currentUser.id,
-                email: currentUser.email,
-                cart_data: cleanCart,
-                last_updated: new Date().toISOString()
-            });
-        } else {
-            await supabaseClient.from('abandoned_carts').delete().eq('user_id', currentUser.id);
-        }
-    } catch (error) { console.error("Cart tracking error:", error); }
-}
-function saveWishlist() {
-    localStorage.setItem('ateeq_wishlist', JSON.stringify(wishlist));
-    renderWishlist();
-}
+  <div id="auth-modal" class="fixed inset-0 bg-black/90 z-[200] hidden flex-col items-center justify-center p-4 backdrop-blur-sm">
+      <button onclick="toggleAuthModal()" class="absolute top-6 right-6 md:top-8 md:right-8 text-white text-2xl md:text-3xl hover:text-[#6e849c] transition"><i class="fa-solid fa-xmark"></i></button>
+      <div class="w-full max-w-md bg-[#0e141a] border border-[#1e2a36] p-6 md:p-10 relative">
+          <div id="login-form-container" class="block">
+              <h2 class="display-font text-4xl md:text-5xl text-white uppercase mb-2">Log In</h2>
+              <p class="text-[10px] md:text-xs text-[#6e849c] tracking-widest uppercase mb-8">Access your orders and wishlist</p>
+              <form onsubmit="window.parent.handleLogin(event)" class="flex flex-col gap-6">
+                  <div class="border-b border-[#2b3a4a] pb-2">
+                      <input type="email" id="login-email" placeholder="Email Address" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+                  </div>
+                  <div class="border-b border-[#2b3a4a] pb-2">
+                      <input type="password" id="login-password" placeholder="Password" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+                  </div>
+                  <button type="submit" class="w-full bg-white text-black py-4 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition mt-2">Sign In</button>
+              </form>
+              <p class="text-center text-[10px] text-[#6e849c] tracking-widest uppercase mt-6">
+                  Don't have an account? <button type="button" onclick="document.getElementById('login-form-container').classList.add('hidden'); document.getElementById('register-form-container').classList.remove('hidden');" class="text-white hover:text-[#8ea4be] border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition">REGISTER</button>
+              </p>
+          </div>
+          <div id="register-form-container" class="hidden">
+              <h2 class="display-font text-4xl md:text-5xl text-white uppercase mb-2">Register</h2>
+              <p class="text-[10px] md:text-xs text-[#6e849c] tracking-widest uppercase mb-8">Create an account to track orders</p>
+              <form onsubmit="window.parent.handleRegister(event)" class="flex flex-col gap-6">
+                  <div class="border-b border-[#2b3a4a] pb-2">
+                      <input type="text" id="reg-name" placeholder="Full Name" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+                  </div>
+                  <div class="border-b border-[#2b3a4a] pb-2">
+                      <input type="email" id="reg-email" placeholder="Email Address" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+                  </div>
+                  <div class="border-b border-[#2b3a4a] pb-2">
+                      <input type="password" id="reg-password" placeholder="Password" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+                  </div>
+                  <button type="submit" class="w-full bg-white text-black py-4 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition mt-2">Create Account</button>
+              </form>
+              <p class="text-center text-[10px] text-[#6e849c] tracking-widest uppercase mt-6">
+                  Already have an account? <button type="button" onclick="document.getElementById('register-form-container').classList.add('hidden'); document.getElementById('login-form-container').classList.remove('hidden');" class="text-white hover:text-[#8ea4be] border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition">LOG IN</button>
+              </p>
+          </div>
+      </div>
+  </div><div id="size-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-4">
+    <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-2xl p-6 md:p-12 relative">
+      <button onclick="toggleSizeGuide()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white text-xl hover:text-[#8ea4be]"><i class="fa-solid fa-xmark"></i></button>
+      <h2 class="display-font text-2xl md:text-3xl text-white uppercase mb-6">Size Guide</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs md:text-sm text-[#8ea4be]">
+          <thead class="text-[10px] md:text-xs uppercase bg-[#1a232c] text-white tracking-widest">
+            <tr><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Size</th><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Chest (cm)</th><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Length (cm)</th><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Sleeve (cm)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">M</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">59</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">69</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">58</td></tr>
+            <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">L</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">62</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">72</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">60</td></tr>
+            <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">XL</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">65</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">75</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">62</td></tr>
+            <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">XXL</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">68</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">78</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">64</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-[#6e849c] text-[9px] md:text-[10px] tracking-widest uppercase mt-6">* All measurements are approximate. Fit is deliberately oversized.</p>
+    </div>
+  </div>
 
-window.switchView = function(viewId, addToHistory = true) {
-    document.querySelectorAll('.view-section').forEach(el => {
-        el.classList.add('hidden');
-        el.classList.remove('block', 'flex'); 
-    });
-    const targetView = document.getElementById(viewId + '-view');
-    if (targetView) {
-        if (viewId === 'studio') {
-            targetView.classList.remove('hidden');
-            targetView.classList.add('flex');
-        } else {
-            targetView.classList.remove('hidden');
-            targetView.classList.add('block');
-        }
-    }
-    const stickyBar = document.getElementById('sticky-cart-bar');
-    if (stickyBar && viewId !== 'pdp') {
-        stickyBar.classList.add('translate-y-full');
-    }
-    const mobileMenu = document.getElementById('mobile-menu');
-    if (mobileMenu && mobileMenu.classList.contains('active')) {
-        toggleMobileMenu();
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (viewId === 'profile' && typeof fetchUserOrders === 'function') {
-        fetchUserOrders();
-    }
-    if (addToHistory) {
-        history.pushState({ view: viewId }, '', `#${viewId}`);
-    }
-}
-
-window.addEventListener('popstate', (event) => {
-    if (event.state && event.state.view) {
-        switchView(event.state.view, false);
-    } else {
-        switchView('home', false);
-    }
-});
-
-window.addEventListener('load', () => {
-    if (!window.location.hash) {
-        history.replaceState({ view: 'home' }, '', '#home');
-    } else {
-        let initialView = window.location.hash.replace('#', '');
-        if (initialView === 'pdp' || initialView === 'checkout') {
-            initialView = 'shop'; 
-            history.replaceState({ view: 'shop' }, '', '#shop');
-        }
-        setTimeout(() => switchView(initialView, false), 100);
-    }
-});
-
-window.goHome = () => switchView('home');
-window.goToShop = () => switchView('shop');
-
-window.openStudio = function(mode, color = 'Black') {
-    switchView('studio');
-};
-
-window.shopProductsData = [];
-window.loadShopProducts = async function() {
-    const container = document.getElementById('products-container');
-    if (!container) return;
-    container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10"><i class="fa-solid fa-circle-notch fa-spin text-3xl"></i></div>';
-    try {
-        const { data: products, error } = await supabaseClient.from('products').select('*').order('id', { ascending: false });
-        if (error) throw error;
-        window.shopProductsData = products;
-        if (products.length === 0) {
-            container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">No products available right now.</div>';
-            return;
-        }
-        container.innerHTML = products.map(product => {
-            const hoverImg = product.hover_image_url ? product.hover_image_url : product.image_url;
-            const category = product.category ? product.category.toLowerCase() : 'hoodies';
-            const stockBadge = product.stock_status === 'Out of Stock' ? '<span class="text-red-500 text-[9px] uppercase tracking-widest">Sold Out</span>' : '';
-            return `
-            <div class="product-card is-visible group cursor-pointer" data-category="${category}" data-price="${product.price}" onclick="goToPDP(${product.id})">
-                <div class="w-full aspect-[4/5] bg-[#0a0a0a] border border-[#222] overflow-hidden relative mb-4 flex items-center justify-center transition-colors duration-300 group-hover:border-white">
-                    <img src="${product.image_url}" class="absolute inset-0 w-full h-full object-cover group-hover:opacity-0 transition duration-700">
-                    <img src="${hoverImg}" class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition duration-700">
-                    <div class="absolute bottom-0 left-0 w-full bg-[#050505]/80 backdrop-blur-sm p-4 transform translate-y-full transition-transform duration-500 group-hover:translate-y-0 flex justify-center gap-4 border-t border-[#333]">
-                        <span class="text-[10px] text-white font-bold tracking-widest uppercase">View Details</span>
-                    </div>
-                </div>
-                <h4 class="text-white display-font text-xl uppercase truncate">${product.name}</h4>
-                <div class="flex justify-between items-center mt-1">
-                    <p class="text-gray-400 text-xs tracking-widest uppercase font-bold">${product.price} EGP</p>
-                    ${stockBadge}
-                </div>
-            </div>
-            `;
-        }).join('');
-        const resultsCount = document.getElementById('results-count');
-        if(resultsCount) resultsCount.textContent = products.length + ' Results';
-        if(typeof applyFilters === 'function') applyFilters();
-    } catch (error) {
-        container.innerHTML = '<div class="col-span-full text-center text-red-500 py-10">Failed to load products. Check console.</div>';
-    }
-};
-
-window.applyCouponCode = async function() {
-    const code = document.getElementById('coupon-code').value.trim().toUpperCase();
-    const msg = document.getElementById('coupon-message');
-    if (!code) { showToast("Please enter a coupon code", "error"); return; }
-    try {
-        const { data, error } = await supabaseClient.from('coupons').select('*').eq('code', code).eq('active', true).single();
-        msg.classList.remove('hidden', 'text-red-500', 'text-green-500');
-        if (error || !data) {
-            appliedDiscount = 0;
-            activeCouponCode = null;
-            msg.textContent = "Invalid or Expired Coupon";
-            msg.classList.add('text-red-500');
-            showToast("Coupon not found", "error");
-        } else {
-            appliedDiscount = data.discount_percent;
-            activeCouponCode = data.code;
-            msg.textContent = `Coupon Applied: ${data.discount_percent}% Discount`;
-            msg.classList.add('text-green-500');
-            showToast("Discount applied successfully", "success");
-            let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
-            let discountAmount = (totalAmount * (appliedDiscount / 100));
-            let finalTotal = totalAmount - discountAmount;
-            showToast(`New Total: ${finalTotal} EGP`, "info");
-        }
-    } catch (err) {
-        console.error(err);
-    }
-};
-
-window.goToPDP = function(productId) {
-    const product = window.shopProductsData.find(p => p.id === productId);
-    if(!product) return;
-    document.getElementById('pdp-title').textContent = product.name;
-    document.getElementById('pdp-price').textContent = product.price + ' EGP';
-    document.getElementById('main-pdp-img').src = product.image_url;
-    const galleryContainer = document.getElementById('pdp-gallery');
-    let galleryHTML = `<img src="${product.image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 transition">`;
-    if (product.hover_image_url) {
-        galleryHTML += `<img src="${product.hover_image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 transition">`;
-    }
-    if (product.gallery_urls && product.gallery_urls.length > 0) {
-        product.gallery_urls.forEach(url => {
-            galleryHTML += `<img src="${url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 transition">`;
-        });
-    }
-    galleryContainer.innerHTML = galleryHTML;
-    const categoryName = product.category ? product.category.toLowerCase() : 'hoodies';
-    if(typeof renderSizes === 'function') renderSizes('pdp-size-container', categoryName, 'pdp-size');
-window.currentProductId = product.id; 
-    if(typeof fetchReviews === 'function') fetchReviews(product.id); 
-    switchView('pdp');
-}
-window.showToast = function(message, type = 'info') {
-    const toast = document.getElementById('toast-notification');
-    const toastMsg = document.getElementById('toast-message');
-    const toastIcon = document.getElementById('toast-icon');
-    if (type === 'error') toastIcon.className = 'fa-solid fa-circle-exclamation text-red-500 text-lg';
-    else if (type === 'success') toastIcon.className = 'fa-solid fa-circle-check text-green-500 text-lg';
-    else toastIcon.className = 'fa-solid fa-circle-info text-white text-lg';
-    toastMsg.textContent = message;
-    toast.classList.remove('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
-    toast.classList.add('opacity-100', 'translate-y-0');
-    setTimeout(() => {
-        toast.classList.remove('opacity-100', 'translate-y-0');
-        toast.classList.add('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
-    }, 3000);
-};
-
-window.toggleAuthModal = function() {
-    const modal = document.getElementById('auth-modal');
-    if (modal) {
-        if (modal.classList.contains('hidden')) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            const mobileMenu = document.getElementById('mobile-menu');
-            if (mobileMenu && mobileMenu.classList.contains('active')) toggleMobileMenu();
-        } else {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-    }
-}
-
-window.toggleMobileMenu = function() {
-    const menu = document.getElementById('mobile-menu');
-    if (menu) {
-        if (menu.classList.contains('active')) {
-            menu.classList.remove('active');
-            menu.style.opacity = '0';
-            menu.style.visibility = 'hidden';
-        } else {
-            menu.classList.add('active');
-            menu.style.opacity = '1';
-            menu.style.visibility = 'visible';
-        }
-    }
-}
-
-function toggleSizeGuide() {
-    const modal = document.getElementById('size-modal');
-    modal.classList.toggle('hidden');
-    setTimeout(() => modal.classList.toggle('opacity-0'), 10);
-}
-
-async function __handleLogin(e) {
-    if (e) e.preventDefault();
-    const emailEl = document.getElementById('login-email');
-    const passEl = document.getElementById('login-password');
-    const email = emailEl ? emailEl.value : '';
-    const password = passEl ? passEl.value : '';
-    if (!email || !password) { showToast("Please enter your email and password.", "error"); return; }
-    try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
-        if (error) throw error;
-        if (data && data.user) {
-            isLoggedIn = true;
-            currentUser = data.user;
-            const navAuthBtn = document.getElementById('nav-auth-btn');
-            const navProfileBtn = document.getElementById('nav-profile-btn');
-            if (navAuthBtn) navAuthBtn.style.display = 'none';
-            if (navProfileBtn) { navProfileBtn.classList.remove('hidden'); navProfileBtn.style.display = 'block'; }
-            showToast("Welcome back to ATEEQ!", "success");
-            if (typeof toggleAuthModal === 'function') toggleAuthModal();
-            switchView('profile');
-        }
-    } catch (error) { showToast("Invalid Email or Password!", "error"); }
-}
-
-async function __handleRegister(e) {
-    if (e) e.preventDefault();
-    const emailEl = document.getElementById('reg-email');
-    const passEl = document.getElementById('reg-password');
-    const nameEl = document.getElementById('reg-name');
-    const email = emailEl ? emailEl.value : '';
-    const password = passEl ? passEl.value : '';
-    const fullName = nameEl ? nameEl.value : '';
-    if (!email || !password || !fullName) { showToast("Please fill all fields.", "error"); return; }
-    try {
-        const { data, error } = await supabaseClient.auth.signUp({ email: email, password: password });
-        if (error) throw error;
-        if (data && data.user) {
-            try { await supabaseClient.from('profiles').insert([{ id: data.user.id, full_name: fullName }]); } catch (pErr) {}
-            isLoggedIn = true;
-            currentUser = data.user;
-            const navAuthBtn = document.getElementById('nav-auth-btn');
-            const navProfileBtn = document.getElementById('nav-profile-btn');
-            if (navAuthBtn) navAuthBtn.style.display = 'none';
-            if (navProfileBtn) { navProfileBtn.classList.remove('hidden'); navProfileBtn.style.display = 'block'; }
-            showToast("Account created successfully!", "success");
-            if (typeof toggleAuthModal === 'function') toggleAuthModal();
-            switchView('profile');
-        }
-    } catch (error) { showToast(error.message || 'Registration failed', "error"); }
-}
-window.handleLogin = __handleLogin;
-window.handleRegister = __handleRegister;
-try { if (window.parent) { window.parent.handleLogin = __handleLogin; window.parent.handleRegister = __handleRegister; } } catch(e) {}
-window.handleLogout = async function() {
-    await supabaseClient.auth.signOut();
-    isLoggedIn = false;
-    currentUser = null;
-    cart = [];
-    wishlist = [];
-    saveCart();
-    saveWishlist();
-    const chkEmail = document.getElementById('chk-email');
-    if (chkEmail) chkEmail.value = '';
-    
-    toggleSettingsModal();
-    document.getElementById('nav-auth-btn').style.display = ''; 
-    document.getElementById('nav-profile-btn').style.display = 'none';
-    switchView('home');
-    showToast("Logged out successfully.", "info");
-}
-
-window.animateCartIcon = function() {
-    const cartLink = document.querySelector('a[onclick="toggleCart(); return false;"]');
-    if(cartLink) {
-        cartLink.style.transform = 'scale(1.2)';
-        cartLink.style.color = '#fff';
-        setTimeout(() => { cartLink.style.transform = 'scale(1)'; cartLink.style.color = ''; }, 300);
-    }
-}
-
-window.toggleCart = function() {
-    const overlay = document.getElementById('cart-overlay');
-    const panel = document.getElementById('cart-panel');
-    if (!overlay || !panel) return;
-    if (panel.classList.contains('translate-x-full')) {
-        overlay.classList.remove('opacity-0', 'pointer-events-none');
-        panel.classList.remove('translate-x-full');
-    } else {
-        overlay.classList.add('opacity-0', 'pointer-events-none');
-        panel.classList.add('translate-x-full');
-    }
-};
-
-window.updateCartUI = function() {
-  const cartCount = document.getElementById('cart-count');
-  const cartItemsContainer = document.getElementById('cart-items');
-  const cartTotal = document.getElementById('cart-total');
-  if(cartCount) cartCount.textContent = cart.length;
-  if(!cartItemsContainer) return;
-  if(cart.length === 0) {
-      cartItemsContainer.innerHTML = `
-          <div class="flex flex-col items-center justify-center h-full text-center mt-10">
-              <i class="fa-solid fa-cart-shopping text-5xl text-[#222] mb-6"></i>
-              <p class="text-gray-500 text-xs tracking-widest uppercase mb-6">Your cart is feeling empty.</p>
-              <div class="flex flex-col gap-3 w-full max-w-[250px] mx-auto">
-                  <button onclick="toggleCart(); switchView('shop');" class="w-full border border-[#333] text-white py-4 text-[10px] uppercase tracking-widest font-bold hover:border-white hover:bg-white hover:text-black transition">Shop The Collection</button>
-                  <button onclick="toggleCart(); openStudio('custom');" class="w-full border border-[#333] text-gray-500 py-4 text-[10px] uppercase tracking-widest hover:border-white hover:text-white transition">Design Custom</button>
+  <div id="settings-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-4">
+    <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-md p-6 md:p-8 relative max-h-[90vh] flex flex-col">
+      <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white text-xl hover:text-[#8ea4be] z-10"><i class="fa-solid fa-xmark"></i></button>
+      <div class="flex items-center gap-4 mb-4 border-b border-[#1e2a36] pb-4 shrink-0">
+          <div class="w-12 h-12 md:w-14 md:h-14 bg-[#1a1a1a] rounded-full border border-[#2b3a4a] flex items-center justify-center text-lg md:text-xl">
+              <i class="fa-solid fa-user-pen text-[#8ea4be]"></i>
+          </div>
+          <div>
+              <h2 class="display-font text-lg md:text-xl text-white uppercase">Settings</h2>
+              <p class="text-[#6e849c] text-[9px] md:text-[10px] tracking-widest uppercase"><i class="fa-solid fa-circle-check text-green-500 mr-1"></i> Verified Member</p>
+          </div>
+      </div>
+      <div class="overflow-y-auto hide-scroll pr-2 mb-4 space-y-6 md:space-y-8">
+         <div class="bg-[#131b23] border border-[#1e2a36] p-4 md:p-6 text-center">
+            <h3 class="display-font text-white text-base md:text-lg uppercase mb-2">Track Your Order</h3>
+            <p class="text-[#6e849c] text-[9px] md:text-[10px] tracking-widest uppercase mb-4">Enter your serial number below</p>
+            <input type="text" id="track-serial" placeholder="ATQ-2026-..." class="w-full bg-black border border-[#2b3a4a] text-white p-3 text-center text-xs outline-none focus:border-[#4fb3d9] transition mb-3 uppercase tracking-wider">
+            <button onclick="trackOrder(event)" class="w-full border border-[#2b3a4a] text-white py-3 text-[10px] tracking-widest font-bold uppercase hover:bg-white hover:text-black transition flex items-center justify-center gap-2">
+                Track Status
+            </button>
+            <div id="track-result" class="mt-4 text-[10px] md:text-xs hidden border-t border-[#1e2a36] pt-4 text-left"></div>
+         </div>
+         <form onsubmit="window.parent.saveProfileData(event)" class="space-y-3 md:space-y-4 text-sm tracking-widest uppercase border-t border-[#1e2a36] pt-6">
+             <h3 class="display-font text-white text-xs md:text-sm uppercase mb-3 text-center">Edit Profile</h3>
+          <div>
+              <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">Full Name</label>
+              <input type="text" id="edit-name" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition" required>
+          </div>
+          <div>
+              <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">Email Address</label>
+              <input type="email" id="edit-email" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-[#6e849c] p-2 md:p-3 text-xs tracking-widest outline-none cursor-not-allowed" readonly>
+          </div>
+          <div class="flex gap-4">
+              <div class="w-2/3">
+                  <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">Phone Number</label>
+                  <input type="tel" id="edit-phone" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition">
+              </div>
+              <div class="w-1/3">
+                  <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">Age</label>
+                  <input type="number" id="edit-age" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition">
               </div>
           </div>
-      `;
-      if(cartTotal) cartTotal.textContent = '0 EGP';
-      return;
-  }
-  let total = 0;
-  cartItemsContainer.innerHTML = '';
-  cart.forEach((item, index) => {
-      total += item.price;
-      let details = `<p class="text-gray-500 text-[10px] tracking-widest uppercase mt-1">Size: ${item.size}</p>`;
-      if(item.type === 'CUSTOM') details += `<p class="text-gray-500 text-[10px] tracking-widest uppercase">Placement: ${item.placement}</p>`;
-      cartItemsContainer.innerHTML += `
-         <div class="flex justify-between items-center border-b border-[#222] pb-4">
-            <div>
-               <h3 class="text-white display-font uppercase tracking-wide text-lg">${item.title}</h3>
-               ${details}
-               <p class="text-white text-xs font-bold mt-2">${item.price} EGP</p>
-            </div>
-            <button onclick="removeFromCart(${index})" class="text-gray-500 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>
+          <div>
+              <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">City / Governorate</label>
+              <input type="text" id="edit-city" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition">
+          </div>
+          <div class="mt-4 md:mt-6 flex flex-col gap-3 pt-2">
+              <button type="submit" class="w-full bg-white text-black py-3 md:py-4 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition">Save Changes</button>
+          </div>
+      </form>
+      </div>
+      <div class="shrink-0 border-t border-[#1e2a36] pt-4 mt-2">
+          <button onclick="handleLogout()" class="w-full border border-red-900 text-red-500 py-3 text-[10px] tracking-widest font-bold uppercase hover:bg-red-900 hover:text-[#4fb3d9] transition">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cart-overlay" class="fixed inset-0 bg-black/80 z-[100] opacity-0 pointer-events-none transition-opacity duration-300" onclick="toggleCart()"></div>
+  <div id="cart-panel" class="fixed top-0 right-0 h-full w-full md:w-[400px] bg-[#0e141a] border-l border-[#1e2a36] z-[101] transform translate-x-full transition-transform duration-500 flex flex-col">
+    <div class="flex justify-between items-center p-6 md:p-8 border-b border-[#1e2a36]">
+      <h2 class="display-font text-2xl md:text-3xl text-white uppercase">CART</h2>
+      <button onclick="toggleCart()" class="text-white text-xl md:text-2xl hover:text-[#8ea4be] transition"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="cart-items" class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6"></div>
+    <div class="p-6 md:p-8 border-t border-[#1e2a36] bg-[#131b23]">
+      <div class="flex justify-between text-white font-bold tracking-widest uppercase text-[10px] md:text-sm mb-6">
+        <span>Total</span>
+        <span id="cart-total">0 EGP</span>
+      </div>
+      <button onclick="goToCheckout()" class="w-full bg-white text-black py-4 md:py-5 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3">
+        PROCEED TO CHECKOUT
+      </button>
+    </div>
+  </div><nav class="fixed top-0 left-0 w-full z-40 mix-blend-difference px-4 py-4 md:px-6 md:py-6 flex justify-between items-center text-white">
+    <div class="hidden md:flex items-center gap-8 text-xs tracking-widest uppercase font-bold w-1/3">
+      <a href="#" onclick="switchView('home'); return false;" class="hover:opacity-50 transition">Home</a>
+      <a href="#" onclick="switchView('shop'); return false;" class="hover:opacity-50 transition">Shop</a>
+      <a href="#" onclick="switchView('about'); return false;" class="hover:opacity-50 transition">Story</a>
+      <a href="#" onclick="document.getElementById('search-bar').classList.toggle('hidden');" class="hover:opacity-50 transition"><i class="fa-solid fa-magnifying-glass"></i></a>
+    </div>
+    <div class="md:hidden w-1/3 flex justify-start">
+      <button onclick="toggleMobileMenu()" class="text-white text-xl"><i class="fa-solid fa-bars"></i></button>
+    </div>
+    <div class="w-1/3 flex justify-center">
+      <a href="#" onclick="switchView('home'); return false;" class="brand-ar text-3xl md:text-5xl hover:opacity-70 transition cursor-pointer leading-none mt-1">عـتـيـق</a>
+    </div>
+    <div class="w-1/3 flex justify-end items-center gap-4 md:gap-6 text-[10px] md:text-xs tracking-widest uppercase font-bold relative z-50">
+      <a href="#" id="nav-auth-btn" onclick="toggleAuthModal(); return false;" class="hidden md:block hover:opacity-50 transition uppercase">Log In</a>    
+      <a href="#" id="nav-profile-btn" onclick="switchView('profile'); return false;" class="hover:opacity-50 transition" style="display: none;">
+          <i class="fa-regular fa-user text-base md:text-lg"></i>
+      </a>
+      <a href="#" onclick="toggleCart(); return false;" class="hover:opacity-50 transition flex items-center gap-1.5 md:gap-2 cursor-pointer transition-transform duration-300">
+        CART <span id="cart-count" class="bg-white text-black rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center text-[8px] md:text-[10px]">0</span>
+      </a>
+    </div>
+  </nav>
+
+  <div id="search-bar" class="fixed top-16 md:top-20 left-0 w-full bg-[#0e141a] border-b border-[#2b3a4a] z-30 hidden p-4 md:p-6 px-6 md:px-10">
+    <div class="max-w-4xl mx-auto flex items-center gap-4">
+      <i class="fa-solid fa-magnifying-glass text-[#6e849c]"></i>
+      <input type="text" placeholder="Search..." class="w-full bg-transparent border-none text-white focus:outline-none text-xs md:text-sm tracking-widest uppercase placeholder-gray-600">
+      <button onclick="document.getElementById('search-bar').classList.add('hidden')" class="text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="fixed inset-0 z-50 bg-[#090e13] opacity-0 invisible flex flex-col justify-center px-8 transition-all duration-300">
+    <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+    <nav class="flex flex-col gap-6 display-font text-3xl text-white uppercase relative z-50">
+      <a href="#" onclick="switchView('home'); return false;" class="hover:text-[#6e849c] transition">Home</a>
+      <a href="#" onclick="switchView('shop'); return false;" class="hover:text-[#6e849c] transition">Shop All</a>
+      <a href="#" onclick="switchView('about'); return false;" class="hover:text-[#6e849c] transition">Our Story</a>
+      <a href="#" onclick="switchView('profile'); return false;" class="hover:text-[#6e849c] transition">My Account</a>
+      <a href="#" onclick="toggleAuthModal(); toggleMobileMenu(); return false;" class="hover:text-[#6e849c] transition">Log In</a>
+    </nav>
+  </div>
+  
+  <main id="home-view" class="view-section block w-full min-h-screen">
+    <section class="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-[#090e13]">
+      <div class="absolute inset-0 w-full h-full">
+        <img src="hero.jpg" alt="Hero Image" class="absolute inset-0 w-full h-full object-cover">
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/50"></div>
+      <h1 class="relative z-10 display-font text-7xl md:text-[18vw] leading-none uppercase text-center mt-10 hero-title tracking-tighter">ATEEQ</h1>
+      <div class="absolute bottom-8 left-6 hidden md:block text-[10px] tracking-widest uppercase text-[#6e849c] w-48 text-left">Redefining modern silhouettes. <br>Crafted from ultra-heavyweight premium blends.</div>
+      <div class="absolute bottom-8 right-6 hidden md:block text-[10px] tracking-widest uppercase text-[#6e849c] text-right">Alexandria, EG <br> Est. 2026</div>
+    </section>
+
+    <section id="featured-shop" class="w-full flex flex-col md:flex-row min-h-[70vh] md:min-h-[80vh] border-b border-[#1e2a36] slow-reveal">
+      <div onclick="window.goToShop()" class="relative w-full md:w-1/2 h-[40vh] md:h-auto group cursor-pointer overflow-hidden border-b md:border-b-0 md:border-r border-[#1e2a36]">
+        <img src="blanks.jpg" alt="Blanks Collection" class="absolute inset-0 w-full h-full object-cover">
+        <div class="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
+          <span class="text-[9px] md:text-xs tracking-widest uppercase border border-white px-2 py-1 md:px-3 md:py-1 w-max rounded-full backdrop-blur text-white">The Essentials</span>
+          <div><h2 class="display-font text-4xl md:text-7xl mb-1 md:mb-2 text-white group-hover:translate-x-4 transition-transform duration-500">BLANKS</h2><p class="font-bold text-[10px] md:text-sm text-[#8ea4be]">View Collection</p></div>
+        </div>
+      </div>
+      <div onclick="openStudio('custom')" class="relative w-full md:w-1/2 h-[40vh] md:h-auto group cursor-pointer overflow-hidden">
+<img src="custom.png" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" alt="Custom">        <div class="absolute inset-0 flex flex-col justify-between p-6 md:p-10 text-right md:text-left items-end md:items-start">
+          <span class="text-[9px] md:text-xs tracking-widest uppercase border border-white px-2 py-1 md:px-3 md:py-1 w-max rounded-full backdrop-blur text-white">DTF Print</span>
+          <div class="w-full flex flex-col items-end"><h2 class="display-font text-4xl md:text-7xl mb-1 md:mb-2 text-white group-hover:-translate-x-4 transition-transform duration-500">CUSTOM</h2><p class="font-bold text-[10px] md:text-sm text-[#8ea4be]">View Collection</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="relative w-full min-h-[60vh] md:min-h-screen bg-[#0e141a] border-b border-[#1e2a36] flex flex-col items-center justify-center overflow-hidden py-16 md:py-20 slow-reveal">
+      <div class="absolute top-10 md:top-20 text-center z-20 w-full px-6">
+      </div>
+      <div class="relative w-full max-w-4xl h-[40vh] md:h-[70vh] flex items-center justify-center mt-12 md:mt-10">
+        <div class="absolute bottom-6 md:bottom-10 w-[80%] md:w-[60%] h-[20vw] md:h-[15vw] bg-[#1a1a1a] rounded-full blur-2xl podium border border-[#2b3a4a] z-0"></div>
+        <video autoplay loop muted playsinline width="100%" class="relative z-10 pointer-events-none">
+          <source src="hoodie.mp4" type="video/mp4">
+        </video>
+        <div class="absolute bottom-6 md:bottom-10 left-6 md:left-10 z-20 hidden md:block">
+        </div>
+      </div>
+    </section>
+
+    <section class="w-full py-16 md:py-24 bg-[#090e13] border-b border-[#1e2a36] overflow-hidden">
+      <div class="max-w-7xl mx-auto px-6 md:px-8 mb-10 md:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+          <h2 class="display-font text-2xl md:text-5xl text-white uppercase flex items-center gap-3 md:gap-4">
+            <i class="fa-brands fa-instagram text-[#8ea4be]"></i> @ateeq__clothes
+          </h2>
+          <p class="text-[#6e849c] text-[10px] md:text-xs tracking-widest uppercase mt-2">Follow us for the latest drops & behind the scenes</p>
+        </div>
+        <a href="https://www.instagram.com/ateeq__clothes/" target="_blank" class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-[#8ea4be] hover:text-[#4fb3d9] transition border-b border-gray-400 hover:border-[#4fb3d9] pb-1 w-max">View on Instagram</a>
+      </div>
+      <div class="relative w-full">
+        <div class="absolute top-0 left-0 w-12 md:w-32 h-full bg-gradient-to-r from-[#030303] to-transparent z-10 pointer-events-none"></div>
+        <div class="absolute top-0 right-0 w-12 md:w-32 h-full bg-gradient-to-l from-[#030303] to-transparent z-10 pointer-events-none"></div>
+
+        <div id="insta-feed" class="insta-slider flex overflow-x-auto snap-x gap-4 md:gap-6 pl-4 md:pl-6 pb-8 no-scrollbar">
+        </div>
+      </div>
+    </section>
+  </main><main id="about-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-32 md:pt-40 pb-16 md:pb-24 relative z-20">
+    <div class="max-w-5xl mx-auto px-6 text-center">
+      <h1 class="display-font text-4xl md:text-7xl text-white uppercase mb-6 md:mb-8">More Than Fabric.</h1>
+      <p class="text-[#8ea4be] text-xs md:text-base leading-relaxed tracking-widest uppercase mb-16 md:mb-24 max-w-3xl mx-auto border-l border-r border-[#2b3a4a] px-4 md:px-8">
+        Ateeq was born in Alexandria out of a desire to redefine modern streetwear. We don't just make clothes; we craft heavyweight silhouettes designed to last a lifetime. No compromises, no shortcuts. Just pure, unadulterated luxury blending the past with the future.
+      </p>
+      <h2 class="display-font text-2xl md:text-5xl text-white mb-2 md:mb-4 uppercase">The Visionaries</h2>
+      <p class="text-[#8ea4be] text-[10px] md:text-sm mb-12 md:mb-16 tracking-widest uppercase">Two minds. One vision.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-10 md:gap-12">
+        <div class="flex flex-col items-center group">
+          <div class="w-24 h-24 md:w-40 md:h-40 bg-[#131b23] rounded-full border border-[#2b3a4a] mb-4 md:mb-5 overflow-hidden group-hover:border-[#4fb3d9] transition-colors duration-300">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mohamed&backgroundColor=transparent&accessoriesProbability=10" alt="Mohamed" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+          </div>
+          <h3 class="display-font text-lg md:text-xl text-white mb-1">MOHAMED</h3>
+          <span class="text-[9px] md:text-[10px] tracking-widest uppercase text-[#6e849c]">Co-Founder</span>
+        </div>
+        <div class="flex flex-col items-center group">
+          <div class="w-24 h-24 md:w-40 md:h-40 bg-[#131b23] rounded-full border border-[#2b3a4a] mb-4 md:mb-5 overflow-hidden group-hover:border-[#4fb3d9] transition-colors duration-300">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Abdo&backgroundColor=transparent" alt="Abdelrahman" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+          </div>
+          <h3 class="display-font text-lg md:text-xl text-white mb-1">ABDELRAHMAN</h3>
+          <span class="text-[9px] md:text-[10px] tracking-widest uppercase text-[#6e849c]">Co-Founder</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <main id="shop-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 relative z-20">
+    <div class="max-w-7xl mx-auto px-6 pb-16 md:pb-24 flex flex-col md:flex-row gap-8 md:gap-10">
+      <aside class="w-full md:w-1/4 flex flex-col gap-6 border-b md:border-b-0 md:border-r border-[#1e2a36] pb-6 md:pb-0 md:pr-6">
+         <div>
+          <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#1e2a36] pb-2 md:pb-0 md:border-none">Category</h3>
+          <div class="flex flex-row flex-wrap md:flex-col gap-4 md:gap-2 text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase">
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max">
+                  <input type="checkbox" value="all" class="filter-category-checkbox" checked>
+                  <span>All</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max">
+                  <input type="checkbox" value="hoodies" class="filter-category-checkbox">
+                  <span>Hoodies</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max">
+                  <input type="checkbox" value="t-shirts" class="filter-category-checkbox">
+                  <span>T-Shirts</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max">
+                  <input type="checkbox" value="pants" class="filter-category-checkbox">
+                  <span>Pants</span>
+              </label>
+          </div>
          </div>
-      `;
-  });
-  if(cartTotal) cartTotal.textContent = `${total} EGP`;
-}
-window.removeFromCart = function(index) { 
-    cart.splice(index, 1); 
-    saveCart(); 
-}
-
-window.addPdpToCart = function() {
-    const sizeInput = document.querySelector('input[name="pdp-size"]:checked');
-    const size = sizeInput ? sizeInput.value : 'L';
-    const title = document.getElementById('pdp-title').textContent;
-    const priceText = document.getElementById('pdp-price').textContent;
-    const price = parseFloat(priceText.replace(' EGP', ''));
-    cart.push({ id: Date.now(), type: 'STORE', title: title, size: size, price: price });
-    saveCart();
-    toggleCart();
-    animateCartIcon(); 
-}
-
-window.goToCheckout = function() {
-    if (!isLoggedIn) {
-        toggleCart(); toggleAuthModal(); 
-        showToast("Please Log In or Register first to proceed.", "error"); return;
-    }
-    if(cart.length === 0) { showToast("Your cart is empty!", "error"); return; }
-    
-    if (currentUser && currentUser.email) {
-        const chkEmail = document.getElementById('chk-email');
-        if (chkEmail) {
-            chkEmail.value = currentUser.email;
-            chkEmail.readOnly = true; 
-            chkEmail.classList.add('opacity-70', 'cursor-not-allowed');
-        }
-    }
-    
-    toggleCart(); switchView('checkout');
-}
-
-window.trackOrder = async function(event) {
-    const serial = document.getElementById('track-serial').value.trim();
-    if(!serial) { showToast("Please enter a valid serial number", "error"); return; }
-    const btn = (event && (event.currentTarget || event.target)) || null;
-    const originalText = (btn && btn.innerHTML) ? btn.innerHTML : '';
-    if (btn && typeof btn.innerHTML !== 'undefined') btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Searching...';
-    if (btn) btn.disabled = true;
-    try {
-        const { data, error } = await supabaseClient.from('orders').select('status, total_amount, created_at').eq('serial_number', serial).single();
-        const resDiv = document.getElementById('track-result');
-        resDiv.classList.remove('hidden');
-        if (error || !data) {
-            resDiv.innerHTML = '<span class="text-red-500 font-bold uppercase tracking-widest"><i class="fa-solid fa-circle-xmark mr-2"></i>Order Not Found</span>';
-        } else {
-            const date = new Date(data.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            let statusColor = data.status === 'Pending' ? 'text-yellow-500' : data.status === 'Shipped' ? 'text-blue-500' : 'text-green-500';
-            resDiv.innerHTML = `
-                <div class="flex justify-between items-center mb-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Date:</span> <span class="text-white">${date}</span></div>
-                <div class="flex justify-between items-center mb-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Amount:</span> <span class="text-white font-bold">${data.total_amount} EGP</span></div>
-                <div class="flex justify-between items-center"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Status:</span> <span class="${statusColor} font-bold uppercase tracking-widest">${data.status}</span></div>
-            `;
-        }
-    } catch(err) {} 
-    finally { if (btn && typeof originalText !== 'undefined') btn.innerHTML = originalText; if (btn) btn.disabled = false; }
-};
-
-window.submitOrder = async function(event) {
-    event.preventDefault();
-    const emailEl = document.getElementById('chk-email');
-    const email = emailEl ? emailEl.value : '';
-    const paymentInput = document.querySelector('input[name="payment"]:checked');
-    if (!paymentInput) { showToast("Please select a payment method.", "error"); return; }
-    const paymentMethod = paymentInput.value;
-    
-    if (!isLoggedIn || !currentUser) { showToast("Please log in to complete your order.", "error"); return; }
-        const receiptInput = document.getElementById('instapay-receipt');
-    let receiptFile = null;
-    if (paymentMethod === 'Instapay') {
-        if (!receiptInput || !receiptInput.files || receiptInput.files.length === 0) {
-            showToast("Please upload your Instapay payment screenshot.", "error");
-            return; 
-        }
-        receiptFile = receiptInput.files[0];
-    }
-
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    
-    const p1 = document.getElementById('chk-phone1') ? document.getElementById('chk-phone1').value : '';
-    const p2 = document.getElementById('chk-phone2') ? document.getElementById('chk-phone2').value : '';
-    const phoneRegex = /^01[0125][0-9]{8}$/;
-    
-    if (!phoneRegex.test(p1)) {
-        showToast("Please enter a valid 11-digit Egyptian phone number", "error");
-        return; 
-    }
-    const customerPhone = p2 ? `${p1} (WhatsApp: ${p2})` : p1;
-    
-    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-    submitBtn.disabled = true;
-    
-    try {
-        let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
-        if (appliedDiscount > 0) {
-            totalAmount = totalAmount - (totalAmount * (appliedDiscount / 100));
-        }
-        
-        let serialNumber = 'ATQ-2026-' + Math.floor(100000 + Math.random() * 900000);
-        const customerName = document.getElementById('chk-name') ? document.getElementById('chk-name').value : 'N/A';
-        const mainAddr = document.getElementById('chk-address') ? document.getElementById('chk-address').value : '';
-        const bldg = document.getElementById('chk-building') ? document.getElementById('chk-building').value : '';
-        const floor = document.getElementById('chk-floor') ? document.getElementById('chk-floor').value : '';
-        const apt = document.getElementById('chk-apt') ? document.getElementById('chk-apt').value : '';
-        const mark = document.getElementById('chk-landmark') ? document.getElementById('chk-landmark').value : '';
-        const customerAddress = `${mainAddr}, Bldg: ${bldg}, Floor: ${floor}, Apt: ${apt} ${mark ? '(Mark: '+mark+')' : ''}`;
-        let receiptUrl = null;
-        if (receiptFile) {
-            showToast("Uploading receipt image...", "info");
-            const fileExt = receiptFile.name.split('.').pop();
-            const fileName = `receipt-${serialNumber}.${fileExt}`;
-            
-            const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                .from('receipts')
-                .upload(`public/${fileName}`, receiptFile);
-                
-            if (uploadError) {
-                console.error("Receipt Upload Error:", uploadError);
-                throw new Error("Failed to upload receipt. Please try again.");
-            }
-            
-            const { data: publicUrlData } = supabaseClient.storage.from('receipts').getPublicUrl(`public/${fileName}`);
-            receiptUrl = publicUrlData.publicUrl;
-        }
-
-        const cleanCartForDB = cart.map(item => {
-            if (item.type === 'CUSTOM') {
-                const { preview, ...restOfItem } = item; 
-                return restOfItem; 
-            }
-            return item;
-        });
-        const { error } = await supabaseClient.from('orders').insert([{
-            user_id: currentUser.id, 
-            serial_number: serialNumber, 
-            total_amount: totalAmount,
-            payment_method: paymentMethod, 
-            status: 'Pending', 
-            full_name: customerName,
-            phone: customerPhone, 
-            address: customerAddress, 
-            items: cleanCartForDB,
-            receipt_url: receiptUrl 
-        }]);
-        
-        if (error) throw error;
-
-        for (const item of cart) {
-            if (item.type === 'STORE' && item.title) {
-                const { data: prod } = await supabaseClient.from('products').select('stock_count').eq('name', item.title).single();
-                if (prod) {
-                    let newCount = prod.stock_count - 1;
-                    let newStatus = newCount <= 0 ? 'Out of Stock' : 'In Stock';
-                    await supabaseClient.from('products').update({ stock_count: newCount, stock_status: newStatus }).eq('name', item.title);
-                }
-            }
-        }
-        
-        try {
-            await emailjs.send("service_58ov5us", "template_kmoa9gi", {
-                serial_number: serialNumber, email: email, total_amount: totalAmount, payment_method: paymentMethod
-            });
-        } catch (emailErr) {}
-        
-        document.getElementById('order-serial').textContent = serialNumber;
-        document.getElementById('user-email-confirm').textContent = email;
-        const modal = document.getElementById('success-modal');
-        modal.classList.remove('hidden'); 
-        setTimeout(() => { modal.classList.remove('opacity-0'); }, 50);
-        
-        cart = []; 
-        appliedDiscount = 0;
-        activeCouponCode = null;
-        saveCart();
-        
-    } catch (error) { 
-        console.error("Order Failed: ", error);
-        showToast(error.message || "Failed to place order.", "error"); 
-    } finally {
-        submitBtn.innerHTML = originalBtnText; 
-        submitBtn.disabled = false;
-    }
-};
-
-window.closeSuccessModal = function() {
-    const modal = document.getElementById('success-modal');
-    modal.classList.add('opacity-0');
-    setTimeout(() => { modal.classList.add('hidden'); switchView('home'); }, 500);
-}
-
-window.removeFromWishlist = function(index) {
-    wishlist.splice(index, 1); saveWishlist(); showToast('Removed from wishlist.', 'info');
-}
-
-window.goToPDP_ByName = function(name) {
-    const p = window.shopProductsData.find(x => x.name === name);
-    if(p) goToPDP(p.id);
-}
-
-window.switchProfileTab = function(tabName) {
-    const tabHistory = document.getElementById('tab-history');
-    const tabWishlist = document.getElementById('tab-wishlist');
-    const ordersContent = document.getElementById('tab-orders');
-    const wishlistContent = document.getElementById('tab-wishlist-content');
-    if (tabName === 'history') {
-        if(tabHistory) { tabHistory.classList.remove('border-transparent', 'text-gray-500'); tabHistory.classList.add('border-white', 'text-white'); }
-        if(tabWishlist) { tabWishlist.classList.remove('border-white', 'text-white'); tabWishlist.classList.add('border-transparent', 'text-gray-500'); }
-        if(ordersContent) ordersContent.classList.replace('hidden', 'block');
-        if(wishlistContent) wishlistContent.classList.replace('block', 'hidden');
-        if (typeof fetchUserOrders === 'function') fetchUserOrders();
-    } else if (tabName === 'wishlist') {
-        if(tabWishlist) { tabWishlist.classList.remove('border-transparent', 'text-gray-500'); tabWishlist.classList.add('border-white', 'text-white'); }
-        if(tabHistory) { tabHistory.classList.remove('border-white', 'text-white'); tabHistory.classList.add('border-transparent', 'text-gray-500'); }
-        if(ordersContent) ordersContent.classList.replace('block', 'hidden');
-        if(wishlistContent) wishlistContent.classList.replace('hidden', 'block');
-        if (typeof fetchUserWishlist === 'function') fetchUserWishlist();
-    }
-}
-
-window.fetchUserOrders = async function() {
-    if (!isLoggedIn || !currentUser) return;
-    const container = document.getElementById('orders-container');
-    if (!container) return;
-    try {
-        const { data: orders, error } = await supabaseClient
-            .from('orders')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .order('created_at', { ascending: false });
-        if (error) throw error;
-        userOrders = orders; 
-        if (orders.length === 0) {
-            container.innerHTML = `
-                <div class="flex flex-col items-center justify-center text-center mt-10">
-                    <i class="fa-solid fa-box-open text-4xl text-[#333] mb-4"></i>
-                    <p class="text-gray-500 text-xs tracking-widest uppercase">You haven't placed any orders yet.</p>
-                </div>`;
-            return;
-        }
-        container.innerHTML = orders.map(order => {
-            const date = new Date(order.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-            const statusColor = order.status === 'Pending' ? 'text-yellow-500 border-yellow-500' : 'text-green-500 border-green-500';
-            return `
-            <div onclick="openUserOrderModal('${order.id}')" class="border border-[#222] p-6 bg-[#050505] cursor-pointer hover:border-gray-500 transition-all duration-300">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <p class="text-gray-500 text-[10px] tracking-widest uppercase mb-1">Order #${order.serial_number} (Click for details)</p>
-                        <p class="text-white text-xs tracking-widest uppercase font-bold">Placed on ${date}</p>
-                    </div>
-                    <span class="text-[10px] tracking-widest uppercase font-bold border px-3 py-1 rounded-full ${statusColor}">${order.status}</span>
-                </div>
-                <div class="border-t border-[#222] pt-6 flex justify-between items-center">
-                    <div>
-                        <p class="text-gray-400 text-[10px] tracking-widest uppercase mb-1">Payment Method</p>
-                        <p class="text-white text-xs tracking-widest uppercase font-bold">${order.payment_method}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-gray-400 text-[10px] tracking-widest uppercase mb-1">Total Amount</p>
-                        <p class="text-white text-lg tracking-widest font-bold">${order.total_amount} EGP</p>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
-    } catch (error) {
-        console.error("Error:", error.message);
-    }
-};
-
-window.toggleSettingsModal = async function() {
-    const modal = document.getElementById('settings-modal');
-    if (!modal) return;
-    if (modal.classList.contains('hidden')) {
-        modal.classList.remove('hidden'); modal.classList.add('flex');
-        setTimeout(() => modal.classList.remove('opacity-0'), 10);
-        if (isLoggedIn && currentUser) {
-            try {
-                const emailInput = document.getElementById('edit-email');
-                if(emailInput) emailInput.value = currentUser.email;
-                const { data } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
-                if (data) {
-                    const nameInput = document.getElementById('edit-name');
-                    const phoneInput = document.getElementById('edit-phone');
-                    const ageInput = document.getElementById('edit-age');
-                    const cityInput = document.getElementById('edit-city');
-                    if(nameInput) nameInput.value = data.full_name || '';
-                    if(phoneInput) phoneInput.value = data.phone || '';
-                    if(ageInput) ageInput.value = data.age || '';
-                    if(cityInput) cityInput.value = data.city || '';
-                }
-            } catch (error) {}
-        }
-    } else {
-        modal.classList.add('opacity-0');
-        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
-    }
-};
-
-async function __saveProfileData(e) {
-    if (e) e.preventDefault();
-    const newNameEl = document.getElementById('edit-name');
-    const newPhoneEl = document.getElementById('edit-phone');
-    const newAgeEl = document.getElementById('edit-age');
-    const newCityEl = document.getElementById('edit-city');
-    const newName = newNameEl ? newNameEl.value : '';
-    const newPhone = newPhoneEl ? newPhoneEl.value : '';
-    const newAge = newAgeEl ? newAgeEl.value : '';
-    const newCity = newCityEl ? newCityEl.value : '';
-    try {
-        const { error } = await supabaseClient.from('profiles').update({
-            full_name: newName, phone: newPhone, age: newAge ? parseInt(newAge) : null, city: newCity
-        }).eq('id', currentUser ? currentUser.id : null);
-        if (error) throw error;
-        showToast("Profile Updated Successfully!", "success");
-        if (typeof toggleSettingsModal === 'function') toggleSettingsModal();
-    } catch (error) { showToast("Failed to update profile.", "error"); }
-}
-
-window.saveProfileData = __saveProfileData;
-try { if (window.parent) window.parent.saveProfileData = __saveProfileData; } catch(e) {}
-
-window.openUserOrderModal = function(id) {
-    const order = userOrders.find(o => o.id === id);
-    if (!order) return;
-    const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    let itemsHtml = '';
-    if (order.items && Array.isArray(order.items)) {
-        itemsHtml = order.items.map(item => `
-            <div class="flex justify-between items-center text-xs mt-2 bg-[#111] p-3 border border-[#222]">
-                <span class="text-gray-300">- ${item.title || item.name} <b class="text-white ml-1">(Size: ${item.size || 'N/A'})</b></span>
-                <span class="text-white font-bold">${item.price} EGP</span>
-            </div> `).join('');
-    } else {
-        itemsHtml = '<div class="text-gray-600 text-xs mt-1">No items recorded</div>';
-    }
-    const content = document.getElementById('user-modal-order-content');
-    content.innerHTML = `<div class="flex justify-between items-center border-b border-[#222] pb-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Serial Number</span><span class="text-white font-bold">${order.serial_number}</span></div><div class="flex justify-between items-center border-b border-[#222] py-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Date</span><span class="text-white">${date}</span></div><div class="py-3 border-b border-[#222]"><div class="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Items Ordered</div>${itemsHtml}</div><div class="flex justify-between items-center border-b border-[#222] py-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Payment Method</span><span class="text-white">${order.payment_method}</span></div><div class="flex justify-between items-center pt-3"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Total Amount</span><span class="text-white font-bold text-lg">${order.total_amount} EGP</span></div>`;
-    const modal = document.getElementById('user-order-modal');
-    if(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-};
-
-window.closeUserOrderModal = function() {
-    const modal = document.getElementById('user-order-modal');
-    if(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-};window.toggleWishlist = async function(productId, event, btnElement = null) {
-    if(event) event.stopPropagation();
-    const button = btnElement || (event ? event.currentTarget : null);
-    const icon = button ? button.querySelector('i') : null;
-    if (!isLoggedIn || !currentUser) {
-        showToast("Please log in to save items to your wishlist!", "error");
-        toggleAuthModal();
-        return;
-    }
-    try {
-        if (icon) icon.className = "fa-solid fa-circle-notch fa-spin text-gray-500";
-        const { data, error } = await supabaseClient
-            .from('wishlist')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .eq('product_id', productId);
-        if (data && data.length > 0) {
-            await supabaseClient.from('wishlist').delete().eq('user_id', currentUser.id).eq('product_id', productId);
-            showToast("Removed from Wishlist", "info");
-            if (button) {
-                button.classList.remove('text-red-500', 'border-red-500');
-                button.classList.add('text-white');
-                if (icon) icon.className = "fa-regular fa-heart";
-            }
-        } else {
-            await supabaseClient.from('wishlist').insert([{ user_id: currentUser.id, product_id: productId }]);
-            showToast("Added to Wishlist!", "success");
-            if (button) {
-                button.classList.remove('text-white');
-                button.classList.add('text-red-500');
-                if (icon) icon.className = "fa-solid fa-heart";
-            }
-        }
-        const wishlistTab = document.getElementById('tab-wishlist-content');
-        if (wishlistTab && !wishlistTab.classList.contains('hidden')) {
-            fetchUserWishlist();
-        }
-    } catch(err) {
-        console.error("Wishlist Error:", err.message);
-        if (icon) icon.className = "fa-regular fa-heart text-white";
-    }
-}
-
-window.fetchUserWishlist = async function() {
-    if (!isLoggedIn || !currentUser) return;
-    const container = document.getElementById('wishlist-container');
-    if (!container) return;
-    container.innerHTML = '<p class="text-center col-span-full text-gray-500 text-xs tracking-widest uppercase py-10"><i class="fa-solid fa-circle-notch fa-spin text-xl"></i></p>';
-    try {
-        const { data: wishlistItems, error } = await supabaseClient
-            .from('wishlist')
-            .select(`product_id, products (*)`)
-            .eq('user_id', currentUser.id);
-        if (error) throw error;
-        if (!wishlistItems || wishlistItems.length === 0) {
-            container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center text-center py-10"><i class="fa-regular fa-heart text-4xl text-[#222] mb-4"></i><p class="text-gray-500 text-xs tracking-widest uppercase">Your wishlist is empty.</p></div>`;
-            return;
-        }
-        container.innerHTML = wishlistItems.map(item => {
-            const prod = item.products;
-            if (!prod) return '';
-            return `<div class="group relative bg-[#050505] border border-[#111] p-4 transition hover:border-[#222]"><div class="relative overflow-hidden aspect-square mb-4 cursor-pointer" onclick="switchView('shop')"><img src="${prod.image_url}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500"></div><div class="flex justify-between items-start"><div><h4 class="text-xs uppercase text-white font-bold tracking-wider">${prod.name}</h4><p class="text-[10px] text-gray-500 mt-1">${prod.price} EGP</p></div><button onclick="toggleWishlist('${prod.id}', event, this)" class="border border-[#333] hover:border-white w-14 h-14 flex items-center justify-center transition text-white"><i class="fa-solid fa-heart text-red-500"></i></button></div></div>`;
-        }).join('');
-    } catch(err) {
-        console.error(err);
-        container.innerHTML = '<p class="text-center col-span-full text-red-500 text-xs tracking-widest uppercase">Error loading wishlist.</p>';
-    }
-}
-
-window.toggleWishlistFromPDP = function(event, btnElement) {
-    const titleElement = document.getElementById('pdp-title');
-    if (!titleElement) return;
-    const title = titleElement.textContent.trim();
-    if (window.shopProductsData && window.shopProductsData.length > 0) {
-        const product = window.shopProductsData.find(p => p.name.toUpperCase() === title.toUpperCase());
-        if (product && product.id) {
-            toggleWishlist(product.id, event, btnElement);
-        } else {
-            console.error("Product ID not found for: ", title);
-        }
-    } else {
-        console.error("Shop products data is not loaded yet.");
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    updateCartUI();
-    async function checkUserStatus() {
-     const { data: { session } } = await supabaseClient.auth.getSession();
-     if (session && session.user) {
-         isLoggedIn = true; currentUser = session.user;
-         const authBtn = document.getElementById('nav-auth-btn');
-         const profileBtn = document.getElementById('nav-profile-btn');
-         if(authBtn) authBtn.style.display = 'none';
-         if(profileBtn) { profileBtn.classList.remove('hidden'); profileBtn.style.display = 'block'; }
-     }
-    }
-    checkUserStatus();
-    setTimeout(() => {
-       const splash = document.getElementById('splash-screen');
-       if(splash){ splash.classList.add('slide-up'); setTimeout(() => splash.style.display = 'none', 1200); }
-    }, 1000);
-    loadShopProducts(); 
-    let activeFilters = { category: 'all', size: 'all', color: 'all', fit: 'all' };
-    let currentSort = 'default';
-    window.applyFilters = function() {
-         const container = document.getElementById('products-container');
-         let products = Array.from(document.querySelectorAll('.product-card'));
-         let visibleCount = 0;
-         products.forEach(product => {
-             const productCategory = product.getAttribute('data-category') || '';
-             const productSizes = product.getAttribute('data-sizes') || '';
-             const productColors = product.getAttribute('data-colors') || '';
-             const productFit = product.getAttribute('data-fit') || '';
-             let categoryMatch = activeFilters.category === 'all' || productCategory.includes(activeFilters.category);
-             let sizeMatch = activeFilters.size === 'all' || productSizes.includes(activeFilters.size);
-             let colorMatch = activeFilters.color === 'all' || productColors.includes(activeFilters.color);
-             let fitMatch = activeFilters.fit === 'all' || productFit.includes(activeFilters.fit);
-             if (categoryMatch && sizeMatch && colorMatch && fitMatch) {
-                 product.style.display = 'block'; product.classList.add('is-visible'); visibleCount++;
-             } else {
-                 product.style.display = 'none'; product.classList.remove('is-visible');
-             }
-         });
-         let visibleProducts = products.filter(p => p.classList.contains('is-visible'));
-         if (currentSort === 'price-asc') visibleProducts.sort((a, b) => parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price')));
-         else if (currentSort === 'price-desc') visibleProducts.sort((a, b) => parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price')));
-         visibleProducts.forEach(p => container.appendChild(p));
-         const resultsCount = document.getElementById('results-count');
-         if(resultsCount) resultsCount.textContent = visibleCount + (visibleCount === 1 ? ' Result' : ' Results');
-    }
-    const sortSelect = document.getElementById('sort-select');
-    if(sortSelect) { sortSelect.addEventListener('change', function() { currentSort = this.value; applyFilters(); }); }
-    document.querySelectorAll('.filter-category-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            document.querySelectorAll('.filter-category-checkbox').forEach(cb => cb.checked = false);
-            this.checked = true; activeFilters.category = this.value; applyFilters();
-        });
-    });
-    document.querySelectorAll('.filter-fit-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            document.querySelectorAll('.filter-fit-checkbox').forEach(cb => cb.checked = false);
-            this.checked = true; activeFilters.fit = this.value; applyFilters();
-        });
-    });
-    document.querySelectorAll('.filter-size-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const size = this.getAttribute('data-size');
-            if (activeFilters.size === size) { activeFilters.size = 'all'; this.classList.remove('bg-white', 'text-black'); } 
-            else {
-                document.querySelectorAll('.filter-size-btn').forEach(b => b.classList.remove('bg-white', 'text-black'));
-                this.classList.add('bg-white', 'text-black'); activeFilters.size = size;
-            }
-            applyFilters();
-        });
-    });
-    document.querySelectorAll('.filter-color-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const color = this.getAttribute('data-color');
-            if (activeFilters.color === color) { activeFilters.color = 'all'; this.classList.remove('ring-2', 'ring-white'); } 
-            else {
-                document.querySelectorAll('.filter-color-btn').forEach(b => b.classList.remove('ring-2', 'ring-white'));
-                this.classList.add('ring-2', 'ring-white'); activeFilters.color = color;
-            }
-            applyFilters();
-        });
-    });
-    if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) { entry.target.classList.add('active'); obs.unobserve(entry.target); }
-            });
-        }, { root: null, rootMargin: '0px', threshold: 0.15 });
-        document.querySelectorAll('.slow-reveal').forEach(el => observer.observe(el));
-    } else { document.querySelectorAll('.slow-reveal').forEach(el => el.classList.add('active')); }
-    const music = document.getElementById('bg-music');
-    const musicBtn = document.getElementById('music-toggle');
-    const musicIcon = document.getElementById('music-icon');
-    let isPlaying = false;
-    if (music && musicBtn) {
-        music.volume = 0.3; 
-        let playPromise = music.play();
-        if (playPromise !== undefined) {
-            playPromise.then(_ => { isPlaying = true; musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; })
-            .catch(error => {
-                isPlaying = false; musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300';
-                document.body.addEventListener('click', function playOnFirstClick() {
-                    if (!isPlaying) { music.currentTime = 20; music.play(); isPlaying = true; musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; }
-                    document.body.removeEventListener('click', playOnFirstClick);
-                }, { once: true });
-            });
-        }
-        music.addEventListener('ended', function() { this.currentTime = 20; this.play(); });
-        musicBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            if (isPlaying) { music.pause(); musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300'; } 
-            else { if (music.currentTime < 20) music.currentTime = 20; music.play(); musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; }
-            isPlaying = !isPlaying;
-        });
-    }
-    let originalTitle = document.title;
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-            document.title = cart.length > 0 ? `(${cart.length}) عـتـيـق | طقمك في انتظارك 🖤` : "عـتـيـق | We miss you 🖤";
-            if (music && isPlaying) music.pause(); 
-        } else {
-            document.title = originalTitle;
-            if (music && isPlaying) music.play(); 
-        }
-    });
-    const cursor = document.getElementById('custom-cursor');
-    document.addEventListener('mousemove', (e) => {
-        if (cursor) { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; }
-    });
-    const mainAddBtn = document.getElementById('main-add-btn');
-    const stickyBar = document.getElementById('sticky-cart-bar');
-    if (mainAddBtn && stickyBar) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting && !document.getElementById('pdp-view').classList.contains('hidden')) {
-                    stickyBar.classList.remove('translate-y-full');
-                    document.getElementById('sticky-title').textContent = document.getElementById('pdp-title').textContent;
-                    document.getElementById('sticky-img').src = document.getElementById('main-pdp-img').src;
-                } else stickyBar.classList.add('translate-y-full');
-            });
-        }, { threshold: 0 }); 
-        observer.observe(mainAddBtn);
-    }
-});
-
-let canvasInstance = null;
-const REMOVE_BG_KEYS = ['o1AkssPAwYnCxy3MuyhGqjki', 'siyGKSwHaciGGjxSZQWsiWr6'];
-
-async function processImageWithoutBackground(imageFile) {
-    const formData = new FormData();
-    formData.append('image_file', imageFile);
-    formData.append('size', 'auto');
-    for (let i = 0; i < REMOVE_BG_KEYS.length; i++) {
-        try {
-            const response = await fetch('https://api.remove.bg/v1.0/removebg', {
-                method: 'POST',
-                headers: { 'X-Api-Key': REMOVE_BG_KEYS[i] },
-                body: formData
-            });
-            if (response.ok) return await response.blob();
-            else {
-                if (i === REMOVE_BG_KEYS.length - 1) throw new Error('All API limits reached.');
-            }
-        } catch (error) {
-            if (i === REMOVE_BG_KEYS.length - 1) throw error;
-        }
-    }
-}
-
-function initStudioCanvas() {
-    if (canvasInstance) return;
-
-    const wrapper = document.getElementById('canvas-wrapper');
-    const canvasWidth = wrapper.clientWidth || 400;
-    const canvasHeight = wrapper.clientHeight || 500;
-
-    canvasInstance = new fabric.Canvas('studioCanvas', {
-        width: canvasWidth,
-        height: canvasHeight,
-        backgroundColor: 'transparent',
-        selection: true,
-        preserveObjectStacking: true 
-    });
-
-    fabric.Object.prototype.set({
-        transparentCorners: false,
-        cornerColor: '#ffffff',
-        cornerStrokeColor: '#000000',
-        borderColor: 'rgba(255, 255, 255, 0.6)',
-        cornerSize: 12,
-        padding: 8,
-        cornerStyle: 'circle',
-        borderDashArray: [4, 4],
-        borderScaleFactor: 2
-    });
-    document.getElementById('studioImageUpload').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const labelSpan = this.previousElementSibling;
-        const iconElement = labelSpan.previousElementSibling;
-        const originalIconClass = iconElement.className;
-        const originalText = labelSpan.textContent;
-        iconElement.className = "fa-solid fa-circle-notch fa-spin text-2xl mb-3 text-white";
-        labelSpan.textContent = "Removing Background...";
-        showToast("Magic Eraser is working... Please wait", "info");
-        try {
-            const blob = await processImageWithoutBackground(file);
-            const url = URL.createObjectURL(blob);
-            fabric.Image.fromURL(url, function(img) {
-                img.scaleToWidth(canvasInstance.getWidth() * 0.7);
-                img.set({
-                    left: canvasInstance.getWidth() / 2,
-                    top: canvasInstance.getHeight() / 2,
-                    originX: 'center',
-                    originY: 'center'
-                });
-                canvasInstance.add(img);
-                canvasInstance.setActiveObject(img);
-                canvasInstance.renderAll();
-                showToast("Background removed successfully!", "success");
-            });
-        } catch (error) {
-            console.error(error);
-            showToast("Failed to remove background. Loading original image.", "error");
-            const fallbackReader = new FileReader();
-            fallbackReader.onload = function(f) {
-                fabric.Image.fromURL(f.target.result, function(img) {
-                    img.scaleToWidth(canvasInstance.getWidth() * 0.7);
-                    img.set({ left: canvasInstance.getWidth() / 2, top: canvasInstance.getHeight() / 2, originX: 'center', originY: 'center' });
-                    canvasInstance.add(img);
-                    canvasInstance.setActiveObject(img);
-                    canvasInstance.renderAll();
-                });
-            };
-            fallbackReader.readAsDataURL(file);
-        } finally {
-            iconElement.className = originalIconClass;
-            labelSpan.textContent = originalText;
-            e.target.value = '';
-        }
-    });
-   
-}
-
-window.addTextToStudio = function() {
-    const textInput = document.getElementById('studioTextContainer').value;
-    if (!textInput) {
-        showToast("Please enter some text", "warning");
-        return;
-    }
-    if (!canvasInstance) return;
-
-    // 🚀 السحر هنا: بنسحب اللون والخط من الزراير مباشرة قبل ما نرسم الكلمة
-    const selectedColor = document.getElementById('text-color-picker').value;
-    const selectedFont = document.getElementById('text-font-selector').value;
-
-    const textObj = new fabric.Text(textInput, {
-        left: 150,
-        top: 150,
-        fontFamily: selectedFont,
-        fill: selectedColor,
-        fontSize: 40,
-        selectable: true
-    });
-
-    canvasInstance.add(textObj);
-    
-    // 🚀 بنخلي الكلمة تتحدد أوتوماتيك أول ما تنزل عشان لو العميل حب يغير اللون فوراً
-    canvasInstance.setActiveObject(textObj); 
-    canvasInstance.renderAll();
-    
-    document.getElementById('studioTextContainer').value = '';
-    showToast("Text added!", "success");
-    
-    // تحديث السعر لو إحنا على الضهر
-    if (typeof updateDynamicPrice === 'function') updateDynamicPrice();
-};
-
-window.clearStudioCanvas = function() {
-    if (!canvasInstance) return;
-    canvasInstance.clear();
-    showToast("Design reset completed", "info");
-};
-
-async function generateFinalProof() {
-    designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
-    const cw = canvasInstance.getWidth();
-    const ch = canvasInstance.getHeight();
-    const compCanvas = document.createElement('canvas');
-    compCanvas.width = cw * 2;
-    compCanvas.height = ch;
-    const ctx = compCanvas.getContext('2d');
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, compCanvas.width, compCanvas.height);
-
-    const drawSide = async (side, offsetX) => {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            let currentSrc = document.getElementById('hoodieBase').src;
-            if (side === 'front') {
-                img.src = currentSrc.includes('back') ? currentSrc.replace(/back/i, 'front') : currentSrc;
-            } else {
-                img.src = currentSrc.includes('front') ? currentSrc.replace(/front/i, 'back') : currentSrc;
-            }
-            img.onload = () => {
-                ctx.drawImage(img, offsetX, 0, cw, ch);
-                if (designState[side]) {
-                    const tempFabCanvas = document.createElement('canvas');
-                    tempFabCanvas.width = cw; tempFabCanvas.height = ch;
-                    const tempFab = new fabric.StaticCanvas(tempFabCanvas, { width: cw, height: ch });
-                    tempFab.loadFromJSON(designState[side], () => {
-                        tempFab.renderAll();
-                        ctx.drawImage(tempFab.getElement(), offsetX, 0, cw, ch);
-                        resolve();
-                    });
-                } else {
-                    resolve();
-                }
-            };
-            img.onerror = () => resolve();
-        });
-    };
-    await drawSide('front', 0);
-    await drawSide('back', cw);
-    return compCanvas.toDataURL('image/png', 1.0);
-}
-
-window.addStudioToCart = async function() {
-    if (!canvasInstance) return;
-    designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
-    let hasFront = designState.front && JSON.parse(designState.front).objects.length > 0;
-    let hasBack = designState.back && JSON.parse(designState.back).objects.length > 0;
-    if (!hasFront && !hasBack) {
-        showToast("Please add a design to the front or back first!", "error");
-        return;
-    }
-    showToast("Generating design proof...", "info");
-    try {
-        const finalDesignData = await generateFinalProof();
-        const sizeInput = document.querySelector('input[name="studio-size"]:checked');
-        const size = sizeInput ? sizeInput.value : 'L';
-        let placementText = [];
-        if (hasFront) placementText.push("Front");
-        if (hasBack) placementText.push("Back");
-        cart.push({
-            id: Date.now(),
-            type: 'CUSTOM',
-            title: 'DTF CUSTOM PRINT',
-            size: size,
-            price: CUSTOM_PRICE,
-            placement: placementText.join(' & '),
-            preview: finalDesignData
-        });
-        saveCart();
-        toggleCart();
-        animateCartIcon();
-        showToast("Custom design added to cart!", "success");
-    } catch (e) {
-        console.error(e);
-        showToast("Error generating design proof.", "error");
-    }
-};
-
-const originalSwitchView = window.switchView;
-window.switchView = function(viewId, addToHistory = true) {
-    originalSwitchView(viewId, addToHistory);
-    if (viewId === 'studio') {
-        setTimeout(initStudioCanvas, 150);
-    }
-};
-
-window.deleteActiveObject = function() {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject) {
-        canvasInstance.remove(activeObject);
-        canvasInstance.discardActiveObject();
-        canvasInstance.renderAll();
-        showToast("Item deleted", "info");
-    } else {
-        showToast("Please select an item to delete first", "error");
-    }
-};
-window.renderSizes = function(containerId, category, inputName) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    let sizes = [];
-    if (category === 'pants') {
-        sizes = ['30', '32', '34', '36', '38', '40'];
-    } else {
-        sizes = ['S', 'M', 'L', 'XL', 'XXL'];
-    }
-    container.innerHTML = sizes.map((size, index) => `
-        <label class="cursor-pointer group">
-            <input type="radio" name="${inputName}" value="${size}" class="hidden peer" ${index === 2 ? 'checked' : ''}>
-            <div class="w-10 h-10 border border-[#333] flex items-center justify-center text-[10px] uppercase tracking-widest text-gray-500 peer-checked:bg-white peer-checked:text-black peer-checked:border-white hover:border-white transition">
-                ${size}
+         <div class="hidden md:block">
+           <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#1e2a36] pb-2">Fit</h3>
+           <div class="flex flex-col gap-2 text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase">
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9]"><input type="checkbox" value="all" class="filter-fit-checkbox accent-white" checked> All Fits</label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9]"><input type="checkbox" value="oversized" class="filter-fit-checkbox accent-white"> Oversized</label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9]"><input type="checkbox" value="boxy" class="filter-fit-checkbox accent-white"> Boxy</label>
+           </div>
+         </div>
+         <div>
+           <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#1e2a36] pb-2">Size</h3>
+           <div class="flex flex-wrap gap-2 text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase">
+              <button class="filter-size-btn border border-[#2b3a4a] px-3 py-1 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition" data-size="m">M</button>
+              <button class="filter-size-btn border border-[#2b3a4a] px-3 py-1 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition" data-size="l">L</button>
+              <button class="filter-size-btn border border-[#2b3a4a] px-3 py-1 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition" data-size="xl">XL</button>
+              <button class="filter-size-btn border border-[#2b3a4a] px-3 py-1 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition" data-size="xxl">XXL</button>
+           </div>
+         </div>
+      </aside>
+      <div class="w-full md:w-3/4">
+          <div class="flex justify-between items-center mb-6 border-b border-[#1e2a36] pb-4 gap-2">
+             <h3 class="text-white display-font text-2xl md:text-3xl uppercase">Products</h3>
+             <div class="flex items-center gap-2 md:gap-6">
+                 <span id="results-count" class="text-[#6e849c] text-[9px] md:text-xs tracking-widest uppercase hidden sm:inline">0 Results</span>
+                 <select id="sort-select" class="bg-transparent text-white text-[9px] md:text-xs tracking-widest uppercase font-bold border border-[#2b3a4a] p-1.5 md:p-2 focus:outline-none cursor-pointer">
+                     <option value="default" class="bg-black">Featured</option>
+                     <option value="price-asc" class="bg-black">Price: Low - High</option>
+                     <option value="price-desc" class="bg-black">Price: High - Low</option>
+                 </select>
+             </div>
+          </div>
+        <div class="grid grid-cols-2 gap-4 md:gap-8 mb-16" id="products-container"></div>
+      </div>
+    </div>
+  </main><main id="pdp-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20">
+    <div class="max-w-7xl mx-auto px-6">
+      <button onclick="switchView('shop')" class="mb-6 md:mb-8 text-[10px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition text-[#6e849c]"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <div class="flex flex-col lg:flex-row gap-6 lg:gap-16">
+        <div class="w-full lg:w-1/2 flex flex-col-reverse lg:flex-row gap-4">
+           <div id="pdp-gallery" class="w-full lg:w-20 flex flex-row lg:flex-col gap-3 md:gap-4 overflow-x-auto lg:overflow-y-auto hide-scroll h-auto lg:h-[60vh] pb-2 lg:pb-0"></div>
+           <div class="flex-grow bg-[#131b23] border border-[#1e2a36] p-4 md:p-10 flex items-center justify-center">
+              <img id="main-pdp-img" src="" class="w-full h-auto max-h-[50vh] md:max-h-[70vh] object-contain" alt="Main Product">
+           </div>
+        </div>
+        <div class="w-full lg:w-1/2 text-white mt-4 lg:mt-0">
+           <h1 id="pdp-title" class="display-font text-3xl md:text-5xl uppercase mb-2">Product Title</h1>
+           <div class="flex items-center gap-4 mb-4 md:mb-6">
+              <p id="pdp-price" class="font-bold text-lg md:text-xl tracking-widest">0 EGP</p>
+           </div>
+           <p class="text-[#8ea4be] text-xs md:text-sm leading-relaxed mb-6 md:mb-8">
+             The ultimate essential. Cut from 380GSM heavyweight Milton fabric, featuring a true dropped-shoulder oversized fit. No drawstrings for a clean, minimalist silhouette.
+           </p>
+          <div class="mb-6 md:mb-8 border-t border-b border-[#1e2a36] py-4 md:py-6">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-[#8ea4be]">Size</span>
+                <button onclick="toggleSizeGuide()" class="text-[9px] md:text-[10px] tracking-widest uppercase underline text-[#6e849c] hover:text-[#4fb3d9] transition">Size Guide</button>
             </div>
-        </label>
-    `).join('');
-};
-window.changeStudioProduct = function(productType) {
-    currentProduct = productType; 
-    const baseImg = document.getElementById('hoodieBase');
-    if (!baseImg) return;
-    
-    // 🚀 التعديل هنا: لو تيشرت هياخد مسار بصيغة png، لو هودي هياخد webp
-    const ext = productType === 'tshirt' ? 'png' : 'webp';
-    baseImg.src = `${currentProduct}-${currentSide}.${ext}`; 
-    const colorLayer = document.getElementById('garment-color-layer');
-    if (colorLayer) colorLayer.style.webkitMaskImage = `url('${currentProduct}-${currentSide}.${ext}')`;
-    
-    if(canvasInstance) canvasInstance.clear();
-    designState = { front: null, back: null };
-    
-    showToast(`Switched to ${productType.toUpperCase()}`, "info");
-    
-    document.querySelectorAll('.product-selector-btn').forEach(btn => {
-        btn.classList.remove('border-white', 'text-white');
-        btn.classList.add('border-[#333]', 'text-gray-500');
-    });
-    const activeBtn = document.getElementById(`btn-${productType}`);
-    if (activeBtn) {
-        activeBtn.classList.remove('border-[#333]', 'text-gray-500');
-        activeBtn.classList.add('border-white', 'text-white');
-    }
+            <div id="pdp-size-container" class="flex flex-wrap gap-2 md:gap-4 mt-6"></div>
+          </div>
 
-    // تحديث مقاسات الاستوديو فوراً
-    if (typeof renderSizes === 'function') {
-        renderSizes('studio-size-container', currentProduct, 'studio-size');
-    }
-};
-
-window.toggleHoodieSide = function() {
-    const hoodie = document.getElementById('hoodieBase');
-    const flipBtn = document.getElementById('flip-btn');
-    if (!hoodie || !canvasInstance) return;
-    
-    designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
-    
-    // 🚀 تحديد الامتداد صح
-    const ext = currentProduct === 'tshirt' ? 'png' : 'webp';
-
-    if (currentSide === 'front') {
-        currentSide = 'back';
-        hoodie.src = `${currentProduct}-back.${ext}`; 
-        const colorLayer = document.getElementById('garment-color-layer');
-    if (colorLayer) colorLayer.style.webkitMaskImage = `url('${hoodie.getAttribute('src')}')`;
-        flipBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Front';
-    } else {
-        currentSide = 'front';
-        hoodie.src = `${currentProduct}-front.${ext}`; 
-        const colorLayer = document.getElementById('garment-color-layer');
-    if (colorLayer) colorLayer.style.webkitMaskImage = `url('${hoodie.getAttribute('src')}')`;
-        flipBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Back';
-    }
-    
-    canvasInstance.clear();
-    if (designState[currentSide]) {
-        canvasInstance.loadFromJSON(designState[currentSide], canvasInstance.renderAll.bind(canvasInstance));
-    }
-    showToast("Switched to " + currentSide + " view", "info");
-};
-window.changeStudioColor = function(color, btn) {
-    // السر هنا: بنلون طبقة الماسك بس
-    const colorLayer = document.getElementById('garment-color-layer');
-    if (colorLayer) colorLayer.style.backgroundColor = color; 
-    
-    // تظبيط شكل زراير الألوان
-    document.querySelectorAll('.color-swatch-btn').forEach(b => {
-        b.classList.remove('active-color', 'border-white', 'border-2');
-        b.classList.add('border-[#333]', 'border');
-    });
-    btn.classList.remove('border-[#333]', 'border');
-    btn.classList.add('active-color', 'border-white', 'border-2');
-};
-window.openWhatsApp = function() {
-    let phone = "201220543105"; 
-    let message = "أهلاً عتيق، محتاج مساعدة 🖤";
-    
-    const pdpView = document.getElementById('pdp-view');
-    if (pdpView && !pdpView.classList.contains('hidden')) {
-        let productName = document.getElementById('pdp-title').textContent;
-        let productPrice = document.getElementById('pdp-price').textContent;
-        message = `أهلاً عتيق، أنا بستفسر عن الهودي ده:\n*${productName}*\nسعره: ${productPrice}`;
-    }
-    
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
-};
-
-window.toggleInstapayUI = function(show) {
-    const block = document.getElementById('instapay-block');
-    if (block) {
-        if (show) {
-            block.classList.remove('hidden');
-            block.classList.add('block');
-        } else {
-            block.classList.add('hidden');
-            block.classList.remove('block');
-        }
-    }
-};
-const legalPolicies = {
-    'privacy': {
-        title: 'Privacy Policy',
-        content: '<p>At ATEEQ, we are committed to protecting your privacy. We collect personal information such as your name, email, phone number, and shipping address solely for the purpose of fulfilling your orders and providing customer support.</p><p>We do not sell, rent, or share your personal data with third parties. Your payment information is processed securely. By using our website, you consent to our collection and use of your information as described in this policy.</p>'
-    },
-    'terms': {
-        title: 'Terms of Service',
-        content: '<p>Welcome to ATEEQ. By accessing or using our website, you agree to be bound by these Terms of Service. All content, designs, and graphics on this site are the exclusive property of ATEEQ STUDIOS.</p><p>We reserve the right to refuse service, cancel orders, or correct any errors, inaccuracies, or omissions at any time without prior notice. Custom products generated via our Custom Lab are created specifically for you and are subject to specific return guidelines.</p>'
-    },
-    'refund': {
-        title: 'Refund & Return Policy',
-        content: '<p>We want you to be completely satisfied with your purchase. ATEEQ accepts returns and exchanges within 14 days of delivery, provided the items are unworn, unwashed, and in their original packaging.</p><p><b>Exceptions:</b> Please note that custom-designed pieces (orders made via the Custom Lab) are final sale and non-refundable unless defective. To initiate a return, please contact our support team via WhatsApp or Email.</p>'
-    }
-};
-
-window.openPolicy = function(type) {
-    document.getElementById('policy-title').textContent = legalPolicies[type].title;
-    document.getElementById('policy-content').innerHTML = legalPolicies[type].content;
-    const modal = document.getElementById('policy-modal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => modal.classList.remove('opacity-0'), 10);
-};
-
-window.closePolicy = function() {
-    const modal = document.getElementById('policy-modal');
-    modal.classList.add('opacity-0');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }, 300);
-};
-window.shareDesign = async function() {
-    const shareText = "🔥 صممت الهودي بتاعي بنفسي على ATEEQ STUDIOS! \nادخل صمم طقمك المخصوص من هنا:\n";
-    const shareUrl = window.location.origin; 
-
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: 'My Custom ATEEQ Design',
-                text: shareText,
-                url: shareUrl
-            });
-            showToast("Thanks for sharing! 🖤", "success");
-        } catch (err) {
-            console.log("Share cancelled or failed.", err);
-        }
-    } else {
-        const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
-        window.open(waUrl, '_blank');
-        showToast("Opening WhatsApp...", "info");
-    }
-};
-async function fetchInstagramFeed() {
-    const endpoint = 'https://feeds.behold.so/XIY9sTJl0RgeFdBNI8TB';
-
-    const placeholders = [
-        '3.png', 
-        '4.png',
-        '5.png', 
-        '6.png',
-        '9.png',
-        '10.png',
-        '11.png'
-
-    ];
-
-    try {
-        const response = await fetch(endpoint);
-        const posts = await response.json(); 
-        const feedContainer = document.getElementById('insta-feed');
-        
-        if(feedContainer) feedContainer.innerHTML = '';
-
-        let singleSet = '';
-
-        for (let i = 0; i < 6; i++) {
-            let imgUrl = posts[i] ? posts[i].mediaUrl : placeholders[i];
-            let postLink = posts[i] ? posts[i].permalink : '#'; 
-
-            singleSet += `
-                <a href="${postLink}" target="_blank" class="flex-shrink-0 w-64 md:w-72 h-80 relative group overflow-hidden rounded-md block cursor-pointer">
-                    <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Ateeq Instagram Post">
-                    
-                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-                    </div>
-                </a>
-            `;
-        }
-
-        feedContainer.innerHTML = singleSet + singleSet + singleSet;
-
-    } catch (error) {
-        console.error('Error fetching Instagram feed:', error);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
-function dataURLtoBlob(dataurl) {
-    let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-    while(n--){
-        u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], {type:mime});
-}
-window.submitOrder = async function(event) {
-    event.preventDefault();
-    const emailEl = document.getElementById('chk-email');
-    
-    const email = (emailEl && emailEl.value) ? emailEl.value : (currentUser ? currentUser.email : '');
-    
-    const paymentInput = document.querySelector('input[name="payment"]:checked');
-    if (!paymentInput) { showToast("Please select a payment method.", "error"); return; }
-    const paymentMethod = paymentInput.value;
-    
-    if (!isLoggedIn || !currentUser) { showToast("Please log in to complete your order.", "error"); return; }
-    
-    const receiptInput = document.getElementById('instapay-receipt');
-    let receiptFile = null;
-    if (paymentMethod === 'Instapay') {
-        if (!receiptInput || !receiptInput.files || receiptInput.files.length === 0) {
-            showToast("Please upload your Instapay payment screenshot.", "error");
-            return; 
-        }
-        receiptFile = receiptInput.files[0];
-    }
-
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    
-    const p1 = document.getElementById('chk-phone1') ? document.getElementById('chk-phone1').value : '';
-    const p2 = document.getElementById('chk-phone2') ? document.getElementById('chk-phone2').value : '';
-    const phoneRegex = /^01[0125][0-9]{8}$/;
-    
-    if (!phoneRegex.test(p1)) {
-        showToast("Please enter a valid 11-digit Egyptian phone number", "error");
-        return; 
-    }
-    const customerPhone = p2 ? `${p1} (WhatsApp: ${p2})` : p1;
-    
-    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-    submitBtn.disabled = true;
-    
-    try {
-        let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
-        if (appliedDiscount > 0) {
-            totalAmount = totalAmount - (totalAmount * (appliedDiscount / 100));
-        }
-        
-        let serialNumber = 'ATQ-2026-' + Math.floor(100000 + Math.random() * 900000);
-        const customerName = document.getElementById('chk-name') ? document.getElementById('chk-name').value : 'N/A';
-        const mainAddr = document.getElementById('chk-address') ? document.getElementById('chk-address').value : '';
-        const bldg = document.getElementById('chk-building') ? document.getElementById('chk-building').value : '';
-        const floor = document.getElementById('chk-floor') ? document.getElementById('chk-floor').value : '';
-        const apt = document.getElementById('chk-apt') ? document.getElementById('chk-apt').value : '';
-        const mark = document.getElementById('chk-landmark') ? document.getElementById('chk-landmark').value : '';
-        const customerAddress = `${mainAddr}, Bldg: ${bldg}, Floor: ${floor}, Apt: ${apt} ${mark ? '(Mark: '+mark+')' : ''}`;
-
-        let receiptUrl = null;
-        if (receiptFile) {
-            showToast("Uploading receipt image...", "info");
-            const fileExt = receiptFile.name.split('.').pop();
-            const fileName = `receipt-${serialNumber}.${fileExt}`;
-            
-            const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                .from('receipts')
-                .upload(`public/${fileName}`, receiptFile);
-                
-            if (uploadError) throw new Error("Failed to upload receipt. Please try again.");
-            
-            const { data: publicUrlData } = supabaseClient.storage.from('receipts').getPublicUrl(`public/${fileName}`);
-            receiptUrl = publicUrlData.publicUrl;
-        }
-
-        let customDesignUrl = null;
-                const hasCustomItem = cart.some(item => item.type === 'CUSTOM');
-        const customItemWithPreview = cart.find(item => item.type === 'CUSTOM' && item.preview);
-if (hasCustomItem) {
-            if (!customItemWithPreview) {
-                throw new Error("Design image is missing! Please remove the item from cart and design it again.");
-            }
-
-            showToast("Uploading custom design...", "info");
-            const blob = dataURLtoBlob(customItemWithPreview.preview);
-            const designFileName = `design-${serialNumber}.png`;
-            
-            const { data: designData, error: designError } = await supabaseClient.storage
-                .from('custom-designs')
-                .upload(designFileName, blob, { contentType: 'image/png' });
-                
-            if (designError) {
-                console.error("Supabase Upload Error:", designError);
-                throw new Error("Storage Error: " + designError.message);
-            }
-              const { data: designUrlData } = supabaseClient.storage.from('custom-designs').getPublicUrl(designFileName);
-            customDesignUrl = designUrlData.publicUrl;
-        }
-
-        const cleanCartForDB = cart.map(item => {
-            if (item.type === 'CUSTOM') {
-                const { preview, ...restOfItem } = item; 
-                return restOfItem; 
-            }
-            return item;
-        });
-        const { error } = await supabaseClient.from('orders').insert([{
-            user_id: currentUser.id, 
-            serial_number: serialNumber, 
-            total_amount: totalAmount,
-            payment_method: paymentMethod, 
-            status: 'Pending', 
-            full_name: customerName,
-            phone: customerPhone, 
-            address: customerAddress, 
-            items: cleanCartForDB,
-            receipt_url: receiptUrl,
-            custom_design_url: customDesignUrl 
-        }]);
-        
-        if (error) throw error;
-
-        for (const item of cart) {
-            if (item.type === 'STORE' && item.title) {
-                const { data: prod } = await supabaseClient.from('products').select('stock_count').eq('name', item.title).single();
-                if (prod) {
-                    let newCount = prod.stock_count - 1;
-                    let newStatus = newCount <= 0 ? 'Out of Stock' : 'In Stock';
-                    await supabaseClient.from('products').update({ stock_count: newCount, stock_status: newStatus }).eq('name', item.title);
-                }
-            }
-        }
-        
-        try {
-            await emailjs.send("service_58ov5us", "template_kmoa9gi", {
-                serial_number: serialNumber, email: email, total_amount: totalAmount, payment_method: paymentMethod
-            });
-        } catch (emailErr) {}
-                const serialEl = document.getElementById('order-serial');
-        if (serialEl) {
-            if (serialEl.tagName === 'INPUT') serialEl.value = serialNumber;
-            else serialEl.textContent = serialNumber;
-        }
-        
-        const emailConfirmEl = document.getElementById('user-email-confirm');
-        if (emailConfirmEl) {
-            emailConfirmEl.textContent = email || (currentUser ? currentUser.email : '');
-        }
-
-        const modal = document.getElementById('success-modal');
-        modal.classList.remove('hidden'); 
-        setTimeout(() => { modal.classList.remove('opacity-0'); }, 50);
-        
-        cart = []; 
-        appliedDiscount = 0;
-        activeCouponCode = null;
-        saveCart();
-        
-    } catch (error) { 
-        console.error("Order Failed: ", error);
-        showToast(error.message || "Failed to place order.", "error"); 
-    } finally {
-        submitBtn.innerHTML = originalBtnText; 
-        submitBtn.disabled = false;
-    }
-};
-window.toggleReviewForm = function() {
-    document.getElementById('add-review-form').classList.toggle('hidden');
-};
-window.fetchReviews = async function(productId) {
-    const container = document.getElementById('reviews-container');
-    container.innerHTML = '<p class="text-gray-500 text-[10px] tracking-widest uppercase">Loading reviews...</p>';
-    
-    try {
-        const { data: reviews, error } = await supabaseClient
-            .from('reviews')
-            .select('*')
-            .eq('product_id', productId)
-            .order('created_at', { ascending: false });
-            
-        if (error) throw error;
-        
-        if (!reviews || reviews.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-[10px] tracking-widest uppercase border border-[#222] p-4 text-center">No reviews yet. Be the first!</p>';
-            document.getElementById('avg-rating').innerText = '';
-            return;
-        }
-        
-        const avg = Math.round(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length);
-        document.getElementById('avg-rating').innerText = '★'.repeat(avg) + '☆'.repeat(5 - avg);
-
-        container.innerHTML = reviews.map(review => `
-            <div class="bg-[#0a0a0a] p-4 border border-[#222]">
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <span class="text-white text-xs font-bold uppercase block">${review.customer_name}</span>
-                        <span class="text-green-500 text-[9px] uppercase tracking-widest"><i class="fa-solid fa-circle-check"></i> Verified</span>
-                    </div>
-                    <span class="text-yellow-500 text-xs">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</span>
-                </div>
-                <p class="text-gray-400 text-[11px] leading-relaxed">${review.comment}</p>
-                <p class="text-[#444] text-[9px] mt-3 uppercase tracking-widest">${new Date(review.created_at).toLocaleDateString()}</p>
+          <div class="flex gap-4 mt-6">
+              <button onclick="addPdpToCart()" class="flex-1 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition">Add to Cart</button>
+              <button onclick="toggleWishlistFromPDP(event, this)" class="border border-[#2b3a4a] hover:border-[#4fb3d9] w-14 h-14 flex items-center justify-center transition text-white">
+                  <i class="fa-regular fa-heart text-xl"></i>
+              </button>
+          </div>
+           
+          <div class="mt-12 pt-8 border-t border-[#1e2a36] w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-white text-xs tracking-widest uppercase font-bold">Customer Reviews <span id="avg-rating" class="text-yellow-500 ml-2"></span></h3>
+                <button onclick="toggleReviewForm()" class="text-[9px] uppercase tracking-widest border border-[#2b3a4a] text-gray-300 px-3 py-2 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">Write a Review</button>
             </div>
-        `).join('');
+
+            <form id="add-review-form" class="hidden mb-8 bg-[#131b23] p-4 border border-[#1e2a36]" onsubmit="submitReview(event)">
+                <div class="mb-4">
+                    <label class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-1">Your Name</label>
+                    <input type="text" id="review-name" required class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-2 text-xs outline-none focus:border-[#4fb3d9] transition">
+                </div>
+                <div class="mb-4">
+                    <label class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-1">Rating</label>
+                    <select id="review-rating" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-2 text-xs outline-none focus:border-[#4fb3d9] cursor-pointer">
+                        <option value="5">★★★★★ (5/5)</option>
+                        <option value="4">★★★★☆ (4/5)</option>
+                        <option value="3">★★★☆☆ (3/5)</option>
+                        <option value="2">★★☆☆☆ (2/5)</option>
+                        <option value="1">★☆☆☆☆ (1/5)</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-1">Your Review</label>
+                    <textarea id="review-comment" required rows="3" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-2 text-xs outline-none focus:border-[#4fb3d9] transition"></textarea>
+                </div>
+                <button type="submit" id="submit-review-btn" class="bg-white text-black text-[10px] font-bold uppercase tracking-widest py-3 px-6 hover:bg-gray-200 transition">Submit Review</button>
+            </form>
+
+            <div id="reviews-container" class="space-y-4"></div>
+          </div>
+        </div>
+      </div>
+          <div class="mt-16 pt-10 border-t border-[#1e2a36] w-full pb-10">
+            <h3 class="display-font text-2xl md:text-3xl text-white uppercase mb-8 text-center">You May Also Like</h3>
+            <div id="related-products-container" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            </div>
+          </div>
+    </div>
+  </main><main id="profile-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20 text-white">
+    <div class="max-w-5xl mx-auto px-6 relative">
+      <div class="relative flex justify-center items-center mb-8 md:mb-10">
+          <h2 class="display-font text-4xl md:text-6xl uppercase text-center">My Account</h2>
+          <button onclick="toggleSettingsModal()" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-[#8ea4be] hover:text-[#4fb3d9] transition text-2xl md:text-3xl" title="Settings & Info">
+              <i class="fa-solid fa-user-gear"></i>
+          </button>
+      </div>
+      <div class="flex justify-center gap-6 md:gap-10 border-b border-[#1e2a36] mb-8 md:mb-10">
+         <button id="tab-history" onclick="switchProfileTab('history')" class="pb-3 md:pb-4 border-b-2 border-white tracking-widest uppercase text-xs md:text-sm font-bold text-white transition">Orders</button>
+         <button id="tab-wishlist" onclick="switchProfileTab('wishlist')" class="pb-3 md:pb-4 border-b-2 border-transparent text-[#6e849c] hover:text-[#4fb3d9] tracking-widest uppercase text-xs md:text-sm font-bold transition">Wishlist</button>
+      </div>
+      <div id="tab-orders" class="block">
+          <div id="orders-container" class="space-y-6 flex flex-col"></div>
+      </div>
+      <div id="tab-wishlist-content" class="tab-content hidden mt-10">
+          <div id="wishlist-container" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+      </div>
+    </div>
+    
+    <div class="mb-6 px-6 max-w-5xl mx-auto">
+      <span class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-3 mt-8">Select Garment</span>
+      <div class="grid grid-cols-3 gap-2">
+          <button id="btn-hoodie" onclick="changeStudioProduct('hoodie')" class="product-selector-btn border border-white text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#1a232c] transition">Hoodie</button>
+          <button id="btn-tshirt" onclick="changeStudioProduct('tshirt')" class="product-selector-btn border border-[#2b3a4a] text-[#6e849c] py-3 text-[10px] uppercase tracking-widest hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">T-Shirt</button>
+      </div>
+    </div>
+  </main>
+
+  <main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#0e141a] flex-col lg:flex-row relative z-20 overflow-hidden">
+    <div class="relative w-full lg:w-[65%] h-[60vh] lg:h-screen flex items-center justify-center bg-[#f0f0f0]">
+      <div class="relative w-full max-w-[500px] aspect-[4/5] flex items-center justify-center mt-6">
+        <div class="absolute inset-0 w-full h-full bg-[#f0f0f0] rounded-lg"></div>
+        <div id="garment-color-layer" class="absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300" style="background-color: #ffffff; -webkit-mask-image: url('hoodie-front.webp'); mask-image: url('hoodie-front.webp'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-position: center; mask-position: center; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;"></div>
+        <img id="hoodieBase" src="hoodie-front.webp" class="relative w-full h-full object-contain mix-blend-multiply pointer-events-none">
         
-    } catch (error) {
-        console.error("Error fetching reviews:", error);
-        container.innerHTML = '<p class="text-red-500 text-[10px] uppercase">Failed to load reviews.</p>';
-    }
-};
-window.submitReview = async function(event) {
-    event.preventDefault();
-    if (!window.currentProductId) return;
-    
-    const btn = document.getElementById('submit-review-btn');
-    btn.innerHTML = 'SUBMITTING...';
-    btn.disabled = true;
-    
-    const name = document.getElementById('review-name').value;
-    const rating = parseInt(document.getElementById('review-rating').value);
-    const comment = document.getElementById('review-comment').value;
-    
-    try {
-        const { error } = await supabaseClient
-            .from('reviews')
-            .insert([{ 
-                product_id: window.currentProductId, 
-                customer_name: name, 
-                rating: rating, 
-                comment: comment 
-            }]);
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="top: 2%;">
+          <div class="w-[85%] h-[85%] relative flex items-center justify-center" id="canvas-wrapper">
+            <div class="pointer-events-auto w-full h-full flex items-center justify-center">
+              <canvas id="studioCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-8 border-b border-[#1e2a36] pb-6">
+      <div class="flex items-center justify-between">
+          <label class="inline-flex items-center cursor-pointer group">
+              <input type="checkbox" onchange="toggleAlignmentGrid(this)" class="hidden peer">
+                  <div class="absolute w-3 h-3 rounded-full bg-gray-600 top-0.5 left-0.5 peer-checked:left-4.5 peer-checked:bg-black transition-all"></div>
+              </div>
+          </label>
+      </div>
+    </div>
+    <div class="w-full lg:w-[35%] h-full lg:h-screen overflow-y-auto bg-[#131b23] border-l border-[#1e2a36] p-8 md:p-12 flex flex-col justify-between shadow-[-10px_0_30px_rgba(0,0,0,0.5)] z-10">
+      <div>
+        <h2 class="display-font text-3xl md:text-4xl text-white uppercase tracking-tighter mb-2">CUSTOM LAB</h2>
+        <p class="text-[#6e849c] text-[10px] tracking-widest uppercase mb-10">Design your own 3D prototype</p>
+        
+        <!-- نظام السعر الديناميكي -->
+        <div class="mt-6 mb-8 border-b border-[#1e2a36] pb-6">
+          <p class="text-[#6e849c] text-[10px] uppercase tracking-widest">Total Custom Price</p>
+          <div class="flex items-end gap-2 mt-1">
+            <h1 class="text-white text-3xl font-bold leading-none"><span id="dynamic-price-value">800</span> EGP</h1>
+          </div>
+          <p id="price-breakdown" class="text-green-500 text-[10px] uppercase tracking-widest mt-2 hidden">+ 100 EGP (Back Print Added)</p>
+        </div>
+
+        <div class="space-y-8">
+          <!-- 00 / SELECT GARMENT -->
+          <div>
+            <span class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-3">00 / SELECT GARMENT</span>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="btn-hoodie" onclick="changeStudioProduct('hoodie')" class="product-selector-btn border border-white text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#1a232c] transition">Hoodie</button>
+              <button id="btn-tshirt" onclick="changeStudioProduct('tshirt')" class="product-selector-btn border border-[#2b3a4a] text-[#6e849c] py-3 text-[10px] uppercase tracking-widest hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">T-Shirt</button>
+            </div>
+          </div>
+
+          <!-- 01 / VIEW & COLOR -->
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">01 / View & Color</h3>
+            <div class="flex flex-col gap-4">
+              <button type="button" id="flip-btn" onclick="toggleHoodieSide()" class="w-max bg-[#1a232c] border border-[#2b3a4a] text-white px-6 py-3 text-[10px] uppercase tracking-widest hover:border-[#4fb3d9] transition">
+                  <i class="fa-solid fa-rotate mr-2"></i> View Back
+              </button>
+              <div class="mt-2">
+                <span class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2">Fabric Color</span>
+                <div id="fabric-colors-container" class="flex flex-wrap gap-3">
+                  <button class="color-swatch-btn w-8 h-8 rounded-full border-2 border-white cursor-pointer transition active-color shadow-sm" style="background-color: #ffffff;" onclick="changeStudioColor('#ffffff', this)"></button>
+                  <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #1e1e1e;" onclick="changeStudioColor('#1e1e1e', this)"></button>    
+                  <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #4a4a4a;" onclick="changeStudioColor('#4a4a4a', this)"></button>
+                  <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #e3dac9;" onclick="changeStudioColor('#e3dac9', this)"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 02 / GRAPHIC ARTWORK -->
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">02 / Graphic Artwork</h3>
+            <label class="flex flex-col items-center justify-center border border-[#2b3a4a] bg-[#0e141a] py-8 cursor-pointer hover:border-[#4fb3d9] transition group rounded-md">
+              <i class="fa-solid fa-cloud-arrow-up text-2xl mb-3 text-gray-600 group-hover:text-[#4fb3d9] transition"></i>
+              <span class="text-[10px] tracking-widest uppercase font-bold text-[#6e849c] group-hover:text-[#4fb3d9] transition">Upload Image</span>
+              <input type="file" id="studioImageUpload" accept="image/png, image/jpeg" class="hidden">
+            </label>
             
-        if (error) throw error;
+            <!-- شريط التعديل بعد إضافة زراير الطبقات -->
+            <div id="editing-toolbar" class="hidden mt-4 p-4 bg-[#0e141a] border border-[#1e2a36] transition-all">
+              <span class="text-white text-[10px] uppercase tracking-widest block mb-4 border-b border-[#1e2a36] pb-2">Edit Item</span>
+              <div class="flex flex-wrap items-center gap-4">
+                
+                <!-- الشفافية -->
+                <div id="edit-opacity-wrapper" class="w-24 flex flex-col gap-1">
+                  <div class="flex justify-between items-center">
+                    <label class="text-[#8ea4be] text-[9px] uppercase tracking-widest">Opacity</label>
+                    <span id="opacity-value" class="text-white text-[9px] tracking-widest font-bold">100%</span>
+                  </div>
+                  <input type="range" id="item-opacity" min="0" max="1" step="0.05" value="1" oninput="updateSelectedOpacity(this.value)" class="w-full h-1 bg-[#1a232c] accent-[#4fb3d9] cursor-pointer opacity-80 hover:opacity-100 transition mt-2">
+                </div>
+
+                <!-- الطبقات (Layers) الجديد -->
+                <div class="flex flex-col gap-1 border-l border-[#1e2a36] pl-4">
+                    <label class="text-[#8ea4be] text-[9px] uppercase tracking-widest mb-1">Layers</label>
+                    <div class="flex gap-2">
+                        <button onclick="bringForward()" class="bg-[#1a232c] border border-[#2b3a4a] hover:border-[#4fb3d9] hover:text-[#4fb3d9] text-white w-8 h-8 flex items-center justify-center transition rounded-sm" title="Bring Forward">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                        </button>
+                        <button onclick="sendBackward()" class="bg-[#1a232c] border border-[#2b3a4a] hover:border-[#4fb3d9] hover:text-[#4fb3d9] text-white w-8 h-8 flex items-center justify-center transition rounded-sm" title="Send Backward">
+                            <i class="fa-solid fa-arrow-down text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- 03 / TYPOGRAPHY -->
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">03 / Typography</h3>
+            <div class="flex flex-col gap-3">
+              <input type="text" id="studioTextContainer" placeholder="TYPE SOMETHING..." class="bg-[#0e141a] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none focus:border-[#4fb3d9] transition">
+              <div class="flex gap-2 items-center">
+                <input type="color" id="text-color-picker" value="#ffffff" onchange="updateSelectedTextAttribute('fill', this.value)" class="w-10 h-10 rounded border border-[#2b3a4a] cursor-pointer bg-transparent" title="Text Color">
+                <select id="text-font-selector" onchange="updateSelectedTextAttribute('fontFamily', this.value)" class="flex-1 bg-[#1a232c] border border-[#2b3a4a] text-white text-[10px] p-2 outline-none cursor-pointer hover:border-[#4fb3d9] transition">
+                  <option value="Montserrat" selected>Montserrat (Modern Bold)</option>
+                  <option value="'Oswald', sans-serif">Oswald (Streetwear)</option>
+                  <option value="'Permanent Marker', cursive">Permanent Marker (Graffiti)</option>
+                  <option value="'Cinzel', serif">Cinzel (Elegant Serif)</option>
+                  <option value="'Dancing Script', cursive">Dancing Script (Handwriting)</option>
+                </select>
+                <button onclick="deleteActiveObject()" class="border border-red-900/50 text-red-500 w-10 h-10 flex items-center justify-center hover:bg-red-600 hover:text-[#4fb3d9] transition" title="Delete Text">
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              </div>
+              <button type="button" onclick="addTextToStudio()" class="bg-[#1a232c] border border-[#2b3a4a] text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:border-[#4fb3d9] transition">
+                Add Text
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">04 / Select Size</h3>
+            <div class="grid grid-cols-5 gap-2">
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="S" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">S</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="M" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">M</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="L" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">L</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="XL" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">XL</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="XXL" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">XXL</div></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-12 space-y-3 pt-8 border-t border-[#1e2a36]">
+        <button type="button" onclick="deleteActiveObject()" class="w-full border border-[#2b3a4a] bg-[#1a232c] text-white py-3 text-[10px] tracking-widest uppercase hover:bg-red-900 hover:border-red-500 transition flex items-center justify-center gap-2">
+           <i class="fa-solid fa-trash"></i> Delete Selected Item
+        </button>
+        <div class="flex gap-3">
+            <button type="button" onclick="shareDesign()" class="w-1/4 bg-[#25D366] text-white py-4 text-xs tracking-widest font-bold uppercase hover:bg-green-600 transition flex items-center justify-center shadow-[0_0_15px_rgba(37,211,102,0.2)]" title="Share with friends">
+                <i class="fa-brands fa-whatsapp text-xl md:text-2xl"></i>
+            </button>
+            <button type="button" onclick="addStudioToCart()" class="w-3/4 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3">
+              ADD TO CART <i class="fa-solid fa-cart-plus text-base"></i>
+            </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <main id="checkout-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 relative z-20">
+    <div class="max-w-4xl mx-auto px-4 md:px-6 pb-16 md:pb-24">
+      <button onclick="toggleCart(); switchView('shop');" class="mb-6 md:mb-10 text-[9px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition border border-[#2b3a4a] px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur flex items-center gap-2 text-white w-max"><i class="fa-solid fa-arrow-left"></i> BACK</button>
+      <h2 class="display-font text-4xl md:text-7xl text-white uppercase mb-4 text-center">Checkout</h2>
+      <form id="checkoutForm" onsubmit="submitOrder(event)" class="space-y-6 md:space-y-8 bg-[#131b23] p-5 md:p-12 border border-[#1e2a36]">
+        <div class="space-y-4">
+          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#2b3a4a] pb-2 mb-3 md:mb-4">Contact Info</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <input type="text" id="chk-name" required placeholder="Full Name" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
+            <input type="email" id="chk-email" required placeholder="Email Address" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <input type="tel" id="chk-phone1" required placeholder="Phone (ex: 010...)" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
+            <input type="tel" id="chk-phone2" placeholder="WhatsApp Number" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
+          </div>
+        </div>
+        <div class="space-y-4 pt-4 md:pt-6">
+          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#2b3a4a] pb-2 mb-3 md:mb-4">Shipping Address</h3>
+          <input type="text" id="chk-address" required placeholder="Detailed Address" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
+          <div class="grid grid-cols-3 gap-2 md:gap-4">
+            <input type="text" id="chk-building" required placeholder="Bldg No." class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
+            <input type="text" id="chk-floor" required placeholder="Floor" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
+            <input type="text" id="chk-apt" required placeholder="Apt" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
+          </div>
+          <input type="text" id="chk-landmark" placeholder="Special Mark" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
+        </div>
+        <div class="space-y-4 pt-4 md:pt-6 border-t border-[#1e2a36]">
+          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#2b3a4a] pb-2 mb-3 md:mb-4">Promo Code</h3>
+          <div class="flex gap-2 md:gap-4">
+            <input type="text" id="coupon-code" placeholder="ENTER CODE" class="field flex-grow py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm uppercase tracking-wider">
+            <button type="button" onclick="applyCouponCode()" class="bg-white text-black px-4 md:px-6 py-2.5 md:py-3 text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition">Apply</button>
+          </div>
+          <p id="coupon-message" class="text-[9px] md:text-xs font-bold uppercase tracking-widest mt-2 hidden"></p>
+        </div>
         
-        showToast("Review submitted successfully!", "success");
-        document.getElementById('add-review-form').reset();
-        toggleReviewForm();
-        fetchReviews(window.currentProductId); 
-    } catch (error) {
-        console.error("Error submitting review:", error);
-        showToast("Failed to submit review.", "error");
-    } finally {
-        btn.innerHTML = 'SUBMIT REVIEW';
-        btn.disabled = false;
-    }
-};
-window.openStudioWith = function(productType) {
-    if (typeof switchView === 'function') {
-        switchView('studio');
-    }
-    if (typeof changeStudioProduct === 'function') {
-        setTimeout(() => {
-            changeStudioProduct(productType);
-        }, 100);
-    }
-};
-window.deleteSelected = function() {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject) {
-        canvasInstance.remove(activeObject); 
-        canvasInstance.discardActiveObject(); 
-        canvasInstance.requestRenderAll(); 
-        document.getElementById('editing-toolbar').classList.add('hidden');
-        showToast("Item deleted", "info");
-    }
-};
+        <div class="space-y-4 pt-4 md:pt-6">
+          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#2b3a4a] pb-2 mb-3 md:mb-4">Payment Method</h3>
+          <div class="flex flex-col gap-2 md:gap-3">
+            <label class="flex items-center gap-3 text-white cursor-pointer p-3 md:p-4 border border-[#2b3a4a] hover:border-[#4fb3d9] transition">
+              <input type="radio" name="payment" value="Cash on Delivery" checked onchange="toggleInstapayUI(false)" class="accent-white">
+              <span class="text-xs md:text-sm tracking-widest uppercase">Cash on Delivery</span>
+            </label>
+            <label class="flex items-center gap-3 text-white cursor-pointer p-3 md:p-4 border border-[#2b3a4a] hover:border-[#4fb3d9] transition">
+              <input type="radio" name="payment" value="Instapay" onchange="toggleInstapayUI(true)" class="accent-white">
+              <span class="text-xs md:text-sm tracking-widest uppercase">InstaPay</span>
+            </label>
+          </div>
+          <div id="instapay-block" class="hidden mt-4 bg-[#131b23] border border-[#2b3a4a] p-4 md:p-6">
+            <p class="text-[#8ea4be] text-[10px] tracking-widest uppercase mb-2">1. Transfer the total amount to:</p>
+            <p class="text-white font-bold text-lg md:text-xl mb-6">01220543105</p>
+            <p class="text-[#8ea4be] text-[10px] tracking-widest uppercase mb-2">2. Upload Payment Screenshot</p>
+            <input type="file" id="instapay-receipt" accept="image/*" class="w-full bg-[#0e141a] border border-[#1e2a36] text-white p-3 text-xs outline-none">
+          </div>
+        </div>
 
-window.updateSelectedColor = function(color) {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject && activeObject.type === 'text') {
-        activeObject.set('fill', color);
-        canvasInstance.requestRenderAll();
-    }
-};
+        <button type="submit" class="w-full bg-white text-black py-4 md:py-6 text-[10px] md:text-sm tracking-widest font-bold uppercase hover:bg-gray-300 transition mt-6 md:mt-8">Confirm & Place Order</button>
+      </form>
+    </div>
+  </main>
 
-window.updateSelectedFont = function(font) {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject && activeObject.type === 'text') {
-        activeObject.set('fontFamily', font);
-        canvasInstance.requestRenderAll();
-    }
-};
+  <div id="sticky-cart-bar" class="fixed bottom-0 left-0 w-full bg-[#131b23]/90 backdrop-blur-md border-t border-[#2b3a4a] z-40 transform translate-y-full transition-transform duration-500 flex justify-between items-center px-4 md:px-10 py-3 md:py-4">
+      <div class="flex items-center gap-3 md:gap-4">
+          <img id="sticky-img" src="" class="w-8 h-10 md:w-10 md:h-12 object-cover border border-[#1e2a36]">
+          <div class="hidden sm:block">
+              <h4 id="sticky-title" class="text-white text-[10px] md:text-xs font-bold tracking-widest uppercase">Product</h4>
+          </div>
+      </div>
+      <div class="flex items-center gap-4">
+          <button onclick="addPdpToCart()" class="bg-white text-black px-6 py-2.5 md:px-8 md:py-3 text-[9px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition shadow-[0_0_15px_rgba(255,255,255,0.3)]">Add To Cart</button>
+      </div>
+  </div>
 
-function setupCanvasEvents() {
-    if (!canvasInstance) return;
-    
-    canvasInstance.on('selection:created', handleSelection);
-    canvasInstance.on('selection:updated', handleSelection);
-    
-    canvasInstance.on('selection:cleared', function() {
-        document.getElementById('editing-toolbar').classList.add('hidden');
-    });
-}
+  <div class="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[100]">
+    <button onclick="openWhatsApp()" class="bg-[#25D366] hover:bg-green-600 text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] transition hover:scale-110">
+      <i class="fa-brands fa-whatsapp text-2xl md:text-3xl"></i>
+    </button>
+  </div>
 
-function handleSelection(e) {
-    const activeObject = e.selected[0];
-    const toolbar = document.getElementById('editing-toolbar');
-    const colorWrapper = document.getElementById('edit-color-wrapper');
-    const fontWrapper = document.getElementById('edit-font-wrapper');
-    const opacityWrapper = document.getElementById('edit-opacity-wrapper'); // الجديد
-    
-    if (!activeObject) {
-        toolbar.classList.add('hidden'); // لو ملغيش التحديد، نخفي الشريط
-        return;
-    }
-    
-    toolbar.classList.remove('hidden'); // إظهار الشريط
-    
-    // 🚀 المنطق الذكي لإظهار/إخفاء الأدوات بناءً على نوع العنصر
-    if (activeObject.type === 'text') {
-        // لو اللي محدده نص، نظهر تغيير اللون والخط، ونخفي الشفافية
-        colorWrapper.style.display = 'flex';
-        fontWrapper.style.display = 'flex';
-        opacityWrapper.style.display = 'none'; // نخفيه
-        
-        // تحديث قيم الـ Inputs في الـ Toolbar عشان تطابق العنصر المحدد
-        document.getElementById('item-color').value = activeObject.fill || '#ffffff';
-        document.getElementById('item-font').value = activeObject.fontFamily || 'Arial';
-    } else {
-        // لو اللي محدده صورة، نخفي تغيير اللون والخط، ونظهر الشفافية
-        colorWrapper.style.display = 'none';
-        fontWrapper.style.display = 'none';
-        opacityWrapper.style.display = 'flex'; // نظهره
-        
-        // تحديث قيمة مؤشر الشفافية عشان تطابق الصورة المحددة
-        const currentOpacity = activeObject.opacity !== undefined ? activeObject.opacity : 1;
-        document.getElementById('item-opacity').value = currentOpacity;
-        document.getElementById('opacity-value').innerText = Math.round(currentOpacity * 100) + '%';
-    }
-}
-window.toggleAlignmentGrid = function(input) {
-    if (!canvasInstance) return;
-    
-    if (input.checked) {
-        drawGridPattern();
-    } else {
-        canvasInstance.setBackgroundColor('#00000000', canvasInstance.renderAll.bind(canvasInstance));
-        canvasInstance.setBackgroundPattern(null, canvasInstance.renderAll.bind(canvasInstance));
-    }
-    
-    showToast(`Alignment grid ${input.checked ? 'on' : 'off'}`, "info");
-};
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <div id="user-order-modal" class="fixed inset-0 bg-black/90 z-[250] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-lg p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+        <button onclick="closeUserOrderModal()" class="absolute top-6 right-6 text-[#6e849c] hover:text-[#4fb3d9] transition">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <h2 class="text-white text-xl display-font uppercase tracking-widest mb-6 border-b border-[#1e2a36] pb-4">Order Summary</h2>
+        <div id="user-modal-order-content" class="text-gray-300 space-y-4 text-sm"></div>
+    </div>
+  </div>
+  <div id="policy-modal" class="fixed inset-0 bg-black/90 z-[300] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+      <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-3xl p-6 md:p-10 relative max-h-[85vh] overflow-y-auto text-left">
+          <button onclick="closePolicy()" class="absolute top-4 right-4 md:top-6 md:right-6 text-[#6e849c] hover:text-[#4fb3d9] transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+          <h2 id="policy-title" class="display-font text-2xl md:text-3xl text-white uppercase mb-6 border-b border-[#1e2a36] pb-4">Policy</h2>
+          <div id="policy-content" class="text-[#8ea4be] text-xs md:text-sm leading-relaxed space-y-4 tracking-wide font-sans">
+          </div>
+      </div>
+  </div>
+</body>
+</html>
+  <div id="sticky-cart-bar" class="fixed bottom-0 left-0 w-full bg-[#131b23]/90 backdrop-blur-md border-t border-[#2b3a4a] z-40 transform translate-y-full transition-transform duration-500 flex justify-between items-center px-4 md:px-10 py-3 md:py-4">
+      <div class="flex items-center gap-3 md:gap-4">
+          <img id="sticky-img" src="" class="w-8 h-10 md:w-10 md:h-12 object-cover border border-[#1e2a36]">
+          <div class="hidden sm:block">
+              <h4 id="sticky-title" class="text-white text-[10px] md:text-xs font-bold tracking-widest uppercase">Product</h4>
+          </div>
+      </div>
+      <div class="flex items-center gap-4">
+          <button onclick="addPdpToCart()" class="bg-white text-black px-6 py-2.5 md:px-8 md:py-3 text-[9px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition shadow-[0_0_15px_rgba(255,255,255,0.3)]">Add To Cart</button>
+      </div>
+  </div>
 
-function drawGridPattern() {
-    const gridSize = 25; // حجم المربع (25 بكسل)
-    
-    const pattern = new fabric.Pattern({
-        source: function() {
-            const patternCanvas = fabric.util.createCanvasElement(gridSize, gridSize);
-            const ctx = patternCanvas.getContext('2d');
+  <div id="shared-footer" class="w-full relative z-20 bg-[#090e13] block">
+    <section class="w-full py-16 md:py-24 px-6 md:px-8 bg-[#0e141a] border-t border-b border-[#1e2a36] slow-reveal text-white">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="display-font text-3xl md:text-6xl text-white uppercase mb-10 md:mb-16 text-center">Our Policies</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-20">
+          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#2b3a4a] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-truck-fast mr-2"></i> Shipping</h3><p class="text-[#6e849c] text-[10px] md:text-sm leading-relaxed tracking-wide">Delivery within Alexandria takes 2-4 working days.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#2b3a4a] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-rotate-left mr-2"></i> Returns & Exchanges</h3><p class="text-[#6e849c] text-[10px] md:text-sm leading-relaxed tracking-wide">Returns within 14 days of receiving your order, unworn.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#2b3a4a] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-shirt mr-2"></i> Care Instructions</h3><p class="text-[#6e849c] text-[10px] md:text-sm leading-relaxed tracking-wide">Machine wash cold, inside out. Hang dry naturally.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#2b3a4a] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-pen-ruler mr-2"></i> Custom Orders</h3><p class="text-[#6e849c] text-[10px] md:text-sm leading-relaxed tracking-wide">Custom items are non-refundable unless defective.</p></div>
+        </div>
+      </div>
+    </section>
+    <section class="w-full py-12 md:py-20 px-6 md:px-8 bg-[#090e13] slow-reveal text-center">
+        <h2 class="display-font text-2xl md:text-5xl text-white uppercase mb-3 md:mb-4">Contact Us</h2>
+        <div class="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16 text-white font-bold tracking-widest uppercase text-[10px] md:text-sm mt-6 md:mt-8">
+            <a href="mailto:000.ateeq.000@gmail.com" class="hover:text-[#6e849c] transition border border-[#2b3a4a] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-regular fa-envelope mr-2"></i> 000.ateeq.000@gmail.com</a>
             
-            ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            
-            ctx.moveTo(0, 0);
-            ctx.lineTo(gridSize, 0);
-            ctx.lineTo(gridSize, gridSize);
-            
-            ctx.stroke();
-            return patternCanvas;
-        },
-        repeat: 'repeat' 
-    });
-    
-    canvasInstance.setBackgroundColor(pattern, canvasInstance.renderAll.bind(canvasInstance));
-}
-// دالة تحديث شفافية العنصر المحدد
-window.updateSelectedOpacity = function(opacity) {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject) {
-        activeObject.set('opacity', parseFloat(opacity)); // تطبيق الشفافية
-        canvasInstance.requestRenderAll(); // تحديث الكانفاس
+            <a href="https://www.instagram.com/ateeq__clothes/" target="_blank" class="hover:text-[#6e849c] transition border border-[#2b3a4a] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-brands fa-instagram mr-2"></i> @ateeq__clothes</a>
+        </div>
+    </section>
+    <footer class="w-full py-10 md:py-16 border-t border-[#1e2a36] bg-[#0e141a] text-center slow-reveal">
+        <h2 class="brand-ar text-4xl md:text-7xl text-white mb-6 md:mb-8 opacity-90">عـتـيـق</h2>
+        <p class="text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-[#6e849c]">© 2026 ATEEQ STUDIOS. CRAFTED IN ALEXANDRIA, EGYPT.
+        <br>  created by mohamedsabae50@gmail.com<br>
+        </p>
         
-        // تحديث الرقم اللي بيظهر للعميل
-        document.getElementById('opacity-value').innerText = Math.round(opacity * 100) + '%';
-    }
-};/* =========================================
-   نظام تحديث السعر الديناميكي وتعديل النص الجديد
-   ========================================= */
+        <div class="mt-6 flex flex-wrap justify-center gap-4 md:gap-6 text-[8px] md:text-[9px] tracking-widest text-gray-600 uppercase font-bold">
+            <a href="#" onclick="openPolicy('privacy'); return false;" class="hover:text-[#4fb3d9] transition">Privacy Policy</a>
+            <a href="#" onclick="openPolicy('terms'); return false;" class="hover:text-[#4fb3d9] transition">Terms of Service</a>
+            <a href="#" onclick="openPolicy('refund'); return false;" class="hover:text-[#4fb3d9] transition">Refund Policy</a>
+        </div>
+    </footer>
 
-// 1. إعدادات السعر (عدلها براحتك هنا)
-const BASE_PRICE = 800; // سعر الوش بس
-const BACK_PRINT_PRICE = 100; // تكلفة طباعة الضهر الإضافية
-let totalCustomPrice = BASE_PRICE;
+  <audio id="bg-music" autoplay><source src="bg-music.mp3" type="audio/mpeg"></audio>
+  <button id="music-toggle" class="fixed top-20 md:top-28 left-4 md:left-6 z-50 bg-white/5 border border-white/10 w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition shadow-lg backdrop-blur-md">
+    <i class="fa-solid fa-volume-high text-[10px] md:text-xs text-gray-300" id="music-icon"></i>
+  </button>
 
-// 2. دالة تحديث السعر بناءً على الديزاين
-window.updateDynamicPrice = function() {
-    if (!designState || !canvasInstance) return;
+  <div class="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[100]">
+    <button onclick="openWhatsApp()" class="bg-[#25D366] hover:bg-green-600 text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] transition hover:scale-110">
+      <i class="fa-brands fa-whatsapp text-2xl md:text-3xl"></i>
+    </button>
+  </div>
 
-    // بنفحص هل في "أي كائنات" في تصميم الضهر (حتى لو كانت مخفية)
-    // ملاحظة: الـ JSON بيحفظ كل الكائنات حتى لو مسحتها من الشاشة، بس بيبقى عندهم opacity 0 أو حذف حقيقي
-    
-    // الطريقة الأدق: بنفحص حالة الـ JSON المحفوظة للضهر
-    let hasBackDesign = false;
-    if (designState.back) {
-        try {
-            const backCanvasData = JSON.parse(designState.back);
-            // لو الـ JSON فيه عناصر (objects) يبق في ديزاين على الضهر
-            if (backCanvasData.objects && backCanvasData.objects.length > 0) {
-                hasBackDesign = true;
-            }
-        } catch (e) {
-            console.error("Error parsing back design data:", e);
-        }
-    }
-
-    // الطريقة الاحتياطية: لو العميل واقف حالياً على الضهر والكانفاس فيه عناصر
-    if (currentSide === 'back' && canvasInstance.getObjects().length > 0) {
-        hasBackDesign = true;
-    }
-
-    // بنحدث السعر بناءً على الديزاين
-    const priceDisplay = document.getElementById('dynamic-price-value');
-    const breakdownDisplay = document.getElementById('price-breakdown');
-
-    if (hasBackDesign) {
-        totalCustomPrice = BASE_PRICE + BACK_PRINT_PRICE;
-        priceDisplay.innerText = totalCustomPrice;
-        breakdownDisplay.classList.remove('hidden'); // إظهار "+100 EGP Back Print"
-    } else {
-        totalCustomPrice = BASE_PRICE;
-        priceDisplay.innerText = totalCustomPrice;
-        breakdownDisplay.classList.add('hidden'); // إخفاء "+100 EGP Back Print"
-    }
-};
-
-// 3. مراقبة الكانفاس لتحديث السعر أوتوماتيك عند أي تعديل
-// بننده الدالة دي فوراً بعد ما نخلص أي عملية إضافة أو حذف
-canvasInstance.on('object:added', updateDynamicPrice);
-canvasInstance.on('object:removed', updateDynamicPrice);
-
-
-/* =========================================
-   دوال تعديل النص المباشرة (الجديدة)
-   ========================================= */
-
-// دالة لتعديل أي خاصية (fill, fontFamily) للعنصر النصي المحدد
-window.updateSelectedTextAttribute = function(attributeName, value) {
-    if (!canvasInstance) return;
-    
-    // بنجيب العنصر المحدد حالياً
-    const activeObject = canvasInstance.getActiveObject();
-    
-    // لو اللي محدده نص، نعدله فوراً
-    if (activeObject && activeObject.type === 'text') {
-        activeObject.set(attributeName, value);
-        canvasInstance.requestRenderAll(); // تحديث الشاشة فوراً
-        showToast(`Text ${attributeName === 'fill' ? 'color' : 'font'} updated`, "info");
-    } else {
-        showToast("Please select a text first to edit", "warning");
-    }
-};
-
-// دالة لحذف العنصر المحدد (صورة أو نص)
-window.deleteSelectedObject = function() {
-    if (!canvasInstance) return;
-    
-    const activeObject = canvasInstance.getActiveObject();
-    
-    if (activeObject) {
-        canvasInstance.remove(activeObject); // مسح العنصر من الكانفاس
-        canvasInstance.discardActiveObject(); // إلغاء التحديد
-        canvasInstance.requestRenderAll(); // تحديث الشاشة
-        showToast("Element deleted", "info");
-    } else {
-        showToast("Please select an element to delete", "warning");
-    }
-};
-// تشغيل زرار Delete و Backspace من الكيبورد لمسح العناصر من الكانفاس
-window.addEventListener('keydown', function(e) {
-    // نتأكد إن العميل مش بيكتب جوه مربع النص (عشان الكلمة متمسحش بالغلط وهو بيمسح حرف)
-    if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') {
-        return;
-    }
-    
-    // لو داس Delete أو Backspace وفي عنصر متحدد، نمسحه فوراً
-    if ((e.key === 'Delete' || e.key === 'Backspace') && canvasInstance) {
-        const activeObject = canvasInstance.getActiveObject();
-        if (activeObject) {
-            deleteSelectedObject(); // بننده على دالة المسح اللي إحنا مبرمجينها
-        }
-    }
-});
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="main.js"></script>
+  <div id="user-order-modal" class="fixed inset-0 bg-black/90 z-[250] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-lg p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+        <button onclick="closeUserOrderModal()" class="absolute top-6 right-6 text-[#6e849c] hover:text-[#4fb3d9] transition">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <h2 class="text-white text-xl display-font uppercase tracking-widest mb-6 border-b border-[#1e2a36] pb-4">Order Summary</h2>
+        <div id="user-modal-order-content" class="text-gray-300 space-y-4 text-sm"></div>
+    </div>
+  </div>
+  <div id="policy-modal" class="fixed inset-0 bg-black/90 z-[300] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+      <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-3xl p-6 md:p-10 relative max-h-[85vh] overflow-y-auto text-left">
+          <button onclick="closePolicy()" class="absolute top-4 right-4 md:top-6 md:right-6 text-[#6e849c] hover:text-[#4fb3d9] transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+          <h2 id="policy-title" class="display-font text-2xl md:text-3xl text-white uppercase mb-6 border-b border-[#1e2a36] pb-4">Policy</h2>
+          <div id="policy-content" class="text-[#8ea4be] text-xs md:text-sm leading-relaxed space-y-4 tracking-wide font-sans">
+          </div>
+      </div>
+  </div>
+</body>
+</html>
