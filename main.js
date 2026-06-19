@@ -1063,23 +1063,37 @@ function initStudioCanvas() {
 }
 
 window.addTextToStudio = function() {
-    const input = document.getElementById('studioTextContainer');
-    if (!input || !input.value.trim() || !canvasInstance) return;
-    const text = new fabric.Text(input.value.toUpperCase(), {
-        left: canvasInstance.getWidth() / 2,
-        top: canvasInstance.getHeight() / 2,
-        originX: 'center',
-        originY: 'center',
-        fontFamily: 'Space Grotesk',
-        fontSize: 24,
-        fill: '#ffffff',
-        fontWeight: 'bold',
-        textAlign: 'center'
+    const textInput = document.getElementById('studioTextContainer').value;
+    if (!textInput) {
+        showToast("Please enter some text", "warning");
+        return;
+    }
+    if (!canvasInstance) return;
+
+    // 🚀 السحر هنا: بنسحب اللون والخط من الزراير مباشرة قبل ما نرسم الكلمة
+    const selectedColor = document.getElementById('text-color-picker').value;
+    const selectedFont = document.getElementById('text-font-selector').value;
+
+    const textObj = new fabric.Text(textInput, {
+        left: 150,
+        top: 150,
+        fontFamily: selectedFont,
+        fill: selectedColor,
+        fontSize: 40,
+        selectable: true
     });
-    canvasInstance.add(text);
-    canvasInstance.setActiveObject(text);
+
+    canvasInstance.add(textObj);
+    
+    // 🚀 بنخلي الكلمة تتحدد أوتوماتيك أول ما تنزل عشان لو العميل حب يغير اللون فوراً
+    canvasInstance.setActiveObject(textObj); 
     canvasInstance.renderAll();
-    input.value = '';
+    
+    document.getElementById('studioTextContainer').value = '';
+    showToast("Text added!", "success");
+    
+    // تحديث السعر لو إحنا على الضهر
+    if (typeof updateDynamicPrice === 'function') updateDynamicPrice();
 };
 
 window.clearStudioCanvas = function() {
@@ -1789,4 +1803,110 @@ window.updateSelectedOpacity = function(opacity) {
         // تحديث الرقم اللي بيظهر للعميل
         document.getElementById('opacity-value').innerText = Math.round(opacity * 100) + '%';
     }
+};/* =========================================
+   نظام تحديث السعر الديناميكي وتعديل النص الجديد
+   ========================================= */
+
+// 1. إعدادات السعر (عدلها براحتك هنا)
+const BASE_PRICE = 800; // سعر الوش بس
+const BACK_PRINT_PRICE = 100; // تكلفة طباعة الضهر الإضافية
+let totalCustomPrice = BASE_PRICE;
+
+// 2. دالة تحديث السعر بناءً على الديزاين
+window.updateDynamicPrice = function() {
+    if (!designState || !canvasInstance) return;
+
+    // بنفحص هل في "أي كائنات" في تصميم الضهر (حتى لو كانت مخفية)
+    // ملاحظة: الـ JSON بيحفظ كل الكائنات حتى لو مسحتها من الشاشة، بس بيبقى عندهم opacity 0 أو حذف حقيقي
+    
+    // الطريقة الأدق: بنفحص حالة الـ JSON المحفوظة للضهر
+    let hasBackDesign = false;
+    if (designState.back) {
+        try {
+            const backCanvasData = JSON.parse(designState.back);
+            // لو الـ JSON فيه عناصر (objects) يبق في ديزاين على الضهر
+            if (backCanvasData.objects && backCanvasData.objects.length > 0) {
+                hasBackDesign = true;
+            }
+        } catch (e) {
+            console.error("Error parsing back design data:", e);
+        }
+    }
+
+    // الطريقة الاحتياطية: لو العميل واقف حالياً على الضهر والكانفاس فيه عناصر
+    if (currentSide === 'back' && canvasInstance.getObjects().length > 0) {
+        hasBackDesign = true;
+    }
+
+    // بنحدث السعر بناءً على الديزاين
+    const priceDisplay = document.getElementById('dynamic-price-value');
+    const breakdownDisplay = document.getElementById('price-breakdown');
+
+    if (hasBackDesign) {
+        totalCustomPrice = BASE_PRICE + BACK_PRINT_PRICE;
+        priceDisplay.innerText = totalCustomPrice;
+        breakdownDisplay.classList.remove('hidden'); // إظهار "+100 EGP Back Print"
+    } else {
+        totalCustomPrice = BASE_PRICE;
+        priceDisplay.innerText = totalCustomPrice;
+        breakdownDisplay.classList.add('hidden'); // إخفاء "+100 EGP Back Print"
+    }
 };
+
+// 3. مراقبة الكانفاس لتحديث السعر أوتوماتيك عند أي تعديل
+// بننده الدالة دي فوراً بعد ما نخلص أي عملية إضافة أو حذف
+canvasInstance.on('object:added', updateDynamicPrice);
+canvasInstance.on('object:removed', updateDynamicPrice);
+
+
+/* =========================================
+   دوال تعديل النص المباشرة (الجديدة)
+   ========================================= */
+
+// دالة لتعديل أي خاصية (fill, fontFamily) للعنصر النصي المحدد
+window.updateSelectedTextAttribute = function(attributeName, value) {
+    if (!canvasInstance) return;
+    
+    // بنجيب العنصر المحدد حالياً
+    const activeObject = canvasInstance.getActiveObject();
+    
+    // لو اللي محدده نص، نعدله فوراً
+    if (activeObject && activeObject.type === 'text') {
+        activeObject.set(attributeName, value);
+        canvasInstance.requestRenderAll(); // تحديث الشاشة فوراً
+        showToast(`Text ${attributeName === 'fill' ? 'color' : 'font'} updated`, "info");
+    } else {
+        showToast("Please select a text first to edit", "warning");
+    }
+};
+
+// دالة لحذف العنصر المحدد (صورة أو نص)
+window.deleteSelectedObject = function() {
+    if (!canvasInstance) return;
+    
+    const activeObject = canvasInstance.getActiveObject();
+    
+    if (activeObject) {
+        canvasInstance.remove(activeObject); // مسح العنصر من الكانفاس
+        canvasInstance.discardActiveObject(); // إلغاء التحديد
+        canvasInstance.requestRenderAll(); // تحديث الشاشة
+        showToast("Element deleted", "info");
+    } else {
+        showToast("Please select an element to delete", "warning");
+    }
+};
+// تشغيل زرار Delete و Backspace من الكيبورد لمسح العناصر من الكانفاس
+window.addEventListener('keydown', function(e) {
+    // نتأكد إن العميل مش بيكتب جوه مربع النص (عشان الكلمة متمسحش بالغلط وهو بيمسح حرف)
+    if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') {
+        return;
+    }
+    
+    // لو داس Delete أو Backspace وفي عنصر متحدد، نمسحه فوراً
+    if ((e.key === 'Delete' || e.key === 'Backspace') && canvasInstance) {
+        const activeObject = canvasInstance.getActiveObject();
+        if (activeObject) {
+            deleteSelectedObject(); // بننده على دالة المسح اللي إحنا مبرمجينها
+        }
+    }
+});
