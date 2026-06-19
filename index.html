@@ -430,6 +430,11 @@
           </div>
         </div>
       </div>
+          <div class="mt-16 pt-10 border-t border-[#1e2a36] w-full pb-10">
+            <h3 class="display-font text-2xl md:text-3xl text-white uppercase mb-8 text-center">You May Also Like</h3>
+            <div id="related-products-container" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            </div>
+          </div>
     </div>
   </main><main id="profile-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20 text-white">
     <div class="max-w-5xl mx-auto px-6 relative">
@@ -479,10 +484,8 @@
 
     <div class="mb-8 border-b border-[#1e2a36] pb-6">
       <div class="flex items-center justify-between">
-          <span class="text-[#6e849c] text-[10px] uppercase tracking-widest block font-bold">Alignment Grid</span>
           <label class="inline-flex items-center cursor-pointer group">
               <input type="checkbox" onchange="toggleAlignmentGrid(this)" class="hidden peer">
-              <div class="w-8 h-4 rounded-full bg-[#1a232c] border border-[#2b3a4a] peer-checked:bg-[#4fb3d9] transition relative">
                   <div class="absolute w-3 h-3 rounded-full bg-gray-600 top-0.5 left-0.5 peer-checked:left-4.5 peer-checked:bg-black transition-all"></div>
               </div>
           </label>
@@ -540,20 +543,33 @@
               <input type="file" id="studioImageUpload" accept="image/png, image/jpeg" class="hidden">
             </label>
             
-            <!-- شريط تعديل الصور (مخفي) -->
-            <div id="editing-toolbar" class="hidden mt-4 p-4 bg-[#131b23] border border-[#1e2a36] transition-all">
-              <span class="text-white text-[10px] uppercase tracking-widest block mb-4 border-b border-[#1e2a36] pb-2">Edit Image</span>
-              <div class="flex items-center gap-4">
-                <div id="edit-opacity-wrapper" class="flex-1 flex flex-col gap-1">
+            <!-- شريط التعديل بعد إضافة زراير الطبقات -->
+            <div id="editing-toolbar" class="hidden mt-4 p-4 bg-[#0e141a] border border-[#1e2a36] transition-all">
+              <span class="text-white text-[10px] uppercase tracking-widest block mb-4 border-b border-[#1e2a36] pb-2">Edit Item</span>
+              <div class="flex flex-wrap items-center gap-4">
+                
+                <!-- الشفافية -->
+                <div id="edit-opacity-wrapper" class="w-24 flex flex-col gap-1">
                   <div class="flex justify-between items-center">
-                    <label class="text-[#6e849c] text-[9px] uppercase tracking-widest">Opacity</label>
+                    <label class="text-[#8ea4be] text-[9px] uppercase tracking-widest">Opacity</label>
                     <span id="opacity-value" class="text-white text-[9px] tracking-widest font-bold">100%</span>
                   </div>
-                  <input type="range" id="item-opacity" min="0" max="1" step="0.05" value="1" oninput="updateSelectedOpacity(this.value)" class="w-full h-1 bg-[#1a232c] accent-white cursor-pointer opacity-80 hover:opacity-100 transition mt-2">
+                  <input type="range" id="item-opacity" min="0" max="1" step="0.05" value="1" oninput="updateSelectedOpacity(this.value)" class="w-full h-1 bg-[#1a232c] accent-[#4fb3d9] cursor-pointer opacity-80 hover:opacity-100 transition mt-2">
                 </div>
-                <button onclick="deleteSelectedObject()" class="border border-red-900/50 text-red-500 w-10 h-10 flex items-center justify-center hover:bg-red-600 hover:text-[#4fb3d9] transition mt-4" title="Delete Image">
-                  <i class="fa-solid fa-trash text-xs"></i>
-                </button>
+
+                <!-- الطبقات (Layers) الجديد -->
+                <div class="flex flex-col gap-1 border-l border-[#1e2a36] pl-4">
+                    <label class="text-[#8ea4be] text-[9px] uppercase tracking-widest mb-1">Layers</label>
+                    <div class="flex gap-2">
+                        <button onclick="bringForward()" class="bg-[#1a232c] border border-[#2b3a4a] hover:border-[#4fb3d9] hover:text-[#4fb3d9] text-white w-8 h-8 flex items-center justify-center transition rounded-sm" title="Bring Forward">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                        </button>
+                        <button onclick="sendBackward()" class="bg-[#1a232c] border border-[#2b3a4a] hover:border-[#4fb3d9] hover:text-[#4fb3d9] text-white w-8 h-8 flex items-center justify-center transition rounded-sm" title="Send Backward">
+                            <i class="fa-solid fa-arrow-down text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -690,7 +706,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="main.js"></script>
   <div id="user-order-modal" class="fixed inset-0 bg-black/90 z-[250] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
     <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-lg p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
         <button onclick="closeUserOrderModal()" class="absolute top-6 right-6 text-[#6e849c] hover:text-[#4fb3d9] transition">
@@ -744,7 +759,9 @@
     </section>
     <footer class="w-full py-10 md:py-16 border-t border-[#1e2a36] bg-[#0e141a] text-center slow-reveal">
         <h2 class="brand-ar text-4xl md:text-7xl text-white mb-6 md:mb-8 opacity-90">عـتـيـق</h2>
-        <p class="text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-[#6e849c]">© 2026 ATEEQ STUDIOS. CRAFTED IN ALEXANDRIA, EGYPT.</p>
+        <p class="text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-[#6e849c]">© 2026 ATEEQ STUDIOS. CRAFTED IN ALEXANDRIA, EGYPT.
+        <br>  created by mohamedsabae50@gmail.com<br>
+        </p>
         
         <div class="mt-6 flex flex-wrap justify-center gap-4 md:gap-6 text-[8px] md:text-[9px] tracking-widest text-gray-600 uppercase font-bold">
             <a href="#" onclick="openPolicy('privacy'); return false;" class="hover:text-[#4fb3d9] transition">Privacy Policy</a>
