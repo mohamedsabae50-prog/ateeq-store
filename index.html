@@ -310,13 +310,28 @@
     <div class="max-w-7xl mx-auto px-6 pb-16 md:pb-24 flex flex-col md:flex-row gap-8 md:gap-10">
       <aside class="w-full md:w-1/4 flex flex-col gap-6 border-b md:border-b-0 md:border-r border-[#222] pb-6 md:pb-0 md:pr-6">
          <div>
-           <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#222] pb-2">Category</h3>
-           <div class="flex flex-row flex-wrap md:flex-col gap-4 md:gap-2 text-gray-400 text-[10px] md:text-xs tracking-widest uppercase">
-              <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max"><input type="checkbox" value="all" class="filter-category-checkbox accent-white" checked> All</label>
-              <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max"><input type="checkbox" value="hoodies" class="filter-category-checkbox accent-white"> Hoodies</label>
-              <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max"><input type="checkbox" value="graphic tees" class="filter-category-checkbox accent-white"> Tees</label>
-           </div>
-         </div>
+          <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#222] pb-2 md:pb-0 md:border-none">Category</h3>
+<div class="flex flex-row flex-wrap md:flex-col gap-4 md:gap-2 text-gray-400 text-[10px] md:text-xs tracking-widest uppercase">
+    <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max">
+        <input type="checkbox" value="all" class="filter-category-checkbox" checked>
+        <span>All</span>
+    </label>
+    
+    <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max">
+        <input type="checkbox" value="hoodies" class="filter-category-checkbox">
+        <span>Hoodies</span>
+    </label>
+
+    <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max">
+        <input type="checkbox" value="t-shirts" class="filter-category-checkbox">
+        <span>T-Shirts</span>
+    </label>
+
+    <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max">
+        <input type="checkbox" value="pants" class="filter-category-checkbox">
+        <span>Pants</span>
+    </label>
+</div>
          <div class="hidden md:block">
            <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#222] pb-2">Fit</h3>
            <div class="flex flex-col gap-2 text-gray-400 text-[10px] md:text-xs tracking-widest uppercase">
@@ -370,47 +385,53 @@
            <p class="text-gray-400 text-xs md:text-sm leading-relaxed mb-6 md:mb-8">
              The ultimate essential. Cut from 380GSM heavyweight Milton fabric, featuring a true dropped-shoulder oversized fit. No drawstrings for a clean, minimalist silhouette.
            </p>
-           <div class="mb-6 md:mb-8 border-t border-b border-[#222] py-4 md:py-6">
-              <div class="flex justify-between items-center mb-4">
-                 <span class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-gray-400">Size</span>
-                 <button onclick="toggleSizeGuide()" class="text-[9px] md:text-[10px] tracking-widest uppercase underline text-white">Size Guide</button>
-              </div>
-              <div class="grid grid-cols-4 gap-2 md:gap-4">
-                <label class="cursor-pointer"><input type="radio" name="pdp-size" value="M" class="size-radio hidden"><div class="py-2 md:py-3 text-center border border-[#333] text-xs md:text-sm tracking-widest font-bold transition uppercase">M</div></label>
-                <label class="cursor-pointer"><input type="radio" name="pdp-size" value="L" class="size-radio hidden" checked><div class="py-2 md:py-3 text-center border border-[#333] text-xs md:text-sm tracking-widest font-bold transition uppercase">L</div></label>
-                <label class="cursor-pointer"><input type="radio" name="pdp-size" value="XL" class="size-radio hidden"><div class="py-2 md:py-3 text-center border border-[#333] text-xs md:text-sm tracking-widest font-bold transition uppercase">XL</div></label>
-                <label class="cursor-pointer"><input type="radio" name="pdp-size" value="XXL" class="size-radio hidden"><div class="py-2 md:py-3 text-center border border-[#333] text-xs md:text-sm tracking-widest font-bold transition uppercase">XXL</div></label>
-              </div>
-           </div>
-           <div class="flex gap-4 mt-6">
-              <button onclick="addPdpToCart()" class="flex-1 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition">ADD TO CART</button>
-              <button onclick="toggleWishlistFromPDP(event, this)" class="border border-[#333] hover:border-white w-14 h-14 shrink-0 flex items-center justify-center transition text-white">
-                  <i class="fa-regular fa-heart text-xl"></i>
-              </button>
-           </div>
-           
-           <div class="mt-12 pt-8 border-t border-[#222]">
-             <h3 class="text-white text-xs tracking-widest uppercase font-bold mb-6">Customer Reviews ⭐⭐⭐⭐⭐</h3>
-             <div class="space-y-4">
-               <div class="bg-[#0a0a0a] p-4 border border-[#222]">
-                 <div class="flex justify-between mb-2">
-                   <span class="text-white text-xs font-bold uppercase">Ahmed M.</span>
-                   <span class="text-green-500 text-[10px] uppercase tracking-widest"><i class="fa-solid fa-check-circle"></i> Verified</span>
-                 </div>
-                 <p class="text-gray-400 text-xs">خامة الهودي ممتازة جداً والطباعة 3D طالعة بالظبط زي ما صممتها على الموقع. عاش يا عتيق 🖤</p>
-               </div>
-               <div class="bg-[#0a0a0a] p-4 border border-[#222]">
-                 <div class="flex justify-between mb-2">
-                   <span class="text-white text-xs font-bold uppercase">Youssef K.</span>
-                   <span class="text-green-500 text-[10px] uppercase tracking-widest"><i class="fa-solid fa-check-circle"></i> Verified</span>
-                 </div>
-                 <p class="text-gray-400 text-xs">The oversized fit is perfect. Fast delivery and premium packaging!</p>
-               </div>
-             </div>
-           </div>
+          <div class="mb-6 md:mb-8 border-t border-b border-[#222] py-4 md:py-6">
+    <div class="flex justify-between items-center mb-4">
+        <span class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-gray-400">Size</span>
+        <button onclick="toggleSizeGuide()" class="text-[9px] md:text-[10px] tracking-widest uppercase underline text-gray-500 hover:text-white transition">Size Guide</button>
+    </div>
+    
+    <div id="pdp-size-container" class="flex flex-wrap gap-2 md:gap-4 mt-6"></div>
+</div>
 
+<div class="flex gap-4 mt-6">
+    <button onclick="addPdpToCart()" class="flex-1 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition">Add to Cart</button>
+    <button onclick="toggleWishlistFromPDP(event, this)" class="border border-[#333] hover:border-white w-14 h-14 flex items-center justify-center transition text-white">
+        <i class="fa-regular fa-heart text-xl"></i>
+    </button>
+</div>
+           
+          <div class="mt-12 pt-8 border-t border-[#222] w-full">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-white text-xs tracking-widest uppercase font-bold">Customer Reviews <span id="avg-rating" class="text-yellow-500 ml-2"></span></h3>
+        <button onclick="toggleReviewForm()" class="text-[9px] uppercase tracking-widest border border-[#333] text-gray-300 px-3 py-2 hover:border-white hover:text-white transition">Write a Review</button>
+    </div>
+
+    <form id="add-review-form" class="hidden mb-8 bg-[#0a0a0a] p-4 border border-[#222]" onsubmit="submitReview(event)">
+        <div class="mb-4">
+            <label class="text-gray-500 text-[10px] uppercase tracking-widest block mb-1">Your Name</label>
+            <input type="text" id="review-name" required class="w-full bg-[#111] border border-[#333] text-white p-2 text-xs outline-none focus:border-white transition">
         </div>
-      </div>
+        <div class="mb-4">
+            <label class="text-gray-500 text-[10px] uppercase tracking-widest block mb-1">Rating</label>
+            <select id="review-rating" class="w-full bg-[#111] border border-[#333] text-white p-2 text-xs outline-none focus:border-white cursor-pointer">
+                <option value="5">★★★★★ (5/5)</option>
+                <option value="4">★★★★☆ (4/5)</option>
+                <option value="3">★★★☆☆ (3/5)</option>
+                <option value="2">★★☆☆☆ (2/5)</option>
+                <option value="1">★☆☆☆☆ (1/5)</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="text-gray-500 text-[10px] uppercase tracking-widest block mb-1">Your Review</label>
+            <textarea id="review-comment" required rows="3" class="w-full bg-[#111] border border-[#333] text-white p-2 text-xs outline-none focus:border-white transition"></textarea>
+        </div>
+        <button type="submit" id="submit-review-btn" class="bg-white text-black text-[10px] font-bold uppercase tracking-widest py-3 px-6 hover:bg-gray-200 transition">Submit Review</button>
+    </form>
+
+    <div id="reviews-container" class="space-y-4">
+        </div>
+</div>
     </div>
   </main>
 
@@ -433,7 +454,17 @@
           <div id="wishlist-container" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
       </div>
     </div>
+<div class="mb-6">
+    <span class="text-gray-500 text-[10px] uppercase tracking-widest block mb-3">Select Garment</span>
+    <div class="grid grid-cols-3 gap-2">
+        <button id="btn-hoodie" onclick="changeStudioProduct('hoodie')" class="product-selector-btn border border-white text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#111] transition">Hoodie</button>
+        <button id="btn-tshirt" onclick="changeStudioProduct('tshirt')" class="product-selector-btn border border-[#333] text-gray-500 py-3 text-[10px] uppercase tracking-widest hover:border-white hover:text-white transition">T-Shirt</button>
+        <button id="btn-pants" onclick="changeStudioProduct('pants')" class="product-selector-btn border border-[#333] text-gray-500 py-3 text-[10px] uppercase tracking-widest hover:border-white hover:text-white transition">Pants</button>
+    </div>
+</div>
   </main>
+
+  
 
  <main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#050505] flex-col lg:flex-row relative z-20 overflow-hidden">
     <div class="relative w-full lg:w-[65%] h-[60vh] lg:h-screen flex items-center justify-center bg-[#f0f0f0]">
