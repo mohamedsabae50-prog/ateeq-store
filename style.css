@@ -144,4 +144,24 @@ a, button, input, textarea, select, [onclick], .cursor-pointer, label {
 }
 .infinite-scroll:hover {
     animation-play-state: paused;
+}/* Custom Scrollbar for the new theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090e13; 
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2a36; 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4fb3d9; 
+}
+
+/* Text Selection Color */
+::selection {
+  background-color: #4fb3d9;
+  color: #090e13;
 }
