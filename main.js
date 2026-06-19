@@ -4,6 +4,7 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 
 let isLoggedIn = false;
 let currentSide = 'front';
+let currentProduct = 'hoodie'; 
 let designState = { front: null, back: null };
 let currentUser = null;
 let appliedDiscount = 0;
@@ -18,17 +19,13 @@ const CUSTOM_PRICE = 850;
 function saveCart() {
     localStorage.setItem('ateeq_cart', JSON.stringify(cart));
     updateCartUI();
-    trackAbandonedCart(); // تشغيل متتبع السلة المتروكة
+    trackAbandonedCart(); 
 }
-
-// الدالة الذكية لتسجيل السلة المتروكة في الداتابيز
 async function trackAbandonedCart() {
-    // لو العميل مش مسجل دخول، مش هنعرف نبعتله إيميل فمش هنسجلها
     if (!isLoggedIn || !currentUser) return; 
     
     try {
         if (cart.length > 0) {
-            // تنظيف السلة من الصور الضخمة قبل الحفظ زي ما عملنا في الأوردر
             const cleanCart = cart.map(item => {
                 if (item.type === 'CUSTOM') { const { preview, ...rest } = item; return rest; }
                 return item;
@@ -41,7 +38,6 @@ async function trackAbandonedCart() {
                 last_updated: new Date().toISOString()
             });
         } else {
-            // لو السلة فضيت (أو اشترى خلاص)، نمسح السلة المتروكة عشان منبعتلوش إيميل بالغلط
             await supabaseClient.from('abandoned_carts').delete().eq('user_id', currentUser.id);
         }
     } catch (error) { console.error("Cart tracking error:", error); }
@@ -199,7 +195,12 @@ window.goToPDP = function(productId) {
         });
     }
     galleryContainer.innerHTML = galleryHTML;
+    const categoryName = product.category ? product.category.toLowerCase() : 'hoodies';
+    if(typeof renderSizes === 'function') renderSizes('pdp-size-container', categoryName, 'pdp-size');
+window.currentProductId = product.id; // بنحفظ الـ ID بتاع المنتج الحالي
+    if(typeof fetchReviews === 'function') fetchReviews(product.id); // بننده التقييمات بتاعته
     switchView('pdp');
+
 }
 window.showToast = function(message, type = 'info') {
     const toast = document.getElementById('toast-notification');
@@ -1074,17 +1075,7 @@ function initStudioCanvas() {
             e.target.value = '';
         }
     });
-    document.querySelectorAll('input[name="studio-size"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            document.querySelectorAll('input[name="studio-size"] + div').forEach(div => {
-                div.classList.remove('bg-white', 'text-black', 'border-white');
-            });
-            if(this.checked) {
-                this.nextElementSibling.classList.add('bg-white', 'text-black', 'border-white');
-            }
-        });
-    });
-    document.querySelector('input[name="studio-size"]:checked').dispatchEvent(new Event('change'));
+   
 }
 
 window.addTextToStudio = function() {
@@ -1213,28 +1204,77 @@ window.deleteActiveObject = function() {
         showToast("Please select an item to delete first", "error");
     }
 };
+// 🚀 دالة ذكية بترسم المقاسات لوحدها بناءً على نوع المنتج
+window.renderSizes = function(containerId, category, inputName) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // تحديد المقاسات
+    let sizes = [];
+    if (category === 'pants') {
+        sizes = ['30', '32', '34', '36', '38', '40'];
+    } else {
+        // للهوديز والتيشرتات
+        sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+    }
+
+    // رسم الزراير في الشاشة
+    container.innerHTML = sizes.map((size, index) => `
+        <label class="cursor-pointer group">
+            <input type="radio" name="${inputName}" value="${size}" class="hidden peer" ${index === 2 ? 'checked' : ''}>
+            <div class="w-10 h-10 border border-[#333] flex items-center justify-center text-[10px] uppercase tracking-widest text-gray-500 peer-checked:bg-white peer-checked:text-black peer-checked:border-white hover:border-white transition">
+                ${size}
+            </div>
+        </label>
+    `).join('');
+};
+window.changeStudioProduct = function(productType) {
+    currentProduct = productType; 
+    const baseImg = document.getElementById('hoodieBase');
+    if (!baseImg) return;
+    
+    baseImg.src = `${currentProduct}-${currentSide}.webp`; 
+    
+    if(canvasInstance) canvasInstance.clear();
+    designState = { front: null, back: null };
+    renderSizes('studio-size-container', currentProduct, 'studio-size');
+    
+    showToast(`Switched to ${productType.toUpperCase()}`, "info");
+    
+    document.querySelectorAll('.product-selector-btn').forEach(btn => {
+        btn.classList.remove('border-white', 'text-white');
+        btn.classList.add('border-[#333]', 'text-gray-500');
+    });
+    const activeBtn = document.getElementById(`btn-${productType}`);
+    if (activeBtn) {
+        activeBtn.classList.remove('border-[#333]', 'text-gray-500');
+        activeBtn.classList.add('border-white', 'text-white');
+    }
+};
 
 window.toggleHoodieSide = function() {
     const hoodie = document.getElementById('hoodieBase');
     const flipBtn = document.getElementById('flip-btn');
     if (!hoodie || !canvasInstance) return;
+    
     designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
+    
     if (currentSide === 'front') {
         currentSide = 'back';
-        hoodie.src = 'back.webp';
+        hoodie.src = `${currentProduct}-back.webp`; // التعديل هنا
         flipBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Front';
     } else {
         currentSide = 'front';
-        hoodie.src = 'front.webp';
+        hoodie.src = `${currentProduct}-front.webp`; // والتعديل هنا
         flipBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Back';
     }
+    
     canvasInstance.clear();
     if (designState[currentSide]) {
         canvasInstance.loadFromJSON(designState[currentSide], canvasInstance.renderAll.bind(canvasInstance));
     }
     showToast("Switched to " + currentSide + " view", "info");
 };
-
 window.changeStudioColor = function(color) {
     const hoodie = document.getElementById('hoodieBase');
     if (!hoodie) return;
@@ -1542,5 +1582,90 @@ if (hasCustomItem) {
     } finally {
         submitBtn.innerHTML = originalBtnText; 
         submitBtn.disabled = false;
+    }
+};// فتح وقفل فورم التقييم
+window.toggleReviewForm = function() {
+    document.getElementById('add-review-form').classList.toggle('hidden');
+};
+
+// جلب التقييمات من الداتابيز
+window.fetchReviews = async function(productId) {
+    const container = document.getElementById('reviews-container');
+    container.innerHTML = '<p class="text-gray-500 text-[10px] tracking-widest uppercase">Loading reviews...</p>';
+    
+    try {
+        const { data: reviews, error } = await supabaseClient
+            .from('reviews')
+            .select('*')
+            .eq('product_id', productId)
+            .order('created_at', { ascending: false });
+            
+        if (error) throw error;
+        
+        if (!reviews || reviews.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-[10px] tracking-widest uppercase border border-[#222] p-4 text-center">No reviews yet. Be the first!</p>';
+            document.getElementById('avg-rating').innerText = '';
+            return;
+        }
+        
+        const avg = Math.round(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length);
+        document.getElementById('avg-rating').innerText = '★'.repeat(avg) + '☆'.repeat(5 - avg);
+
+        container.innerHTML = reviews.map(review => `
+            <div class="bg-[#0a0a0a] p-4 border border-[#222]">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-white text-xs font-bold uppercase block">${review.customer_name}</span>
+                        <span class="text-green-500 text-[9px] uppercase tracking-widest"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                    </div>
+                    <span class="text-yellow-500 text-xs">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</span>
+                </div>
+                <p class="text-gray-400 text-[11px] leading-relaxed">${review.comment}</p>
+                <p class="text-[#444] text-[9px] mt-3 uppercase tracking-widest">${new Date(review.created_at).toLocaleDateString()}</p>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error("Error fetching reviews:", error);
+        container.innerHTML = '<p class="text-red-500 text-[10px] uppercase">Failed to load reviews.</p>';
+    }
+};
+
+// رفع تقييم جديد
+window.submitReview = async function(event) {
+    event.preventDefault();
+    if (!window.currentProductId) return;
+    
+    const btn = document.getElementById('submit-review-btn');
+    btn.innerHTML = 'SUBMITTING...';
+    btn.disabled = true;
+    
+    const name = document.getElementById('review-name').value;
+    const rating = parseInt(document.getElementById('review-rating').value);
+    const comment = document.getElementById('review-comment').value;
+    
+    try {
+        const { error } = await supabaseClient
+            .from('reviews')
+            .insert([{ 
+                product_id: window.currentProductId, 
+                customer_name: name, 
+                rating: rating, 
+                comment: comment 
+            }]);
+            
+        if (error) throw error;
+        
+        showToast("Review submitted successfully!", "success");
+        document.getElementById('add-review-form').reset();
+        toggleReviewForm();
+        fetchReviews(window.currentProductId); // تحديث التقييمات فوراً
+        
+    } catch (error) {
+        console.error("Error submitting review:", error);
+        showToast("Failed to submit review.", "error");
+    } finally {
+        btn.innerHTML = 'SUBMIT REVIEW';
+        btn.disabled = false;
     }
 };
