@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="logo.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Oswald:wght@700&family=Permanent+Marker&family=Cinzel:wght@700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Space+Grotesk:wght@400;600;700&family=Syncopate:wght@700&display=block" rel="stylesheet">
@@ -24,150 +25,153 @@
 </script>
 </head>
 <body>
-  <div id="toast-notification" class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[300] bg-[#0a0a0a] border border-[#333] px-4 py-3 md:px-6 md:py-4 flex items-center gap-3 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-none shadow-2xl w-[90%] md:w-auto">
+  <div id="toast-notification" class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[300] bg-[#131b23] border border-[#2b3a4a] px-4 py-3 md:px-6 md:py-4 flex items-center gap-3 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-none shadow-2xl w-[90%] md:w-auto">
     <i id="toast-icon" class="fa-solid fa-circle-info text-white text-lg"></i>
     <span id="toast-message" class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-white"></span>
   </div>
 
   <div class="noise"></div>
 
-  <div id="splash-screen" class="fixed inset-0 z-[120] bg-[#030303] flex flex-col items-center justify-center">
+  <div id="splash-screen" class="fixed inset-0 z-[120] bg-[#090e13] flex flex-col items-center justify-center">
     <h1 id="splash-text" class="brand-ar text-5xl md:text-7xl text-white tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] animate-pulse opacity-0 transition-opacity duration-300">عـتـيـق</h1>
   </div>
 
-  <div id="success-modal" class="fixed inset-0 bg-[#030303] z-[200] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500 p-6 text-center">
+  <div id="success-modal" class="fixed inset-0 bg-[#090e13] z-[200] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500 p-6 text-center">
      <i class="fa-solid fa-circle-check text-5xl md:text-6xl text-white mb-6 animate-bounce"></i>
      <h2 class="display-font text-3xl md:text-4xl text-white uppercase mb-4">Order Confirmed</h2>
-     <p class="text-gray-400 text-xs md:text-sm tracking-widest uppercase mb-2">Your Order Serial Number is:</p>
-     <p id="order-serial" class="text-white text-xl md:text-3xl tracking-widest font-bold border border-[#333] px-6 py-3 md:px-8 md:py-4 bg-[#0a0a0a] mb-6 shadow-[0_0_20px_rgba(255,255,255,0.1)]"></p>
-     <p class="text-gray-400 text-[10px] md:text-xs tracking-widest uppercase mb-10 max-w-md">An automated email with your invoice and carrier tracking number has been sent to <span id="user-email-confirm" class="text-white font-bold"></span>.</p>
+     <p class="text-[#8ea4be] text-xs md:text-sm tracking-widest uppercase mb-2">Your Order Serial Number is:</p>
+     <p id="order-serial" class="text-white text-xl md:text-3xl tracking-widest font-bold border border-[#2b3a4a] px-6 py-3 md:px-8 md:py-4 bg-[#131b23] mb-6 shadow-[0_0_20px_rgba(255,255,255,0.1)]"></p>
+     <p class="text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase mb-10 max-w-md">An automated email with your invoice and carrier tracking number has been sent to <span id="user-email-confirm" class="text-white font-bold"></span>.</p>
      <button onclick="closeSuccessModal()" class="text-xs tracking-widest uppercase font-bold text-black bg-white hover:bg-gray-300 transition px-8 py-4">
       Return to Home
      </button>
   </div>
 
   <div id="auth-modal" class="fixed inset-0 bg-black/90 z-[200] hidden flex-col items-center justify-center p-4 backdrop-blur-sm">
-      <button onclick="toggleAuthModal()" class="absolute top-6 right-6 md:top-8 md:right-8 text-white text-2xl md:text-3xl hover:text-gray-500 transition"><i class="fa-solid fa-xmark"></i></button>
-      <div class="w-full max-w-md bg-[#050505] border border-[#222] p-6 md:p-10 relative">
+      <button onclick="toggleAuthModal()" class="absolute top-6 right-6 md:top-8 md:right-8 text-white text-2xl md:text-3xl hover:text-[#6e849c] transition"><i class="fa-solid fa-xmark"></i></button>
+      <div class="w-full max-w-md bg-[#0e141a] border border-[#1e2a36] p-6 md:p-10 relative">
           <div id="login-form-container" class="block">
               <h2 class="display-font text-4xl md:text-5xl text-white uppercase mb-2">Log In</h2>
-              <p class="text-[10px] md:text-xs text-gray-500 tracking-widest uppercase mb-8">Access your orders and wishlist</p>
+              <p class="text-[10px] md:text-xs text-[#6e849c] tracking-widest uppercase mb-8">Access your orders and wishlist</p>
               <form onsubmit="window.parent.handleLogin(event)" class="flex flex-col gap-6">
-                  <div class="border-b border-[#333] pb-2">
+                  <div class="border-b border-[#2b3a4a] pb-2">
                       <input type="email" id="login-email" placeholder="Email Address" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
                   </div>
-                  <div class="border-b border-[#333] pb-2">
+                  <div class="border-b border-[#2b3a4a] pb-2">
                       <input type="password" id="login-password" placeholder="Password" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
                   </div>
                   <button type="submit" class="w-full bg-white text-black py-4 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition mt-2">Sign In</button>
               </form>
-              <p class="text-center text-[10px] text-gray-500 tracking-widest uppercase mt-6">
-                  Don't have an account? <button type="button" onclick="document.getElementById('login-form-container').classList.add('hidden'); document.getElementById('register-form-container').classList.remove('hidden');" class="text-white hover:text-gray-400 border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition">REGISTER</button>
+              <p class="text-center text-[10px] text-[#6e849c] tracking-widest uppercase mt-6">
+                  Don't have an account? <button type="button" onclick="document.getElementById('login-form-container').classList.add('hidden'); document.getElementById('register-form-container').classList.remove('hidden');" class="text-white hover:text-[#8ea4be] border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition">REGISTER</button>
               </p>
           </div>
           <div id="register-form-container" class="hidden">
               <h2 class="display-font text-4xl md:text-5xl text-white uppercase mb-2">Register</h2>
-              <p class="text-[10px] md:text-xs text-gray-500 tracking-widest uppercase mb-8">Create an account to track orders</p>
+              <p class="text-[10px] md:text-xs text-[#6e849c] tracking-widest uppercase mb-8">Create an account to track orders</p>
               <form onsubmit="window.parent.handleRegister(event)" class="flex flex-col gap-6">
-                  <div class="border-b border-[#333] pb-2">
+                  <div class="border-b border-[#2b3a4a] pb-2">
                       <input type="text" id="reg-name" placeholder="Full Name" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
                   </div>
-                  <div class="border-b border-[#333] pb-2">
+                  <div class="border-b border-[#2b3a4a] pb-2">
                       <input type="email" id="reg-email" placeholder="Email Address" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
                   </div>
-                  <div class="border-b border-[#333] pb-2">
+                  <div class="border-b border-[#2b3a4a] pb-2">
                       <input type="password" id="reg-password" placeholder="Password" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
                   </div>
                   <button type="submit" class="w-full bg-white text-black py-4 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition mt-2">Create Account</button>
               </form>
-              <p class="text-center text-[10px] text-gray-500 tracking-widest uppercase mt-6">
-                  Already have an account? <button type="button" onclick="document.getElementById('register-form-container').classList.add('hidden'); document.getElementById('login-form-container').classList.remove('hidden');" class="text-white hover:text-gray-400 border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition">LOG IN</button>
+              <p class="text-center text-[10px] text-[#6e849c] tracking-widest uppercase mt-6">
+                  Already have an account? <button type="button" onclick="document.getElementById('register-form-container').classList.add('hidden'); document.getElementById('login-form-container').classList.remove('hidden');" class="text-white hover:text-[#8ea4be] border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition">LOG IN</button>
               </p>
           </div>
       </div>
   </div><div id="size-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-4">
-    <div class="bg-[#050505] border border-[#333] w-full max-w-2xl p-6 md:p-12 relative">
-      <button onclick="toggleSizeGuide()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white text-xl hover:text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+    <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-2xl p-6 md:p-12 relative">
+      <button onclick="toggleSizeGuide()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white text-xl hover:text-[#8ea4be]"><i class="fa-solid fa-xmark"></i></button>
       <h2 class="display-font text-2xl md:text-3xl text-white uppercase mb-6">Size Guide</h2>
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs md:text-sm text-gray-400">
-          <thead class="text-[10px] md:text-xs uppercase bg-[#111] text-white tracking-widest">
-            <tr><th class="p-3 md:p-4 border-b border-[#333]">Size</th><th class="p-3 md:p-4 border-b border-[#333]">Chest (cm)</th><th class="p-3 md:p-4 border-b border-[#333]">Length (cm)</th><th class="p-3 md:p-4 border-b border-[#333]">Sleeve (cm)</th></tr>
+        <table class="w-full text-left text-xs md:text-sm text-[#8ea4be]">
+          <thead class="text-[10px] md:text-xs uppercase bg-[#1a232c] text-white tracking-widest">
+            <tr><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Size</th><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Chest (cm)</th><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Length (cm)</th><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Sleeve (cm)</th></tr>
           </thead>
           <tbody>
-            <tr><td class="p-3 md:p-4 border-b border-[#222] text-white">M</td><td class="p-3 md:p-4 border-b border-[#222]">59</td><td class="p-3 md:p-4 border-b border-[#222]">69</td><td class="p-3 md:p-4 border-b border-[#222]">58</td></tr>
-            <tr><td class="p-3 md:p-4 border-b border-[#222] text-white">L</td><td class="p-3 md:p-4 border-b border-[#222]">62</td><td class="p-3 md:p-4 border-b border-[#222]">72</td><td class="p-3 md:p-4 border-b border-[#222]">60</td></tr>
-            <tr><td class="p-3 md:p-4 border-b border-[#222] text-white">XL</td><td class="p-3 md:p-4 border-b border-[#222]">65</td><td class="p-3 md:p-4 border-b border-[#222]">75</td><td class="p-3 md:p-4 border-b border-[#222]">62</td></tr>
-            <tr><td class="p-3 md:p-4 border-b border-[#222] text-white">XXL</td><td class="p-3 md:p-4 border-b border-[#222]">68</td><td class="p-3 md:p-4 border-b border-[#222]">78</td><td class="p-3 md:p-4 border-b border-[#222]">64</td></tr>
+            <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">M</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">59</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">69</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">58</td></tr>
+            <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">L</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">62</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">72</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">60</td></tr>
+            <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">XL</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">65</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">75</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">62</td></tr>
+            <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">XXL</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">68</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">78</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">64</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="text-gray-500 text-[9px] md:text-[10px] tracking-widest uppercase mt-6">* All measurements are approximate. Fit is deliberately oversized.</p>
+      <p class="text-[#6e849c] text-[9px] md:text-[10px] tracking-widest uppercase mt-6">* All measurements are approximate. Fit is deliberately oversized.</p>
     </div>
-  </div><div id="settings-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-4">
-    <div class="bg-[#050505] border border-[#333] w-full max-w-md p-6 md:p-8 relative max-h-[90vh] flex flex-col">
-      <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white text-xl hover:text-gray-400 z-10"><i class="fa-solid fa-xmark"></i></button>
-      <div class="flex items-center gap-4 mb-4 border-b border-[#222] pb-4 shrink-0">
-          <div class="w-12 h-12 md:w-14 md:h-14 bg-[#1a1a1a] rounded-full border border-[#333] flex items-center justify-center text-lg md:text-xl">
-              <i class="fa-solid fa-user-pen text-gray-400"></i>
+  </div>
+
+  <div id="settings-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-4">
+    <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-md p-6 md:p-8 relative max-h-[90vh] flex flex-col">
+      <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white text-xl hover:text-[#8ea4be] z-10"><i class="fa-solid fa-xmark"></i></button>
+      <div class="flex items-center gap-4 mb-4 border-b border-[#1e2a36] pb-4 shrink-0">
+          <div class="w-12 h-12 md:w-14 md:h-14 bg-[#1a1a1a] rounded-full border border-[#2b3a4a] flex items-center justify-center text-lg md:text-xl">
+              <i class="fa-solid fa-user-pen text-[#8ea4be]"></i>
           </div>
           <div>
               <h2 class="display-font text-lg md:text-xl text-white uppercase">Settings</h2>
-              <p class="text-gray-500 text-[9px] md:text-[10px] tracking-widest uppercase"><i class="fa-solid fa-circle-check text-green-500 mr-1"></i> Verified Member</p>
+              <p class="text-[#6e849c] text-[9px] md:text-[10px] tracking-widest uppercase"><i class="fa-solid fa-circle-check text-green-500 mr-1"></i> Verified Member</p>
           </div>
       </div>
       <div class="overflow-y-auto hide-scroll pr-2 mb-4 space-y-6 md:space-y-8">
-         <div class="bg-[#0a0a0a] border border-[#222] p-4 md:p-6 text-center">
+         <div class="bg-[#131b23] border border-[#1e2a36] p-4 md:p-6 text-center">
             <h3 class="display-font text-white text-base md:text-lg uppercase mb-2">Track Your Order</h3>
-            <p class="text-gray-500 text-[9px] md:text-[10px] tracking-widest uppercase mb-4">Enter your serial number below</p>
-            <input type="text" id="track-serial" placeholder="ATQ-2026-..." class="w-full bg-black border border-[#333] text-white p-3 text-center text-xs outline-none focus:border-white transition mb-3 uppercase tracking-wider">
-            <button onclick="trackOrder(event)" class="w-full border border-[#333] text-white py-3 text-[10px] tracking-widest font-bold uppercase hover:bg-white hover:text-black transition flex items-center justify-center gap-2">
+            <p class="text-[#6e849c] text-[9px] md:text-[10px] tracking-widest uppercase mb-4">Enter your serial number below</p>
+            <input type="text" id="track-serial" placeholder="ATQ-2026-..." class="w-full bg-black border border-[#2b3a4a] text-white p-3 text-center text-xs outline-none focus:border-[#4fb3d9] transition mb-3 uppercase tracking-wider">
+            <button onclick="trackOrder(event)" class="w-full border border-[#2b3a4a] text-white py-3 text-[10px] tracking-widest font-bold uppercase hover:bg-white hover:text-black transition flex items-center justify-center gap-2">
                 Track Status
             </button>
-            <div id="track-result" class="mt-4 text-[10px] md:text-xs hidden border-t border-[#222] pt-4 text-left"></div>
+            <div id="track-result" class="mt-4 text-[10px] md:text-xs hidden border-t border-[#1e2a36] pt-4 text-left"></div>
          </div>
-         <form onsubmit="window.parent.saveProfileData(event)" class="space-y-3 md:space-y-4 text-sm tracking-widest uppercase border-t border-[#222] pt-6">
+         <form onsubmit="window.parent.saveProfileData(event)" class="space-y-3 md:space-y-4 text-sm tracking-widest uppercase border-t border-[#1e2a36] pt-6">
              <h3 class="display-font text-white text-xs md:text-sm uppercase mb-3 text-center">Edit Profile</h3>
           <div>
-              <label class="text-gray-500 text-[9px] md:text-[10px] block mb-1">Full Name</label>
-              <input type="text" id="edit-name" class="w-full bg-transparent border border-[#333] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-white transition" required>
+              <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">Full Name</label>
+              <input type="text" id="edit-name" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition" required>
           </div>
           <div>
-              <label class="text-gray-500 text-[9px] md:text-[10px] block mb-1">Email Address</label>
-              <input type="email" id="edit-email" class="w-full bg-[#111] border border-[#333] text-gray-500 p-2 md:p-3 text-xs tracking-widest outline-none cursor-not-allowed" readonly>
+              <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">Email Address</label>
+              <input type="email" id="edit-email" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-[#6e849c] p-2 md:p-3 text-xs tracking-widest outline-none cursor-not-allowed" readonly>
           </div>
           <div class="flex gap-4">
               <div class="w-2/3">
-                  <label class="text-gray-500 text-[9px] md:text-[10px] block mb-1">Phone Number</label>
-                  <input type="tel" id="edit-phone" class="w-full bg-transparent border border-[#333] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-white transition">
+                  <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">Phone Number</label>
+                  <input type="tel" id="edit-phone" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition">
               </div>
               <div class="w-1/3">
-                  <label class="text-gray-500 text-[9px] md:text-[10px] block mb-1">Age</label>
-                  <input type="number" id="edit-age" class="w-full bg-transparent border border-[#333] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-white transition">
+                  <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">Age</label>
+                  <input type="number" id="edit-age" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition">
               </div>
           </div>
           <div>
-              <label class="text-gray-500 text-[9px] md:text-[10px] block mb-1">City / Governorate</label>
-              <input type="text" id="edit-city" class="w-full bg-transparent border border-[#333] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-white transition">
+              <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1">City / Governorate</label>
+              <input type="text" id="edit-city" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition">
           </div>
           <div class="mt-4 md:mt-6 flex flex-col gap-3 pt-2">
               <button type="submit" class="w-full bg-white text-black py-3 md:py-4 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition">Save Changes</button>
           </div>
       </form>
       </div>
-      <div class="shrink-0 border-t border-[#222] pt-4 mt-2">
-          <button onclick="handleLogout()" class="w-full border border-red-900 text-red-500 py-3 text-[10px] tracking-widest font-bold uppercase hover:bg-red-900 hover:text-white transition">Log Out</button>
+      <div class="shrink-0 border-t border-[#1e2a36] pt-4 mt-2">
+          <button onclick="handleLogout()" class="w-full border border-red-900 text-red-500 py-3 text-[10px] tracking-widest font-bold uppercase hover:bg-red-900 hover:text-[#4fb3d9] transition">Log Out</button>
       </div>
     </div>
   </div>
+
   <div id="cart-overlay" class="fixed inset-0 bg-black/80 z-[100] opacity-0 pointer-events-none transition-opacity duration-300" onclick="toggleCart()"></div>
-  <div id="cart-panel" class="fixed top-0 right-0 h-full w-full md:w-[400px] bg-[#050505] border-l border-[#222] z-[101] transform translate-x-full transition-transform duration-500 flex flex-col">
-    <div class="flex justify-between items-center p-6 md:p-8 border-b border-[#222]">
+  <div id="cart-panel" class="fixed top-0 right-0 h-full w-full md:w-[400px] bg-[#0e141a] border-l border-[#1e2a36] z-[101] transform translate-x-full transition-transform duration-500 flex flex-col">
+    <div class="flex justify-between items-center p-6 md:p-8 border-b border-[#1e2a36]">
       <h2 class="display-font text-2xl md:text-3xl text-white uppercase">CART</h2>
-      <button onclick="toggleCart()" class="text-white text-xl md:text-2xl hover:text-gray-400 transition"><i class="fa-solid fa-xmark"></i></button>
+      <button onclick="toggleCart()" class="text-white text-xl md:text-2xl hover:text-[#8ea4be] transition"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div id="cart-items" class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6"></div>
-    <div class="p-6 md:p-8 border-t border-[#222] bg-[#0a0a0a]">
+    <div class="p-6 md:p-8 border-t border-[#1e2a36] bg-[#131b23]">
       <div class="flex justify-between text-white font-bold tracking-widest uppercase text-[10px] md:text-sm mb-6">
         <span>Total</span>
         <span id="cart-total">0 EGP</span>
@@ -176,9 +180,7 @@
         PROCEED TO CHECKOUT
       </button>
     </div>
-  </div>
-
-  <nav class="fixed top-0 left-0 w-full z-40 mix-blend-difference px-4 py-4 md:px-6 md:py-6 flex justify-between items-center text-white">
+  </div><nav class="fixed top-0 left-0 w-full z-40 mix-blend-difference px-4 py-4 md:px-6 md:py-6 flex justify-between items-center text-white">
     <div class="hidden md:flex items-center gap-8 text-xs tracking-widest uppercase font-bold w-1/3">
       <a href="#" onclick="switchView('home'); return false;" class="hover:opacity-50 transition">Home</a>
       <a href="#" onclick="switchView('shop'); return false;" class="hover:opacity-50 transition">Shop</a>
@@ -202,59 +204,57 @@
     </div>
   </nav>
 
-  <div id="search-bar" class="fixed top-16 md:top-20 left-0 w-full bg-[#050505] border-b border-[#333] z-30 hidden p-4 md:p-6 px-6 md:px-10">
+  <div id="search-bar" class="fixed top-16 md:top-20 left-0 w-full bg-[#0e141a] border-b border-[#2b3a4a] z-30 hidden p-4 md:p-6 px-6 md:px-10">
     <div class="max-w-4xl mx-auto flex items-center gap-4">
-      <i class="fa-solid fa-magnifying-glass text-gray-500"></i>
+      <i class="fa-solid fa-magnifying-glass text-[#6e849c]"></i>
       <input type="text" placeholder="Search..." class="w-full bg-transparent border-none text-white focus:outline-none text-xs md:text-sm tracking-widest uppercase placeholder-gray-600">
       <button onclick="document.getElementById('search-bar').classList.add('hidden')" class="text-white"><i class="fa-solid fa-xmark"></i></button>
     </div>
   </div>
 
-  <div id="mobile-menu" class="fixed inset-0 z-50 bg-[#030303] opacity-0 invisible flex flex-col justify-center px-8 transition-all duration-300">
+  <div id="mobile-menu" class="fixed inset-0 z-50 bg-[#090e13] opacity-0 invisible flex flex-col justify-center px-8 transition-all duration-300">
     <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
     <nav class="flex flex-col gap-6 display-font text-3xl text-white uppercase relative z-50">
-      <a href="#" onclick="switchView('home'); return false;" class="hover:text-gray-500 transition">Home</a>
-      <a href="#" onclick="switchView('shop'); return false;" class="hover:text-gray-500 transition">Shop All</a>
-      <a href="#" onclick="switchView('about'); return false;" class="hover:text-gray-500 transition">Our Story</a>
-      <a href="#" onclick="switchView('profile'); return false;" class="hover:text-gray-500 transition">My Account</a>
-      <a href="#" onclick="toggleAuthModal(); toggleMobileMenu(); return false;" class="hover:text-gray-500 transition">Log In</a>
+      <a href="#" onclick="switchView('home'); return false;" class="hover:text-[#6e849c] transition">Home</a>
+      <a href="#" onclick="switchView('shop'); return false;" class="hover:text-[#6e849c] transition">Shop All</a>
+      <a href="#" onclick="switchView('about'); return false;" class="hover:text-[#6e849c] transition">Our Story</a>
+      <a href="#" onclick="switchView('profile'); return false;" class="hover:text-[#6e849c] transition">My Account</a>
+      <a href="#" onclick="toggleAuthModal(); toggleMobileMenu(); return false;" class="hover:text-[#6e849c] transition">Log In</a>
     </nav>
-  </div><main id="home-view" class="view-section block w-full min-h-screen">
-    <section class="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-[#030303]">
+  </div>
+  
+  <main id="home-view" class="view-section block w-full min-h-screen">
+    <section class="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-[#090e13]">
       <div class="absolute inset-0 w-full h-full">
-<img src="hero.jpg" class="absolute inset-0 w-full h-full object-cover ...">      </div>
+        <img src="hero.jpg" alt="Hero Image" class="absolute inset-0 w-full h-full object-cover">
+      </div>
       <div class="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/50"></div>
       <h1 class="relative z-10 display-font text-7xl md:text-[18vw] leading-none uppercase text-center mt-10 hero-title tracking-tighter">ATEEQ</h1>
-      <div class="absolute bottom-8 left-6 hidden md:block text-[10px] tracking-widest uppercase text-gray-500 w-48 text-left">Redefining modern silhouettes. <br>Crafted from ultra-heavyweight premium blends.</div>
-      <div class="absolute bottom-8 right-6 hidden md:block text-[10px] tracking-widest uppercase text-gray-500 text-right">Alexandria, EG <br> Est. 2026</div>
+      <div class="absolute bottom-8 left-6 hidden md:block text-[10px] tracking-widest uppercase text-[#6e849c] w-48 text-left">Redefining modern silhouettes. <br>Crafted from ultra-heavyweight premium blends.</div>
+      <div class="absolute bottom-8 right-6 hidden md:block text-[10px] tracking-widest uppercase text-[#6e849c] text-right">Alexandria, EG <br> Est. 2026</div>
     </section>
 
-    </div>
-
-    <section id="featured-shop" class="w-full flex flex-col md:flex-row min-h-[70vh] md:min-h-[80vh] border-b border-[#222] slow-reveal">
-      <div onclick="window.goToShop()" class="relative w-full md:w-1/2 h-[40vh] md:h-auto group cursor-pointer overflow-hidden border-b md:border-b-0 md:border-r border-[#222]">
-<img src="blanks.jpg" class="absolute inset-0 w-full h-full object-cover ...">
+    <section id="featured-shop" class="w-full flex flex-col md:flex-row min-h-[70vh] md:min-h-[80vh] border-b border-[#1e2a36] slow-reveal">
+      <div onclick="window.goToShop()" class="relative w-full md:w-1/2 h-[40vh] md:h-auto group cursor-pointer overflow-hidden border-b md:border-b-0 md:border-r border-[#1e2a36]">
+        <img src="blanks.jpg" alt="Blanks Collection" class="absolute inset-0 w-full h-full object-cover">
         <div class="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
           <span class="text-[9px] md:text-xs tracking-widest uppercase border border-white px-2 py-1 md:px-3 md:py-1 w-max rounded-full backdrop-blur text-white">The Essentials</span>
-          <div><h2 class="display-font text-4xl md:text-7xl mb-1 md:mb-2 text-white group-hover:translate-x-4 transition-transform duration-500">BLANKS</h2><p class="font-bold text-[10px] md:text-sm text-gray-400">View Collection</p></div>
+          <div><h2 class="display-font text-4xl md:text-7xl mb-1 md:mb-2 text-white group-hover:translate-x-4 transition-transform duration-500">BLANKS</h2><p class="font-bold text-[10px] md:text-sm text-[#8ea4be]">View Collection</p></div>
         </div>
       </div>
       <div onclick="openStudio('custom')" class="relative w-full md:w-1/2 h-[40vh] md:h-auto group cursor-pointer overflow-hidden">
-        <img src="https://i5.walmartimages.com/seo/Custom-Hoodies-Design-Your-Own-Personalized-Photo-Text-Hoodie-Custom-Sweatshirt-4-Side-Print_59c2e1b8-019d-4751-855e-6d2b0b467a52.33353a5540fe0613cd3ce2f7dcb527a4.jpeg" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" alt="Custom">
-        <div class="absolute inset-0 flex flex-col justify-between p-6 md:p-10 text-right md:text-left items-end md:items-start">
+<img src="custom.png" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" alt="Custom">        <div class="absolute inset-0 flex flex-col justify-between p-6 md:p-10 text-right md:text-left items-end md:items-start">
           <span class="text-[9px] md:text-xs tracking-widest uppercase border border-white px-2 py-1 md:px-3 md:py-1 w-max rounded-full backdrop-blur text-white">DTF Print</span>
-          <div class="w-full flex flex-col items-end"><h2 class="display-font text-4xl md:text-7xl mb-1 md:mb-2 text-white group-hover:-translate-x-4 transition-transform duration-500">CUSTOM</h2><p class="font-bold text-[10px] md:text-sm text-gray-400">View Collection</p></div>
+          <div class="w-full flex flex-col items-end"><h2 class="display-font text-4xl md:text-7xl mb-1 md:mb-2 text-white group-hover:-translate-x-4 transition-transform duration-500">CUSTOM</h2><p class="font-bold text-[10px] md:text-sm text-[#8ea4be]">View Collection</p></div>
         </div>
       </div>
     </section>
 
-    <section class="relative w-full min-h-[60vh] md:min-h-screen bg-[#050505] border-b border-[#222] flex flex-col items-center justify-center overflow-hidden py-16 md:py-20 slow-reveal">
+    <section class="relative w-full min-h-[60vh] md:min-h-screen bg-[#0e141a] border-b border-[#1e2a36] flex flex-col items-center justify-center overflow-hidden py-16 md:py-20 slow-reveal">
       <div class="absolute top-10 md:top-20 text-center z-20 w-full px-6">
-        <h2 class="display-font text-2xl md:text-5xl text-white uppercase mb-2">360° Prototype</h2>
-        <p class="text-[9px] md:text-xs tracking-widest uppercase font-bold text-gray-500">Virtual Clothing Showroom</p>
       </div>
       <div class="relative w-full max-w-4xl h-[40vh] md:h-[70vh] flex items-center justify-center mt-12 md:mt-10">
-        <div class="absolute bottom-6 md:bottom-10 w-[80%] md:w-[60%] h-[20vw] md:h-[15vw] bg-[#1a1a1a] rounded-full blur-2xl podium border border-[#333] z-0"></div>
+        <div class="absolute bottom-6 md:bottom-10 w-[80%] md:w-[60%] h-[20vw] md:h-[15vw] bg-[#1a1a1a] rounded-full blur-2xl podium border border-[#2b3a4a] z-0"></div>
         <video autoplay loop muted playsinline width="100%" class="relative z-10 pointer-events-none">
           <source src="hoodie.mp4" type="video/mp4">
         </video>
@@ -263,99 +263,99 @@
       </div>
     </section>
 
-    <section class="w-full py-16 md:py-24 bg-[#030303] border-b border-[#222] overflow-hidden">
+    <section class="w-full py-16 md:py-24 bg-[#090e13] border-b border-[#1e2a36] overflow-hidden">
       <div class="max-w-7xl mx-auto px-6 md:px-8 mb-10 md:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h2 class="display-font text-2xl md:text-5xl text-white uppercase flex items-center gap-3 md:gap-4">
-            <i class="fa-brands fa-instagram text-gray-400"></i> @ateeq__clothes
+            <i class="fa-brands fa-instagram text-[#8ea4be]"></i> @ateeq__clothes
           </h2>
-          <p class="text-gray-500 text-[10px] md:text-xs tracking-widest uppercase mt-2">Follow us for the latest drops & behind the scenes</p>
+          <p class="text-[#6e849c] text-[10px] md:text-xs tracking-widest uppercase mt-2">Follow us for the latest drops & behind the scenes</p>
         </div>
-        <a href="https://www.instagram.com/ateeq__clothes/" target="_blank" class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-gray-400 hover:text-white transition border-b border-gray-400 hover:border-white pb-1 w-max">View on Instagram</a>
+        <a href="https://www.instagram.com/ateeq__clothes/" target="_blank" class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-[#8ea4be] hover:text-[#4fb3d9] transition border-b border-gray-400 hover:border-[#4fb3d9] pb-1 w-max">View on Instagram</a>
       </div>
       <div class="relative w-full">
         <div class="absolute top-0 left-0 w-12 md:w-32 h-full bg-gradient-to-r from-[#030303] to-transparent z-10 pointer-events-none"></div>
         <div class="absolute top-0 right-0 w-12 md:w-32 h-full bg-gradient-to-l from-[#030303] to-transparent z-10 pointer-events-none"></div>
 
         <div id="insta-feed" class="insta-slider flex overflow-x-auto snap-x gap-4 md:gap-6 pl-4 md:pl-6 pb-8 no-scrollbar">
-</div>
+        </div>
       </div>
     </section>
-  </main><main id="about-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-32 md:pt-40 pb-16 md:pb-24 relative z-20">
+  </main><main id="about-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-32 md:pt-40 pb-16 md:pb-24 relative z-20">
     <div class="max-w-5xl mx-auto px-6 text-center">
       <h1 class="display-font text-4xl md:text-7xl text-white uppercase mb-6 md:mb-8">More Than Fabric.</h1>
-      <p class="text-gray-400 text-xs md:text-base leading-relaxed tracking-widest uppercase mb-16 md:mb-24 max-w-3xl mx-auto border-l border-r border-[#333] px-4 md:px-8">
+      <p class="text-[#8ea4be] text-xs md:text-base leading-relaxed tracking-widest uppercase mb-16 md:mb-24 max-w-3xl mx-auto border-l border-r border-[#2b3a4a] px-4 md:px-8">
         Ateeq was born in Alexandria out of a desire to redefine modern streetwear. We don't just make clothes; we craft heavyweight silhouettes designed to last a lifetime. No compromises, no shortcuts. Just pure, unadulterated luxury blending the past with the future.
       </p>
       <h2 class="display-font text-2xl md:text-5xl text-white mb-2 md:mb-4 uppercase">The Visionaries</h2>
-      <p class="text-gray-400 text-[10px] md:text-sm mb-12 md:mb-16 tracking-widest uppercase">Two minds. One vision.</p>
+      <p class="text-[#8ea4be] text-[10px] md:text-sm mb-12 md:mb-16 tracking-widest uppercase">Two minds. One vision.</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-10 md:gap-12">
         <div class="flex flex-col items-center group">
-          <div class="w-24 h-24 md:w-40 md:h-40 bg-[#0a0a0a] rounded-full border border-[#333] mb-4 md:mb-5 overflow-hidden group-hover:border-white transition-colors duration-300">
+          <div class="w-24 h-24 md:w-40 md:h-40 bg-[#131b23] rounded-full border border-[#2b3a4a] mb-4 md:mb-5 overflow-hidden group-hover:border-[#4fb3d9] transition-colors duration-300">
             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mohamed&backgroundColor=transparent&accessoriesProbability=10" alt="Mohamed" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
           </div>
           <h3 class="display-font text-lg md:text-xl text-white mb-1">MOHAMED</h3>
-          <span class="text-[9px] md:text-[10px] tracking-widest uppercase text-gray-500">Co-Founder</span>
+          <span class="text-[9px] md:text-[10px] tracking-widest uppercase text-[#6e849c]">Co-Founder</span>
         </div>
         <div class="flex flex-col items-center group">
-          <div class="w-24 h-24 md:w-40 md:h-40 bg-[#0a0a0a] rounded-full border border-[#333] mb-4 md:mb-5 overflow-hidden group-hover:border-white transition-colors duration-300">
+          <div class="w-24 h-24 md:w-40 md:h-40 bg-[#131b23] rounded-full border border-[#2b3a4a] mb-4 md:mb-5 overflow-hidden group-hover:border-[#4fb3d9] transition-colors duration-300">
             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Abdo&backgroundColor=transparent" alt="Abdelrahman" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
           </div>
           <h3 class="display-font text-lg md:text-xl text-white mb-1">ABDELRAHMAN</h3>
-          <span class="text-[9px] md:text-[10px] tracking-widest uppercase text-gray-500">Co-Founder</span>
+          <span class="text-[9px] md:text-[10px] tracking-widest uppercase text-[#6e849c]">Co-Founder</span>
         </div>
       </div>
     </div>
-  </main><main id="shop-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 relative z-20">
+  </main>
+
+  <main id="shop-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 relative z-20">
     <div class="max-w-7xl mx-auto px-6 pb-16 md:pb-24 flex flex-col md:flex-row gap-8 md:gap-10">
-      <aside class="w-full md:w-1/4 flex flex-col gap-6 border-b md:border-b-0 md:border-r border-[#222] pb-6 md:pb-0 md:pr-6">
+      <aside class="w-full md:w-1/4 flex flex-col gap-6 border-b md:border-b-0 md:border-r border-[#1e2a36] pb-6 md:pb-0 md:pr-6">
          <div>
-          <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#222] pb-2 md:pb-0 md:border-none">Category</h3>
-<div class="flex flex-row flex-wrap md:flex-col gap-4 md:gap-2 text-gray-400 text-[10px] md:text-xs tracking-widest uppercase">
-    <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max">
-        <input type="checkbox" value="all" class="filter-category-checkbox" checked>
-        <span>All</span>
-    </label>
-    
-    <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max">
-        <input type="checkbox" value="hoodies" class="filter-category-checkbox">
-        <span>Hoodies</span>
-    </label>
-
-    <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max">
-        <input type="checkbox" value="t-shirts" class="filter-category-checkbox">
-        <span>T-Shirts</span>
-    </label>
-
-    <label class="flex items-center gap-2 cursor-pointer hover:text-white w-max">
-        <input type="checkbox" value="pants" class="filter-category-checkbox">
-        <span>Pants</span>
-    </label>
-</div>
+          <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#1e2a36] pb-2 md:pb-0 md:border-none">Category</h3>
+          <div class="flex flex-row flex-wrap md:flex-col gap-4 md:gap-2 text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase">
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max">
+                  <input type="checkbox" value="all" class="filter-category-checkbox" checked>
+                  <span>All</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max">
+                  <input type="checkbox" value="hoodies" class="filter-category-checkbox">
+                  <span>Hoodies</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max">
+                  <input type="checkbox" value="t-shirts" class="filter-category-checkbox">
+                  <span>T-Shirts</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max">
+                  <input type="checkbox" value="pants" class="filter-category-checkbox">
+                  <span>Pants</span>
+              </label>
+          </div>
+         </div>
          <div class="hidden md:block">
-           <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#222] pb-2">Fit</h3>
-           <div class="flex flex-col gap-2 text-gray-400 text-[10px] md:text-xs tracking-widest uppercase">
-              <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" value="all" class="filter-fit-checkbox accent-white" checked> All Fits</label>
-              <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" value="oversized" class="filter-fit-checkbox accent-white"> Oversized</label>
-              <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" value="boxy" class="filter-fit-checkbox accent-white"> Boxy</label>
+           <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#1e2a36] pb-2">Fit</h3>
+           <div class="flex flex-col gap-2 text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase">
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9]"><input type="checkbox" value="all" class="filter-fit-checkbox accent-white" checked> All Fits</label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9]"><input type="checkbox" value="oversized" class="filter-fit-checkbox accent-white"> Oversized</label>
+              <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9]"><input type="checkbox" value="boxy" class="filter-fit-checkbox accent-white"> Boxy</label>
            </div>
          </div>
          <div>
-           <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#222] pb-2">Size</h3>
-           <div class="flex flex-wrap gap-2 text-gray-400 text-[10px] md:text-xs tracking-widest uppercase">
-              <button class="filter-size-btn border border-[#333] px-3 py-1 hover:border-white hover:text-white transition" data-size="m">M</button>
-              <button class="filter-size-btn border border-[#333] px-3 py-1 hover:border-white hover:text-white transition" data-size="l">L</button>
-              <button class="filter-size-btn border border-[#333] px-3 py-1 hover:border-white hover:text-white transition" data-size="xl">XL</button>
-              <button class="filter-size-btn border border-[#333] px-3 py-1 hover:border-white hover:text-white transition" data-size="xxl">XXL</button>
+           <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#1e2a36] pb-2">Size</h3>
+           <div class="flex flex-wrap gap-2 text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase">
+              <button class="filter-size-btn border border-[#2b3a4a] px-3 py-1 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition" data-size="m">M</button>
+              <button class="filter-size-btn border border-[#2b3a4a] px-3 py-1 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition" data-size="l">L</button>
+              <button class="filter-size-btn border border-[#2b3a4a] px-3 py-1 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition" data-size="xl">XL</button>
+              <button class="filter-size-btn border border-[#2b3a4a] px-3 py-1 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition" data-size="xxl">XXL</button>
            </div>
          </div>
       </aside>
       <div class="w-full md:w-3/4">
-          <div class="flex justify-between items-center mb-6 border-b border-[#222] pb-4 gap-2">
+          <div class="flex justify-between items-center mb-6 border-b border-[#1e2a36] pb-4 gap-2">
              <h3 class="text-white display-font text-2xl md:text-3xl uppercase">Products</h3>
              <div class="flex items-center gap-2 md:gap-6">
-                 <span id="results-count" class="text-gray-500 text-[9px] md:text-xs tracking-widest uppercase hidden sm:inline">0 Results</span>
-                 <select id="sort-select" class="bg-transparent text-white text-[9px] md:text-xs tracking-widest uppercase font-bold border border-[#333] p-1.5 md:p-2 focus:outline-none cursor-pointer">
+                 <span id="results-count" class="text-[#6e849c] text-[9px] md:text-xs tracking-widest uppercase hidden sm:inline">0 Results</span>
+                 <select id="sort-select" class="bg-transparent text-white text-[9px] md:text-xs tracking-widest uppercase font-bold border border-[#2b3a4a] p-1.5 md:p-2 focus:outline-none cursor-pointer">
                      <option value="default" class="bg-black">Featured</option>
                      <option value="price-asc" class="bg-black">Price: Low - High</option>
                      <option value="price-desc" class="bg-black">Price: High - Low</option>
@@ -365,15 +365,13 @@
         <div class="grid grid-cols-2 gap-4 md:gap-8 mb-16" id="products-container"></div>
       </div>
     </div>
-  </main>
-
-  <main id="pdp-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20">
+  </main><main id="pdp-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20">
     <div class="max-w-7xl mx-auto px-6">
-      <button onclick="switchView('shop')" class="mb-6 md:mb-8 text-[10px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition text-gray-500"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <button onclick="switchView('shop')" class="mb-6 md:mb-8 text-[10px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition text-[#6e849c]"><i class="fa-solid fa-arrow-left"></i> Back</button>
       <div class="flex flex-col lg:flex-row gap-6 lg:gap-16">
         <div class="w-full lg:w-1/2 flex flex-col-reverse lg:flex-row gap-4">
            <div id="pdp-gallery" class="w-full lg:w-20 flex flex-row lg:flex-col gap-3 md:gap-4 overflow-x-auto lg:overflow-y-auto hide-scroll h-auto lg:h-[60vh] pb-2 lg:pb-0"></div>
-           <div class="flex-grow bg-[#0a0a0a] border border-[#222] p-4 md:p-10 flex items-center justify-center">
+           <div class="flex-grow bg-[#131b23] border border-[#1e2a36] p-4 md:p-10 flex items-center justify-center">
               <img id="main-pdp-img" src="" class="w-full h-auto max-h-[50vh] md:max-h-[70vh] object-contain" alt="Main Product">
            </div>
         </div>
@@ -382,70 +380,68 @@
            <div class="flex items-center gap-4 mb-4 md:mb-6">
               <p id="pdp-price" class="font-bold text-lg md:text-xl tracking-widest">0 EGP</p>
            </div>
-           <p class="text-gray-400 text-xs md:text-sm leading-relaxed mb-6 md:mb-8">
+           <p class="text-[#8ea4be] text-xs md:text-sm leading-relaxed mb-6 md:mb-8">
              The ultimate essential. Cut from 380GSM heavyweight Milton fabric, featuring a true dropped-shoulder oversized fit. No drawstrings for a clean, minimalist silhouette.
            </p>
-          <div class="mb-6 md:mb-8 border-t border-b border-[#222] py-4 md:py-6">
-    <div class="flex justify-between items-center mb-4">
-        <span class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-gray-400">Size</span>
-        <button onclick="toggleSizeGuide()" class="text-[9px] md:text-[10px] tracking-widest uppercase underline text-gray-500 hover:text-white transition">Size Guide</button>
-    </div>
-    
-    <div id="pdp-size-container" class="flex flex-wrap gap-2 md:gap-4 mt-6"></div>
-</div>
+          <div class="mb-6 md:mb-8 border-t border-b border-[#1e2a36] py-4 md:py-6">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-[#8ea4be]">Size</span>
+                <button onclick="toggleSizeGuide()" class="text-[9px] md:text-[10px] tracking-widest uppercase underline text-[#6e849c] hover:text-[#4fb3d9] transition">Size Guide</button>
+            </div>
+            <div id="pdp-size-container" class="flex flex-wrap gap-2 md:gap-4 mt-6"></div>
+          </div>
 
-<div class="flex gap-4 mt-6">
-    <button onclick="addPdpToCart()" class="flex-1 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition">Add to Cart</button>
-    <button onclick="toggleWishlistFromPDP(event, this)" class="border border-[#333] hover:border-white w-14 h-14 flex items-center justify-center transition text-white">
-        <i class="fa-regular fa-heart text-xl"></i>
-    </button>
-</div>
+          <div class="flex gap-4 mt-6">
+              <button onclick="addPdpToCart()" class="flex-1 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition">Add to Cart</button>
+              <button onclick="toggleWishlistFromPDP(event, this)" class="border border-[#2b3a4a] hover:border-[#4fb3d9] w-14 h-14 flex items-center justify-center transition text-white">
+                  <i class="fa-regular fa-heart text-xl"></i>
+              </button>
+          </div>
            
-          <div class="mt-12 pt-8 border-t border-[#222] w-full">
-    <div class="flex justify-between items-center mb-6">
-        <h3 class="text-white text-xs tracking-widest uppercase font-bold">Customer Reviews <span id="avg-rating" class="text-yellow-500 ml-2"></span></h3>
-        <button onclick="toggleReviewForm()" class="text-[9px] uppercase tracking-widest border border-[#333] text-gray-300 px-3 py-2 hover:border-white hover:text-white transition">Write a Review</button>
+          <div class="mt-12 pt-8 border-t border-[#1e2a36] w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-white text-xs tracking-widest uppercase font-bold">Customer Reviews <span id="avg-rating" class="text-yellow-500 ml-2"></span></h3>
+                <button onclick="toggleReviewForm()" class="text-[9px] uppercase tracking-widest border border-[#2b3a4a] text-gray-300 px-3 py-2 hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">Write a Review</button>
+            </div>
+
+            <form id="add-review-form" class="hidden mb-8 bg-[#131b23] p-4 border border-[#1e2a36]" onsubmit="submitReview(event)">
+                <div class="mb-4">
+                    <label class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-1">Your Name</label>
+                    <input type="text" id="review-name" required class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-2 text-xs outline-none focus:border-[#4fb3d9] transition">
+                </div>
+                <div class="mb-4">
+                    <label class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-1">Rating</label>
+                    <select id="review-rating" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-2 text-xs outline-none focus:border-[#4fb3d9] cursor-pointer">
+                        <option value="5">★★★★★ (5/5)</option>
+                        <option value="4">★★★★☆ (4/5)</option>
+                        <option value="3">★★★☆☆ (3/5)</option>
+                        <option value="2">★★☆☆☆ (2/5)</option>
+                        <option value="1">★☆☆☆☆ (1/5)</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-1">Your Review</label>
+                    <textarea id="review-comment" required rows="3" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-2 text-xs outline-none focus:border-[#4fb3d9] transition"></textarea>
+                </div>
+                <button type="submit" id="submit-review-btn" class="bg-white text-black text-[10px] font-bold uppercase tracking-widest py-3 px-6 hover:bg-gray-200 transition">Submit Review</button>
+            </form>
+
+            <div id="reviews-container" class="space-y-4"></div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <form id="add-review-form" class="hidden mb-8 bg-[#0a0a0a] p-4 border border-[#222]" onsubmit="submitReview(event)">
-        <div class="mb-4">
-            <label class="text-gray-500 text-[10px] uppercase tracking-widest block mb-1">Your Name</label>
-            <input type="text" id="review-name" required class="w-full bg-[#111] border border-[#333] text-white p-2 text-xs outline-none focus:border-white transition">
-        </div>
-        <div class="mb-4">
-            <label class="text-gray-500 text-[10px] uppercase tracking-widest block mb-1">Rating</label>
-            <select id="review-rating" class="w-full bg-[#111] border border-[#333] text-white p-2 text-xs outline-none focus:border-white cursor-pointer">
-                <option value="5">★★★★★ (5/5)</option>
-                <option value="4">★★★★☆ (4/5)</option>
-                <option value="3">★★★☆☆ (3/5)</option>
-                <option value="2">★★☆☆☆ (2/5)</option>
-                <option value="1">★☆☆☆☆ (1/5)</option>
-            </select>
-        </div>
-        <div class="mb-4">
-            <label class="text-gray-500 text-[10px] uppercase tracking-widest block mb-1">Your Review</label>
-            <textarea id="review-comment" required rows="3" class="w-full bg-[#111] border border-[#333] text-white p-2 text-xs outline-none focus:border-white transition"></textarea>
-        </div>
-        <button type="submit" id="submit-review-btn" class="bg-white text-black text-[10px] font-bold uppercase tracking-widest py-3 px-6 hover:bg-gray-200 transition">Submit Review</button>
-    </form>
-
-    <div id="reviews-container" class="space-y-4">
-        </div>
-</div>
-    </div>
-  </main>
-
-  <main id="profile-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20 text-white">
+  </main><main id="profile-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20 text-white">
     <div class="max-w-5xl mx-auto px-6 relative">
       <div class="relative flex justify-center items-center mb-8 md:mb-10">
           <h2 class="display-font text-4xl md:text-6xl uppercase text-center">My Account</h2>
-          <button onclick="toggleSettingsModal()" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition text-2xl md:text-3xl" title="Settings & Info">
+          <button onclick="toggleSettingsModal()" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-[#8ea4be] hover:text-[#4fb3d9] transition text-2xl md:text-3xl" title="Settings & Info">
               <i class="fa-solid fa-user-gear"></i>
           </button>
       </div>
-      <div class="flex justify-center gap-6 md:gap-10 border-b border-[#222] mb-8 md:mb-10">
+      <div class="flex justify-center gap-6 md:gap-10 border-b border-[#1e2a36] mb-8 md:mb-10">
          <button id="tab-history" onclick="switchProfileTab('history')" class="pb-3 md:pb-4 border-b-2 border-white tracking-widest uppercase text-xs md:text-sm font-bold text-white transition">Orders</button>
-         <button id="tab-wishlist" onclick="switchProfileTab('wishlist')" class="pb-3 md:pb-4 border-b-2 border-transparent text-gray-500 hover:text-white tracking-widest uppercase text-xs md:text-sm font-bold transition">Wishlist</button>
+         <button id="tab-wishlist" onclick="switchProfileTab('wishlist')" class="pb-3 md:pb-4 border-b-2 border-transparent text-[#6e849c] hover:text-[#4fb3d9] tracking-widest uppercase text-xs md:text-sm font-bold transition">Wishlist</button>
       </div>
       <div id="tab-orders" class="block">
           <div id="orders-container" class="space-y-6 flex flex-col"></div>
@@ -454,27 +450,24 @@
           <div id="wishlist-container" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
       </div>
     </div>
-<div class="mb-6">
-    <span class="text-gray-500 text-[10px] uppercase tracking-widest block mb-3">Select Garment</span>
-    <div class="grid grid-cols-3 gap-2">
-        <button id="btn-hoodie" onclick="changeStudioProduct('hoodie')" class="product-selector-btn border border-white text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#111] transition">Hoodie</button>
-        <button id="btn-tshirt" onclick="changeStudioProduct('tshirt')" class="product-selector-btn border border-[#333] text-gray-500 py-3 text-[10px] uppercase tracking-widest hover:border-white hover:text-white transition">T-Shirt</button>
+    
+    <div class="mb-6 px-6 max-w-5xl mx-auto">
+      <span class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-3 mt-8">Select Garment</span>
+      <div class="grid grid-cols-3 gap-2">
+          <button id="btn-hoodie" onclick="changeStudioProduct('hoodie')" class="product-selector-btn border border-white text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#1a232c] transition">Hoodie</button>
+          <button id="btn-tshirt" onclick="changeStudioProduct('tshirt')" class="product-selector-btn border border-[#2b3a4a] text-[#6e849c] py-3 text-[10px] uppercase tracking-widest hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">T-Shirt</button>
+      </div>
     </div>
-</div>
   </main>
 
-  
-
- <main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#050505] flex-col lg:flex-row relative z-20 overflow-hidden">
+  <main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#0e141a] flex-col lg:flex-row relative z-20 overflow-hidden">
     <div class="relative w-full lg:w-[65%] h-[60vh] lg:h-screen flex items-center justify-center bg-[#f0f0f0]">
-      </button>
-
       <div class="relative w-full max-w-[500px] aspect-[4/5] flex items-center justify-center mt-6">
-<div class="absolute inset-0 w-full h-full bg-[#f0f0f0] rounded-lg"></div>
-
-<div id="garment-color-layer" class="absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300" style="background-color: #ffffff; -webkit-mask-image: url('hoodie-front.webp'); mask-image: url('hoodie-front.webp'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-position: center; mask-position: center; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;"></div>
-
-<img id="hoodieBase" src="hoodie-front.webp" class="relative w-full h-full object-contain mix-blend-multiply pointer-events-none">        <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="top: 2%;">
+        <div class="absolute inset-0 w-full h-full bg-[#f0f0f0] rounded-lg"></div>
+        <div id="garment-color-layer" class="absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300" style="background-color: #ffffff; -webkit-mask-image: url('hoodie-front.webp'); mask-image: url('hoodie-front.webp'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-position: center; mask-position: center; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;"></div>
+        <img id="hoodieBase" src="hoodie-front.webp" class="relative w-full h-full object-contain mix-blend-multiply pointer-events-none">
+        
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="top: 2%;">
           <div class="w-[85%] h-[85%] relative flex items-center justify-center" id="canvas-wrapper">
             <div class="pointer-events-auto w-full h-full flex items-center justify-center">
               <canvas id="studioCanvas"></canvas>
@@ -483,110 +476,127 @@
         </div>
       </div>
     </div>
-<div class="mb-8 border-b border-[#222] pb-6">
-    <div class="flex items-center justify-between">
-        <span class="text-gray-500 text-[10px] uppercase tracking-widest block font-bold">Alignment Grid</span>
-        <label class="inline-flex items-center cursor-pointer group">
-            <input type="checkbox" onchange="toggleAlignmentGrid(this)" class="hidden peer">
-            <div class="w-8 h-4 rounded-full bg-[#111] border border-[#333] peer-checked:bg-white transition relative">
-                <div class="absolute w-3 h-3 rounded-full bg-gray-600 top-0.5 left-0.5 peer-checked:left-4.5 peer-checked:bg-black transition-all"></div>
-            </div>
-        </label>
+
+    <div class="mb-8 border-b border-[#1e2a36] pb-6">
+      <div class="flex items-center justify-between">
+          <span class="text-[#6e849c] text-[10px] uppercase tracking-widest block font-bold">Alignment Grid</span>
+          <label class="inline-flex items-center cursor-pointer group">
+              <input type="checkbox" onchange="toggleAlignmentGrid(this)" class="hidden peer">
+              <div class="w-8 h-4 rounded-full bg-[#1a232c] border border-[#2b3a4a] peer-checked:bg-[#4fb3d9] transition relative">
+                  <div class="absolute w-3 h-3 rounded-full bg-gray-600 top-0.5 left-0.5 peer-checked:left-4.5 peer-checked:bg-black transition-all"></div>
+              </div>
+          </label>
+      </div>
     </div>
-</div>
-    <div class="w-full lg:w-[35%] h-full lg:h-screen overflow-y-auto bg-[#0a0a0a] border-l border-[#222] p-8 md:p-12 flex flex-col justify-between shadow-[-10px_0_30px_rgba(0,0,0,0.5)] z-10">
+    <div class="w-full lg:w-[35%] h-full lg:h-screen overflow-y-auto bg-[#131b23] border-l border-[#1e2a36] p-8 md:p-12 flex flex-col justify-between shadow-[-10px_0_30px_rgba(0,0,0,0.5)] z-10">
       <div>
         <h2 class="display-font text-3xl md:text-4xl text-white uppercase tracking-tighter mb-2">CUSTOM LAB</h2>
-        <p class="text-gray-500 text-[10px] tracking-widest uppercase mb-10">Design your own 3D prototype</p>
+        <p class="text-[#6e849c] text-[10px] tracking-widest uppercase mb-10">Design your own 3D prototype</p>
+        
+        <!-- نظام السعر الديناميكي -->
+        <div class="mt-6 mb-8 border-b border-[#1e2a36] pb-6">
+          <p class="text-[#6e849c] text-[10px] uppercase tracking-widest">Total Custom Price</p>
+          <div class="flex items-end gap-2 mt-1">
+            <h1 class="text-white text-3xl font-bold leading-none"><span id="dynamic-price-value">800</span> EGP</h1>
+          </div>
+          <p id="price-breakdown" class="text-green-500 text-[10px] uppercase tracking-widest mt-2 hidden">+ 100 EGP (Back Print Added)</p>
+        </div>
 
         <div class="space-y-8">
+          <!-- 00 / SELECT GARMENT -->
           <div>
-            <div class="mb-8 border-b border-[#222] pb-6">
-    <span class="text-gray-500 text-[10px] uppercase tracking-widest block mb-3">00 / SELECT GARMENT</span>
-    <div class="grid grid-cols-2 gap-2">
-        <button id="btn-hoodie" onclick="changeStudioProduct('hoodie')" class="product-selector-btn border border-white text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#111] transition">Hoodie</button>
-        <button id="btn-tshirt" onclick="changeStudioProduct('tshirt')" class="product-selector-btn border border-[#333] text-gray-500 py-3 text-[10px] uppercase tracking-widest hover:border-white hover:text-white transition">T-Shirt</button>
-    </div>
-</div>
-            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#222] pb-2">01 / View & Color</h3>
-            <div class="flex flex-col gap-4">
-    <button type="button" id="flip-btn" onclick="toggleHoodieSide()" class="w-max bg-[#111] border border-[#333] text-white px-6 py-3 text-[10px] uppercase tracking-widest hover:border-white transition">
-        <i class="fa-solid fa-rotate mr-2"></i> View Back
-    </button>
-    
-    <div class="mt-4">
-        <span class="text-gray-500 text-[9px] uppercase tracking-widest block mb-2">Fabric Color</span>
-        <div id="fabric-colors-container" class="flex flex-wrap gap-3">
-            <button class="color-swatch-btn w-8 h-8 rounded-full border-2 border-white cursor-pointer transition active-color" style="background-color: #ffffff;" onclick="changeStudioColor('#ffffff', this)"></button>
-            <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#333] hover:border-white transition" style="background-color: #111111;" onclick="changeStudioColor('#111111', this)"></button>
-            <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#333] hover:border-white transition" style="background-color: #191970;" onclick="changeStudioColor('#191970', this)"></button>
-            <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#333] hover:border-white transition" style="background-color: #8B0000;" onclick="changeStudioColor('#8B0000', this)"></button>
-            <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#333] hover:border-white transition" style="background-color: #333333;" onclick="changeStudioColor('#333333', this)"></button>
-        </div>
-    </div>
-</div>
-
-          <div>
-            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#222] pb-2">02 / Graphic Artwork</h3>
-            <label class="flex flex-col items-center justify-center border border-[#333] bg-[#050505] py-8 cursor-pointer hover:border-white transition group rounded-md">
-              <i class="fa-solid fa-cloud-arrow-up text-2xl mb-3 text-gray-600 group-hover:text-white transition"></i>
-              <span class="text-[10px] tracking-widest uppercase font-bold text-gray-500 group-hover:text-white transition">Upload Image</span>
-              <input type="file" id="studioImageUpload" accept="image/png, image/jpeg" class="hidden">
-            </label>
-          </div>
-
-          <div>
-            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#222] pb-2">03 / Typography</h3>
-            <div class="flex flex-col gap-3">
-              <input type="text" id="studioTextContainer" placeholder="TYPE SOMETHING..." class="bg-[#050505] border border-[#333] text-white p-4 text-xs tracking-widest uppercase outline-none focus:border-white transition w-full">
-              <button type="button" onclick="addTextToStudio()" class="bg-[#111] border border-[#333] text-white py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition">Add Text</button>
+            <span class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-3">00 / SELECT GARMENT</span>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="btn-hoodie" onclick="changeStudioProduct('hoodie')" class="product-selector-btn border border-white text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#1a232c] transition">Hoodie</button>
+              <button id="btn-tshirt" onclick="changeStudioProduct('tshirt')" class="product-selector-btn border border-[#2b3a4a] text-[#6e849c] py-3 text-[10px] uppercase tracking-widest hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">T-Shirt</button>
             </div>
           </div>
-<div id="editing-toolbar" class="hidden mb-4 p-4 bg-[#0a0a0a] border border-[#222] transition-all">
-    <span class="text-white text-[10px] uppercase tracking-widest block mb-4 border-b border-[#222] pb-2">Edit Selection</span>
-    
-    <div class="flex flex-wrap gap-4 items-center">
-        <div id="edit-color-wrapper" class="flex flex-col gap-1">
-            <label class="text-gray-500 text-[9px] uppercase tracking-widest">Color</label>
-            <input type="color" id="item-color" onchange="updateSelectedColor(this.value)" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0" title="Change Color">
-        </div>
-<div id="edit-opacity-wrapper" class="hidden flex-col gap-1 w-32">
-    <div class="flex justify-between items-center">
-        <label class="text-gray-500 text-[9px] uppercase tracking-widest">Opacity</label>
-        <span id="opacity-value" class="text-white text-[9px] tracking-widest font-bold">100%</span>
-    </div>
-    <input type="range" id="item-opacity" min="0" max="1" step="0.05" value="1" oninput="updateSelectedOpacity(this.value)" class="w-full h-1 bg-[#111] accent-white cursor-pointer opacity-80 hover:opacity-100 transition mt-2">
-</div>
 
-        <div id="edit-font-wrapper" class="flex flex-col gap-1 flex-1">
-            <label class="text-gray-500 text-[9px] uppercase tracking-widest">Font</label>
-            <select id="item-font" onchange="updateSelectedFont(this.value)" class="w-full bg-[#111] border border-[#333] text-white text-[10px] p-2 outline-none cursor-pointer">
-                <option value="Arial">Arial</option>
-                <option value="Impact">Impact</option>
-                <option value="Courier New">Courier</option>
-                <option value="Times New Roman">Times</option>
-                <option value="Verdana">Verdana</option>
-            </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-            <label class="text-transparent text-[9px] block">.</label>
-            <button onclick="deleteSelected()" class="border border-red-900/50 text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 text-sm transition" title="Delete Item">
-                <i class="fa-solid fa-trash"></i>
-            </button>
-        </div>
-    </div>
-</div>
+          <!-- 01 / VIEW & COLOR -->
           <div>
-            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#222] pb-2">04 / Select Size</h3>
-            <div class="grid grid-cols-4 gap-2">
-             <div id="studio-size-container" class="flex flex-wrap gap-2"></div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">01 / View & Color</h3>
+            <div class="flex flex-col gap-4">
+              <button type="button" id="flip-btn" onclick="toggleHoodieSide()" class="w-max bg-[#1a232c] border border-[#2b3a4a] text-white px-6 py-3 text-[10px] uppercase tracking-widest hover:border-[#4fb3d9] transition">
+                  <i class="fa-solid fa-rotate mr-2"></i> View Back
+              </button>
+              <div class="mt-2">
+                <span class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2">Fabric Color</span>
+                <div id="fabric-colors-container" class="flex flex-wrap gap-3">
+                  <button class="color-swatch-btn w-8 h-8 rounded-full border-2 border-white cursor-pointer transition active-color shadow-sm" style="background-color: #ffffff;" onclick="changeStudioColor('#ffffff', this)"></button>
+                  <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #1e1e1e;" onclick="changeStudioColor('#1e1e1e', this)"></button>    
+                  <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #4a4a4a;" onclick="changeStudioColor('#4a4a4a', this)"></button>
+                  <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #e3dac9;" onclick="changeStudioColor('#e3dac9', this)"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 02 / GRAPHIC ARTWORK -->
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">02 / Graphic Artwork</h3>
+            <label class="flex flex-col items-center justify-center border border-[#2b3a4a] bg-[#0e141a] py-8 cursor-pointer hover:border-[#4fb3d9] transition group rounded-md">
+              <i class="fa-solid fa-cloud-arrow-up text-2xl mb-3 text-gray-600 group-hover:text-[#4fb3d9] transition"></i>
+              <span class="text-[10px] tracking-widest uppercase font-bold text-[#6e849c] group-hover:text-[#4fb3d9] transition">Upload Image</span>
+              <input type="file" id="studioImageUpload" accept="image/png, image/jpeg" class="hidden">
+            </label>
+            
+            <!-- شريط تعديل الصور (مخفي) -->
+            <div id="editing-toolbar" class="hidden mt-4 p-4 bg-[#131b23] border border-[#1e2a36] transition-all">
+              <span class="text-white text-[10px] uppercase tracking-widest block mb-4 border-b border-[#1e2a36] pb-2">Edit Image</span>
+              <div class="flex items-center gap-4">
+                <div id="edit-opacity-wrapper" class="flex-1 flex flex-col gap-1">
+                  <div class="flex justify-between items-center">
+                    <label class="text-[#6e849c] text-[9px] uppercase tracking-widest">Opacity</label>
+                    <span id="opacity-value" class="text-white text-[9px] tracking-widest font-bold">100%</span>
+                  </div>
+                  <input type="range" id="item-opacity" min="0" max="1" step="0.05" value="1" oninput="updateSelectedOpacity(this.value)" class="w-full h-1 bg-[#1a232c] accent-white cursor-pointer opacity-80 hover:opacity-100 transition mt-2">
+                </div>
+                <button onclick="deleteSelectedObject()" class="border border-red-900/50 text-red-500 w-10 h-10 flex items-center justify-center hover:bg-red-600 hover:text-[#4fb3d9] transition mt-4" title="Delete Image">
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 03 / TYPOGRAPHY -->
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">03 / Typography</h3>
+            <div class="flex flex-col gap-3">
+              <input type="text" id="studioTextContainer" placeholder="TYPE SOMETHING..." class="bg-[#0e141a] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none focus:border-[#4fb3d9] transition">
+              <div class="flex gap-2 items-center">
+                <input type="color" id="text-color-picker" value="#ffffff" onchange="updateSelectedTextAttribute('fill', this.value)" class="w-10 h-10 rounded border border-[#2b3a4a] cursor-pointer bg-transparent" title="Text Color">
+                <select id="text-font-selector" onchange="updateSelectedTextAttribute('fontFamily', this.value)" class="flex-1 bg-[#1a232c] border border-[#2b3a4a] text-white text-[10px] p-2 outline-none cursor-pointer hover:border-[#4fb3d9] transition">
+                  <option value="Montserrat" selected>Montserrat (Modern Bold)</option>
+                  <option value="'Oswald', sans-serif">Oswald (Streetwear)</option>
+                  <option value="'Permanent Marker', cursive">Permanent Marker (Graffiti)</option>
+                  <option value="'Cinzel', serif">Cinzel (Elegant Serif)</option>
+                  <option value="'Dancing Script', cursive">Dancing Script (Handwriting)</option>
+                </select>
+                <button onclick="deleteActiveObject()" class="border border-red-900/50 text-red-500 w-10 h-10 flex items-center justify-center hover:bg-red-600 hover:text-[#4fb3d9] transition" title="Delete Text">
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              </div>
+              <button type="button" onclick="addTextToStudio()" class="bg-[#1a232c] border border-[#2b3a4a] text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:border-[#4fb3d9] transition">
+                Add Text
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">04 / Select Size</h3>
+            <div class="grid grid-cols-5 gap-2">
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="S" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">S</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="M" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">M</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="L" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">L</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="XL" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">XL</div></label>
+              <label class="cursor-pointer"><input type="radio" name="studio-size" value="XXL" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">XXL</div></label>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="mt-12 space-y-3 pt-8 border-t border-[#222]">
-        <button type="button" onclick="deleteActiveObject()" class="w-full border border-[#333] bg-[#111] text-white py-3 text-[10px] tracking-widest uppercase hover:bg-red-900 hover:border-red-500 transition flex items-center justify-center gap-2">
+      <div class="mt-12 space-y-3 pt-8 border-t border-[#1e2a36]">
+        <button type="button" onclick="deleteActiveObject()" class="w-full border border-[#2b3a4a] bg-[#1a232c] text-white py-3 text-[10px] tracking-widest uppercase hover:bg-red-900 hover:border-red-500 transition flex items-center justify-center gap-2">
            <i class="fa-solid fa-trash"></i> Delete Selected Item
         </button>
         <div class="flex gap-3">
@@ -598,13 +608,16 @@
             </button>
         </div>
       </div>
-  </main><main id="checkout-view" class="view-section hidden w-full min-h-screen bg-[#030303] pt-24 md:pt-32 relative z-20">
+    </div>
+  </main>
+
+  <main id="checkout-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 relative z-20">
     <div class="max-w-4xl mx-auto px-4 md:px-6 pb-16 md:pb-24">
-      <button onclick="toggleCart(); switchView('shop');" class="mb-6 md:mb-10 text-[9px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition border border-[#333] px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur flex items-center gap-2 text-white w-max"><i class="fa-solid fa-arrow-left"></i> BACK</button>
+      <button onclick="toggleCart(); switchView('shop');" class="mb-6 md:mb-10 text-[9px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition border border-[#2b3a4a] px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur flex items-center gap-2 text-white w-max"><i class="fa-solid fa-arrow-left"></i> BACK</button>
       <h2 class="display-font text-4xl md:text-7xl text-white uppercase mb-4 text-center">Checkout</h2>
-      <form id="checkoutForm" onsubmit="submitOrder(event)" class="space-y-6 md:space-y-8 bg-[#0a0a0a] p-5 md:p-12 border border-[#222]">
+      <form id="checkoutForm" onsubmit="submitOrder(event)" class="space-y-6 md:space-y-8 bg-[#131b23] p-5 md:p-12 border border-[#1e2a36]">
         <div class="space-y-4">
-          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#333] pb-2 mb-3 md:mb-4">Contact Info</h3>
+          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#2b3a4a] pb-2 mb-3 md:mb-4">Contact Info</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <input type="text" id="chk-name" required placeholder="Full Name" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
             <input type="email" id="chk-email" required placeholder="Email Address" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
@@ -615,7 +628,7 @@
           </div>
         </div>
         <div class="space-y-4 pt-4 md:pt-6">
-          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#333] pb-2 mb-3 md:mb-4">Shipping Address</h3>
+          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#2b3a4a] pb-2 mb-3 md:mb-4">Shipping Address</h3>
           <input type="text" id="chk-address" required placeholder="Detailed Address" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
           <div class="grid grid-cols-3 gap-2 md:gap-4">
             <input type="text" id="chk-building" required placeholder="Bldg No." class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
@@ -624,8 +637,8 @@
           </div>
           <input type="text" id="chk-landmark" placeholder="Special Mark" class="field w-full py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm">
         </div>
-        <div class="space-y-4 pt-4 md:pt-6 border-t border-[#222]">
-          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#333] pb-2 mb-3 md:mb-4">Promo Code</h3>
+        <div class="space-y-4 pt-4 md:pt-6 border-t border-[#1e2a36]">
+          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#2b3a4a] pb-2 mb-3 md:mb-4">Promo Code</h3>
           <div class="flex gap-2 md:gap-4">
             <input type="text" id="coupon-code" placeholder="ENTER CODE" class="field flex-grow py-2.5 md:py-3 bg-transparent text-white text-xs md:text-sm uppercase tracking-wider">
             <button type="button" onclick="applyCouponCode()" class="bg-white text-black px-4 md:px-6 py-2.5 md:py-3 text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition">Apply</button>
@@ -634,22 +647,22 @@
         </div>
         
         <div class="space-y-4 pt-4 md:pt-6">
-          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#333] pb-2 mb-3 md:mb-4">Payment Method</h3>
+          <h3 class="text-white display-font text-lg md:text-xl uppercase border-b border-[#2b3a4a] pb-2 mb-3 md:mb-4">Payment Method</h3>
           <div class="flex flex-col gap-2 md:gap-3">
-            <label class="flex items-center gap-3 text-white cursor-pointer p-3 md:p-4 border border-[#333] hover:border-white transition">
+            <label class="flex items-center gap-3 text-white cursor-pointer p-3 md:p-4 border border-[#2b3a4a] hover:border-[#4fb3d9] transition">
               <input type="radio" name="payment" value="Cash on Delivery" checked onchange="toggleInstapayUI(false)" class="accent-white">
               <span class="text-xs md:text-sm tracking-widest uppercase">Cash on Delivery</span>
             </label>
-            <label class="flex items-center gap-3 text-white cursor-pointer p-3 md:p-4 border border-[#333] hover:border-white transition">
+            <label class="flex items-center gap-3 text-white cursor-pointer p-3 md:p-4 border border-[#2b3a4a] hover:border-[#4fb3d9] transition">
               <input type="radio" name="payment" value="Instapay" onchange="toggleInstapayUI(true)" class="accent-white">
               <span class="text-xs md:text-sm tracking-widest uppercase">InstaPay</span>
             </label>
           </div>
-          <div id="instapay-block" class="hidden mt-4 bg-[#0a0a0a] border border-[#333] p-4 md:p-6">
-            <p class="text-gray-400 text-[10px] tracking-widest uppercase mb-2">1. Transfer the total amount to:</p>
+          <div id="instapay-block" class="hidden mt-4 bg-[#131b23] border border-[#2b3a4a] p-4 md:p-6">
+            <p class="text-[#8ea4be] text-[10px] tracking-widest uppercase mb-2">1. Transfer the total amount to:</p>
             <p class="text-white font-bold text-lg md:text-xl mb-6">01220543105</p>
-            <p class="text-gray-400 text-[10px] tracking-widest uppercase mb-2">2. Upload Payment Screenshot</p>
-            <input type="file" id="instapay-receipt" accept="image/*" class="w-full bg-[#050505] border border-[#222] text-white p-3 text-xs outline-none">
+            <p class="text-[#8ea4be] text-[10px] tracking-widest uppercase mb-2">2. Upload Payment Screenshot</p>
+            <input type="file" id="instapay-receipt" accept="image/*" class="w-full bg-[#0e141a] border border-[#1e2a36] text-white p-3 text-xs outline-none">
           </div>
         </div>
 
@@ -658,9 +671,9 @@
     </div>
   </main>
 
-  <div id="sticky-cart-bar" class="fixed bottom-0 left-0 w-full bg-[#0a0a0a]/90 backdrop-blur-md border-t border-[#333] z-40 transform translate-y-full transition-transform duration-500 flex justify-between items-center px-4 md:px-10 py-3 md:py-4">
+  <div id="sticky-cart-bar" class="fixed bottom-0 left-0 w-full bg-[#131b23]/90 backdrop-blur-md border-t border-[#2b3a4a] z-40 transform translate-y-full transition-transform duration-500 flex justify-between items-center px-4 md:px-10 py-3 md:py-4">
       <div class="flex items-center gap-3 md:gap-4">
-          <img id="sticky-img" src="" class="w-8 h-10 md:w-10 md:h-12 object-cover border border-[#222]">
+          <img id="sticky-img" src="" class="w-8 h-10 md:w-10 md:h-12 object-cover border border-[#1e2a36]">
           <div class="hidden sm:block">
               <h4 id="sticky-title" class="text-white text-[10px] md:text-xs font-bold tracking-widest uppercase">Product</h4>
           </div>
@@ -670,34 +683,73 @@
       </div>
   </div>
 
-  <div id="shared-footer" class="w-full relative z-20 bg-[#030303] block">
-    <section class="w-full py-16 md:py-24 px-6 md:px-8 bg-[#050505] border-t border-b border-[#222] slow-reveal text-white">
+  <div class="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[100]">
+    <button onclick="openWhatsApp()" class="bg-[#25D366] hover:bg-green-600 text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] transition hover:scale-110">
+      <i class="fa-brands fa-whatsapp text-2xl md:text-3xl"></i>
+    </button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="main.js"></script>
+  <div id="user-order-modal" class="fixed inset-0 bg-black/90 z-[250] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-lg p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+        <button onclick="closeUserOrderModal()" class="absolute top-6 right-6 text-[#6e849c] hover:text-[#4fb3d9] transition">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <h2 class="text-white text-xl display-font uppercase tracking-widest mb-6 border-b border-[#1e2a36] pb-4">Order Summary</h2>
+        <div id="user-modal-order-content" class="text-gray-300 space-y-4 text-sm"></div>
+    </div>
+  </div>
+  <div id="policy-modal" class="fixed inset-0 bg-black/90 z-[300] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+      <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-3xl p-6 md:p-10 relative max-h-[85vh] overflow-y-auto text-left">
+          <button onclick="closePolicy()" class="absolute top-4 right-4 md:top-6 md:right-6 text-[#6e849c] hover:text-[#4fb3d9] transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+          <h2 id="policy-title" class="display-font text-2xl md:text-3xl text-white uppercase mb-6 border-b border-[#1e2a36] pb-4">Policy</h2>
+          <div id="policy-content" class="text-[#8ea4be] text-xs md:text-sm leading-relaxed space-y-4 tracking-wide font-sans">
+          </div>
+      </div>
+  </div>
+</body>
+</html>
+  <div id="sticky-cart-bar" class="fixed bottom-0 left-0 w-full bg-[#131b23]/90 backdrop-blur-md border-t border-[#2b3a4a] z-40 transform translate-y-full transition-transform duration-500 flex justify-between items-center px-4 md:px-10 py-3 md:py-4">
+      <div class="flex items-center gap-3 md:gap-4">
+          <img id="sticky-img" src="" class="w-8 h-10 md:w-10 md:h-12 object-cover border border-[#1e2a36]">
+          <div class="hidden sm:block">
+              <h4 id="sticky-title" class="text-white text-[10px] md:text-xs font-bold tracking-widest uppercase">Product</h4>
+          </div>
+      </div>
+      <div class="flex items-center gap-4">
+          <button onclick="addPdpToCart()" class="bg-white text-black px-6 py-2.5 md:px-8 md:py-3 text-[9px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition shadow-[0_0_15px_rgba(255,255,255,0.3)]">Add To Cart</button>
+      </div>
+  </div>
+
+  <div id="shared-footer" class="w-full relative z-20 bg-[#090e13] block">
+    <section class="w-full py-16 md:py-24 px-6 md:px-8 bg-[#0e141a] border-t border-b border-[#1e2a36] slow-reveal text-white">
       <div class="max-w-6xl mx-auto">
         <h2 class="display-font text-3xl md:text-6xl text-white uppercase mb-10 md:mb-16 text-center">Our Policies</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-20">
-          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#333] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-truck-fast mr-2"></i> Shipping</h3><p class="text-gray-500 text-[10px] md:text-sm leading-relaxed tracking-wide">Delivery within Alexandria takes 2-4 working days.</p></div>
-          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#333] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-rotate-left mr-2"></i> Returns & Exchanges</h3><p class="text-gray-500 text-[10px] md:text-sm leading-relaxed tracking-wide">Returns within 14 days of receiving your order, unworn.</p></div>
-          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#333] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-shirt mr-2"></i> Care Instructions</h3><p class="text-gray-500 text-[10px] md:text-sm leading-relaxed tracking-wide">Machine wash cold, inside out. Hang dry naturally.</p></div>
-          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#333] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-pen-ruler mr-2"></i> Custom Orders</h3><p class="text-gray-500 text-[10px] md:text-sm leading-relaxed tracking-wide">Custom items are non-refundable unless defective.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#2b3a4a] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-truck-fast mr-2"></i> Shipping</h3><p class="text-[#6e849c] text-[10px] md:text-sm leading-relaxed tracking-wide">Delivery within Alexandria takes 2-4 working days.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#2b3a4a] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-rotate-left mr-2"></i> Returns & Exchanges</h3><p class="text-[#6e849c] text-[10px] md:text-sm leading-relaxed tracking-wide">Returns within 14 days of receiving your order, unworn.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#2b3a4a] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-shirt mr-2"></i> Care Instructions</h3><p class="text-[#6e849c] text-[10px] md:text-sm leading-relaxed tracking-wide">Machine wash cold, inside out. Hang dry naturally.</p></div>
+          <div><h3 class="font-bold tracking-widest uppercase mb-2 md:mb-4 text-xs md:text-sm border-b border-[#2b3a4a] pb-2 md:pb-3 text-gray-300"><i class="fa-solid fa-pen-ruler mr-2"></i> Custom Orders</h3><p class="text-[#6e849c] text-[10px] md:text-sm leading-relaxed tracking-wide">Custom items are non-refundable unless defective.</p></div>
         </div>
       </div>
     </section>
-    <section class="w-full py-12 md:py-20 px-6 md:px-8 bg-[#030303] slow-reveal text-center">
+    <section class="w-full py-12 md:py-20 px-6 md:px-8 bg-[#090e13] slow-reveal text-center">
         <h2 class="display-font text-2xl md:text-5xl text-white uppercase mb-3 md:mb-4">Contact Us</h2>
         <div class="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-16 text-white font-bold tracking-widest uppercase text-[10px] md:text-sm mt-6 md:mt-8">
-            <a href="mailto:000.ateeq.000@gmail.com" class="hover:text-gray-500 transition border border-[#333] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-regular fa-envelope mr-2"></i> 000.ateeq.000@gmail.com</a>
+            <a href="mailto:000.ateeq.000@gmail.com" class="hover:text-[#6e849c] transition border border-[#2b3a4a] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-regular fa-envelope mr-2"></i> 000.ateeq.000@gmail.com</a>
             
-            <a href="https://www.instagram.com/ateeq__clothes/" target="_blank" class="hover:text-gray-500 transition border border-[#333] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-brands fa-instagram mr-2"></i> @ateeq__clothes</a>
+            <a href="https://www.instagram.com/ateeq__clothes/" target="_blank" class="hover:text-[#6e849c] transition border border-[#2b3a4a] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-brands fa-instagram mr-2"></i> @ateeq__clothes</a>
         </div>
     </section>
-    <footer class="w-full py-10 md:py-16 border-t border-[#222] bg-[#050505] text-center slow-reveal">
+    <footer class="w-full py-10 md:py-16 border-t border-[#1e2a36] bg-[#0e141a] text-center slow-reveal">
         <h2 class="brand-ar text-4xl md:text-7xl text-white mb-6 md:mb-8 opacity-90">عـتـيـق</h2>
-        <p class="text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-gray-500">© 2026 ATEEQ STUDIOS. CRAFTED IN ALEXANDRIA, EGYPT.</p>
+        <p class="text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-[#6e849c]">© 2026 ATEEQ STUDIOS. CRAFTED IN ALEXANDRIA, EGYPT.</p>
         
         <div class="mt-6 flex flex-wrap justify-center gap-4 md:gap-6 text-[8px] md:text-[9px] tracking-widest text-gray-600 uppercase font-bold">
-            <a href="#" onclick="openPolicy('privacy'); return false;" class="hover:text-white transition">Privacy Policy</a>
-            <a href="#" onclick="openPolicy('terms'); return false;" class="hover:text-white transition">Terms of Service</a>
-            <a href="#" onclick="openPolicy('refund'); return false;" class="hover:text-white transition">Refund Policy</a>
+            <a href="#" onclick="openPolicy('privacy'); return false;" class="hover:text-[#4fb3d9] transition">Privacy Policy</a>
+            <a href="#" onclick="openPolicy('terms'); return false;" class="hover:text-[#4fb3d9] transition">Terms of Service</a>
+            <a href="#" onclick="openPolicy('refund'); return false;" class="hover:text-[#4fb3d9] transition">Refund Policy</a>
         </div>
     </footer>
 
@@ -715,19 +767,19 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="main.js"></script>
   <div id="user-order-modal" class="fixed inset-0 bg-black/90 z-[250] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
-    <div class="bg-[#050505] border border-[#333] w-full max-w-lg p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
-        <button onclick="closeUserOrderModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white transition">
+    <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-lg p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+        <button onclick="closeUserOrderModal()" class="absolute top-6 right-6 text-[#6e849c] hover:text-[#4fb3d9] transition">
             <i class="fa-solid fa-xmark text-xl"></i>
         </button>
-        <h2 class="text-white text-xl display-font uppercase tracking-widest mb-6 border-b border-[#222] pb-4">Order Summary</h2>
+        <h2 class="text-white text-xl display-font uppercase tracking-widest mb-6 border-b border-[#1e2a36] pb-4">Order Summary</h2>
         <div id="user-modal-order-content" class="text-gray-300 space-y-4 text-sm"></div>
     </div>
   </div>
   <div id="policy-modal" class="fixed inset-0 bg-black/90 z-[300] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0 duration-300">
-      <div class="bg-[#050505] border border-[#333] w-full max-w-3xl p-6 md:p-10 relative max-h-[85vh] overflow-y-auto text-left">
-          <button onclick="closePolicy()" class="absolute top-4 right-4 md:top-6 md:right-6 text-gray-500 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
-          <h2 id="policy-title" class="display-font text-2xl md:text-3xl text-white uppercase mb-6 border-b border-[#222] pb-4">Policy</h2>
-          <div id="policy-content" class="text-gray-400 text-xs md:text-sm leading-relaxed space-y-4 tracking-wide font-sans">
+      <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-3xl p-6 md:p-10 relative max-h-[85vh] overflow-y-auto text-left">
+          <button onclick="closePolicy()" class="absolute top-4 right-4 md:top-6 md:right-6 text-[#6e849c] hover:text-[#4fb3d9] transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+          <h2 id="policy-title" class="display-font text-2xl md:text-3xl text-white uppercase mb-6 border-b border-[#1e2a36] pb-4">Policy</h2>
+          <div id="policy-content" class="text-[#8ea4be] text-xs md:text-sm leading-relaxed space-y-4 tracking-wide font-sans">
           </div>
       </div>
   </div>
