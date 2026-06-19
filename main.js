@@ -1113,24 +1113,84 @@ window.clearStudioCanvas = function() {
     showToast("Design reset completed", "info");
 };
 
-window.addStudioToCart = function() {
+async function generateFinalProof() {
+    designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
+    const cw = canvasInstance.getWidth();
+    const ch = canvasInstance.getHeight();
+    const compCanvas = document.createElement('canvas');
+    compCanvas.width = cw * 2;
+    compCanvas.height = ch;
+    const ctx = compCanvas.getContext('2d');
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, compCanvas.width, compCanvas.height);
+
+    const drawSide = async (side, offsetX) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            let currentSrc = document.getElementById('hoodieBase').src;
+            if (side === 'front') {
+                img.src = currentSrc.includes('back') ? currentSrc.replace(/back/i, 'front') : currentSrc;
+            } else {
+                img.src = currentSrc.includes('front') ? currentSrc.replace(/front/i, 'back') : currentSrc;
+            }
+            img.onload = () => {
+                ctx.drawImage(img, offsetX, 0, cw, ch);
+                if (designState[side]) {
+                    const tempFabCanvas = document.createElement('canvas');
+                    tempFabCanvas.width = cw; tempFabCanvas.height = ch;
+                    const tempFab = new fabric.StaticCanvas(tempFabCanvas, { width: cw, height: ch });
+                    tempFab.loadFromJSON(designState[side], () => {
+                        tempFab.renderAll();
+                        ctx.drawImage(tempFab.getElement(), offsetX, 0, cw, ch);
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            };
+            img.onerror = () => resolve();
+        });
+    };
+    await drawSide('front', 0);
+    await drawSide('back', cw);
+    return compCanvas.toDataURL('image/png', 1.0);
+}
+
+window.addStudioToCart = async function() {
     if (!canvasInstance) return;
-    const sizeInput = document.querySelector('input[name="studio-size"]:checked');
-    const size = sizeInput ? sizeInput.value : 'L';
-    const finalDesignData = canvasInstance.toDataURL({ format: 'png', quality: 1.0 });
-    cart.push({
-        id: Date.now(),
-        type: 'CUSTOM',
-        title: 'DTF CUSTOM PRINT',
-        size: size,
-        price: CUSTOM_PRICE,
-        placement: currentSide === 'front' ? 'Center Chest' : 'Back Print',
-        preview: finalDesignData
-    });
-    saveCart();
-    toggleCart();
-    animateCartIcon();
-    showToast("Custom design added to cart!", "success");
+    designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
+    let hasFront = designState.front && JSON.parse(designState.front).objects.length > 0;
+    let hasBack = designState.back && JSON.parse(designState.back).objects.length > 0;
+    if (!hasFront && !hasBack) {
+        showToast("Please add a design to the front or back first!", "error");
+        return;
+    }
+    showToast("Generating design proof...", "info");
+    try {
+        const finalDesignData = await generateFinalProof();
+        const sizeInput = document.querySelector('input[name="studio-size"]:checked');
+        const size = sizeInput ? sizeInput.value : 'L';
+        let placementText = [];
+        if (hasFront) placementText.push("Front");
+        if (hasBack) placementText.push("Back");
+        cart.push({
+            id: Date.now(),
+            type: 'CUSTOM',
+            title: 'DTF CUSTOM PRINT',
+            size: size,
+            price: CUSTOM_PRICE,
+            placement: placementText.join(' & '),
+            preview: finalDesignData
+        });
+        saveCart();
+        toggleCart();
+        animateCartIcon();
+        showToast("Custom design added to cart!", "success");
+    } catch (e) {
+        console.error(e);
+        showToast("Error generating design proof.", "error");
+    }
 };
 
 const originalSwitchView = window.switchView;
