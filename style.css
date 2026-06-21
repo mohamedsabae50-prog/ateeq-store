@@ -14,14 +14,14 @@
 }
 
 .ateeq-logo:hover {
-    transform: scale(1.08); /* اللوجو بيكبر سنة بسيطة */
+    transform: scale(1.08); 
     filter: drop-shadow(0px 0px 12px rgba(255, 255, 255, 0.25)); 
 }
 
 body {
   background-color: var(--bg);
+  font-family: 'Montserrat', sans-serif;
   color: var(--fg);
-  font-family: 'Space Grotesk', sans-serif;
   overflow-x: hidden;
   margin: 0;
   padding: 0;
@@ -144,7 +144,7 @@ a, button, input, textarea, select, [onclick], .cursor-pointer, label {
 }
 .infinite-scroll:hover {
     animation-play-state: paused;
-}/* Custom Scrollbar for the new theme */
+}
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -159,8 +159,6 @@ a, button, input, textarea, select, [onclick], .cursor-pointer, label {
 ::-webkit-scrollbar-thumb:hover {
   background: #4fb3d9; 
 }
-
-/* Text Selection Color */
 ::selection {
   background-color: #4fb3d9;
   color: #090e13;
