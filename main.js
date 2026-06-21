@@ -179,7 +179,7 @@ window.applyCouponCode = async function() {
 };
 
 window.goToPDP = function(productId) {
-    const product = window.shopProductsData.find(p => p.id === productId);
+    const product = window.shopProductsData.find(p => p.id == productId);
     if(!product) return;
     document.getElementById('pdp-title').textContent = product.name;
     document.getElementById('pdp-price').textContent = product.price + ' EGP';
@@ -203,28 +203,38 @@ window.currentProductId = product.id;
 renderRelatedProducts(productId);    }
 switchView('pdp');
     window.scrollTo(0, 0);
-    window.renderRelatedProducts = function(currentId) {
-    const container = document.getElementById('related-products-container');
-    if(!container || allProducts.length === 0) return;
-    
-    // فلترة المنتجات عشان نشيل المنتج اللي العميل فاتحه دلوقتي
-    const filtered = allProducts.filter(p => p.id !== currentId);
-    
-    // لخبطة المنتجات واختيار 4 عشوائيين
-    const shuffled = filtered.sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 4);
+}; // <-- دي القفلة اللي كانت ناقصة وموقفة الدنيا!
 
+// --- دالة المنتجات المقترحة (الآن خارج الدالة القديمة وبأسماء داتا صحيحة) ---
+window.renderRelatedProducts = function(currentId) {
+    const container = document.getElementById('related-products-container');
+    if (!container) return;
+
+    // بنسحب المنتجات من المصفوفة الحقيقية بتاعتك اللي في سطر 182
+    let productList = window.shopProductsData || [];
+
+    if (productList.length === 0) {
+        return; // لو لسة محملتش ميعملش إيرور
+    }
+
+    // فلترة المنتجات عشان نشيل المنتج الحالي
+    const filtered = productList.filter(p => p.id != currentId);
+    
+    // لخبطة وعرض 4 منتجات عشوائية
+    const selected = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
+
+    // رسم المنتجات بالبيانات الحقيقية (الاسم، السعر، والصورة)
     container.innerHTML = selected.map(p => `
-        <div class="group cursor-pointer" onclick="goToPDP(${p.id})">
+        <div class="group cursor-pointer" onclick="goToPDP('${p.id}')">
             <div class="relative bg-[#0e141a] border border-[#1e2a36] aspect-[3/4] mb-3 overflow-hidden flex items-center justify-center">
-                <img src="${p.main_image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                <img src="${p.image_url || 'blanks.jpg'}" onerror="this.src='blanks.jpg'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
             </div>
             <h4 class="text-white text-[9px] md:text-[10px] tracking-widest uppercase font-bold mb-1 truncate">${p.name}</h4>
-            <p class="text-[#6e849c] text-[9px] tracking-widest uppercase">${p.price} EGP</p>
+            <p class="text-[#8ea4be] text-[9px] tracking-widest uppercase">${p.price} EGP</p>
         </div>
     `).join('');
 };
-}
+    
 window.showToast = function(message, type = 'info') {
     const toast = document.getElementById('toast-notification');
     const toastMsg = document.getElementById('toast-message');
@@ -1028,7 +1038,7 @@ function initStudioCanvas() {
 
     fabric.Object.prototype.set({
         transparentCorners: false,
-        cornerColor: '#ffffff',
+        cornerColor: '#1e1e1e',
         cornerStrokeColor: '#000000',
         borderColor: 'rgba(255, 255, 255, 0.6)',
         cornerSize: 12,
@@ -1083,7 +1093,8 @@ function initStudioCanvas() {
             e.target.value = '';
         }
     });
-   
+   canvasInstance.on('object:added', window.updateDynamicPrice);
+canvasInstance.on('object:removed', window.updateDynamicPrice);
 }
 
 window.addTextToStudio = function() {
@@ -1713,7 +1724,6 @@ window.deleteSelected = function() {
         showToast("Item deleted", "info");
     }
 };
-
 window.updateSelectedColor = function(color) {
     if (!canvasInstance) return;
     const activeObject = canvasInstance.getActiveObject();
@@ -1722,7 +1732,6 @@ window.updateSelectedColor = function(color) {
         canvasInstance.requestRenderAll();
     }
 };
-
 window.updateSelectedFont = function(font) {
     if (!canvasInstance) return;
     const activeObject = canvasInstance.getActiveObject();
@@ -1731,7 +1740,6 @@ window.updateSelectedFont = function(font) {
         canvasInstance.requestRenderAll();
     }
 };
-
 function setupCanvasEvents() {
     if (!canvasInstance) return;
     
@@ -1742,198 +1750,149 @@ function setupCanvasEvents() {
         document.getElementById('editing-toolbar').classList.add('hidden');
     });
 }
-
 function handleSelection(e) {
     const activeObject = e.selected[0];
     const toolbar = document.getElementById('editing-toolbar');
     const colorWrapper = document.getElementById('edit-color-wrapper');
     const fontWrapper = document.getElementById('edit-font-wrapper');
-    const opacityWrapper = document.getElementById('edit-opacity-wrapper'); // الجديد
+    const opacityWrapper = document.getElementById('edit-opacity-wrapper'); 
     
     if (!activeObject) {
-        toolbar.classList.add('hidden'); // لو ملغيش التحديد، نخفي الشريط
+        toolbar.classList.add('hidden'); 
         return;
     }
-    
-    toolbar.classList.remove('hidden'); // إظهار الشريط
-    
-    // 🚀 المنطق الذكي لإظهار/إخفاء الأدوات بناءً على نوع العنصر
-    if (activeObject.type === 'text') {
-        // لو اللي محدده نص، نظهر تغيير اللون والخط، ونخفي الشفافية
+    toolbar.classList.remove('hidden'); 
+        if (activeObject.type === 'text') {
         colorWrapper.style.display = 'flex';
         fontWrapper.style.display = 'flex';
-        opacityWrapper.style.display = 'none'; // نخفيه
-        
-        // تحديث قيم الـ Inputs في الـ Toolbar عشان تطابق العنصر المحدد
-        document.getElementById('item-color').value = activeObject.fill || '#ffffff';
+        opacityWrapper.style.display = 'none'; 
+                document.getElementById('item-color').value = activeObject.fill || '#1e1e1e';
         document.getElementById('item-font').value = activeObject.fontFamily || 'Arial';
     } else {
-        // لو اللي محدده صورة، نخفي تغيير اللون والخط، ونظهر الشفافية
         colorWrapper.style.display = 'none';
         fontWrapper.style.display = 'none';
-        opacityWrapper.style.display = 'flex'; // نظهره
-        
-        // تحديث قيمة مؤشر الشفافية عشان تطابق الصورة المحددة
-        const currentOpacity = activeObject.opacity !== undefined ? activeObject.opacity : 1;
+        opacityWrapper.style.display = 'flex'; 
+                const currentOpacity = activeObject.opacity !== undefined ? activeObject.opacity : 1;
         document.getElementById('item-opacity').value = currentOpacity;
         document.getElementById('opacity-value').innerText = Math.round(currentOpacity * 100) + '%';
     }
 }
 window.toggleAlignmentGrid = function(input) {
     if (!canvasInstance) return;
-    
     if (input.checked) {
         drawGridPattern();
     } else {
         canvasInstance.setBackgroundColor('#00000000', canvasInstance.renderAll.bind(canvasInstance));
         canvasInstance.setBackgroundPattern(null, canvasInstance.renderAll.bind(canvasInstance));
     }
-    
     showToast(`Alignment grid ${input.checked ? 'on' : 'off'}`, "info");
 };
-
 function drawGridPattern() {
-    const gridSize = 25; // حجم المربع (25 بكسل)
-    
+    const gridSize = 25; 
     const pattern = new fabric.Pattern({
         source: function() {
             const patternCanvas = fabric.util.createCanvasElement(gridSize, gridSize);
             const ctx = patternCanvas.getContext('2d');
-            
             ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
             ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            
+            ctx.beginPath(); 
             ctx.moveTo(0, 0);
             ctx.lineTo(gridSize, 0);
             ctx.lineTo(gridSize, gridSize);
-            
             ctx.stroke();
             return patternCanvas;
         },
         repeat: 'repeat' 
     });
-    
     canvasInstance.setBackgroundColor(pattern, canvasInstance.renderAll.bind(canvasInstance));
 }
-// دالة تحديث شفافية العنصر المحدد
 window.updateSelectedOpacity = function(opacity) {
     if (!canvasInstance) return;
     const activeObject = canvasInstance.getActiveObject();
     if (activeObject) {
-        activeObject.set('opacity', parseFloat(opacity)); // تطبيق الشفافية
-        canvasInstance.requestRenderAll(); // تحديث الكانفاس
-        
-        // تحديث الرقم اللي بيظهر للعميل
+        activeObject.set('opacity', parseFloat(opacity)); 
+        canvasInstance.requestRenderAll();
         document.getElementById('opacity-value').innerText = Math.round(opacity * 100) + '%';
     }
-};/* =========================================
-   نظام تحديث السعر الديناميكي وتعديل النص الجديد
-   ========================================= */
-
-// 1. إعدادات السعر (عدلها براحتك هنا)
-const BASE_PRICE = 800; // سعر الوش بس
-const BACK_PRINT_PRICE = 100; // تكلفة طباعة الضهر الإضافية
-let totalCustomPrice = BASE_PRICE;
-
-// 2. دالة تحديث السعر بناءً على الديزاين
-window.updateDynamicPrice = function() {
-    if (!designState || !canvasInstance) return;
-
-    // بنفحص هل في "أي كائنات" في تصميم الضهر (حتى لو كانت مخفية)
-    // ملاحظة: الـ JSON بيحفظ كل الكائنات حتى لو مسحتها من الشاشة، بس بيبقى عندهم opacity 0 أو حذف حقيقي
-    
-    // الطريقة الأدق: بنفحص حالة الـ JSON المحفوظة للضهر
-    let hasBackDesign = false;
-    if (designState.back) {
-        try {
-            const backCanvasData = JSON.parse(designState.back);
-            // لو الـ JSON فيه عناصر (objects) يبق في ديزاين على الضهر
-            if (backCanvasData.objects && backCanvasData.objects.length > 0) {
-                hasBackDesign = true;
-            }
-        } catch (e) {
-            console.error("Error parsing back design data:", e);
-        }
-    }
-
-    // الطريقة الاحتياطية: لو العميل واقف حالياً على الضهر والكانفاس فيه عناصر
-    if (currentSide === 'back' && canvasInstance.getObjects().length > 0) {
-        hasBackDesign = true;
-    }
-
-    // بنحدث السعر بناءً على الديزاين
-    const priceDisplay = document.getElementById('dynamic-price-value');
-    const breakdownDisplay = document.getElementById('price-breakdown');
-
-    if (hasBackDesign) {
-        totalCustomPrice = BASE_PRICE + BACK_PRINT_PRICE;
-        priceDisplay.innerText = totalCustomPrice;
-        breakdownDisplay.classList.remove('hidden'); // إظهار "+100 EGP Back Print"
-    } else {
-        totalCustomPrice = BASE_PRICE;
-        priceDisplay.innerText = totalCustomPrice;
-        breakdownDisplay.classList.add('hidden'); // إخفاء "+100 EGP Back Print"
-    }
 };
+const BASE_PRICE = 800; 
+const BACK_PRINT_PRICE = 100; 
+let totalCustomPrice = BASE_PRICE;
+// --- متغيرات ذكية عشان الميموري تفتكر الوش والضهر ---
+window.frontHasDesign = false;
+window.backHasDesign = false;
 
-// 3. مراقبة الكانفاس لتحديث السعر أوتوماتيك عند أي تعديل
-// بننده الدالة دي فوراً بعد ما نخلص أي عملية إضافة أو حذف
-canvasInstance.on('object:added', updateDynamicPrice);
-canvasInstance.on('object:removed', updateDynamicPrice);
+// --- الآلة الحاسبة الذكية للسعر (Dynamic Price) ---
+window.updateDynamicPrice = function() {
+    const priceElement = document.getElementById('price-number'); 
+    
+    if (!priceElement || typeof canvasInstance === 'undefined') return;
 
+    // 1. تحديد السعر الأساسي ومعرفة إحنا واقفين في الوش ولا الضهر
+    let basePrice = 800; // سعر الهودي الافتراضي
+    let isCurrentlyBack = false;
 
-/* =========================================
-   دوال تعديل النص المباشرة (الجديدة)
-   ========================================= */
+    const hoodieBaseImg = document.getElementById('hoodieBase');
+    if (hoodieBaseImg) {
+        if (hoodieBaseImg.src.includes('tshirt')) basePrice = 500; // لو تيشيرت
+        if (hoodieBaseImg.src.includes('back')) isCurrentlyBack = true; // لو الصورة اللي ظاهرة هي الضهر
+    }
 
-// دالة لتعديل أي خاصية (fill, fontFamily) للعنصر النصي المحدد
+    // 2. تحديث حالة الوجه الحالي (هل العميل حط صور/نصوص ولا مسحها؟)
+    const objectsCount = canvasInstance.getObjects().length;
+    
+    if (isCurrentlyBack) {
+        window.backHasDesign = (objectsCount > 0); // لو في الضهر وفي عناصر، سجلها
+    } else {
+        window.frontHasDesign = (objectsCount > 0); // لو في الوش وفي عناصر، سجلها
+    }
+
+    // 3. حساب تكلفة الطباعة (50 على كل وجه)
+    let printCost = 0;
+    if (window.frontHasDesign) printCost += 50; // زيادة 50 لو الوش عليه شغل
+    if (window.backHasDesign) printCost += 50;  // زيادة 50 كمان لو الضهر عليه شغل
+
+    // 4. تحديث السعر النهائي على الشاشة
+    priceElement.innerText = basePrice + printCost;
+    console.log("السعر دلوقتي: " + (basePrice + printCost)); // عشان تتابع في الكونسول
+};
 window.updateSelectedTextAttribute = function(attributeName, value) {
     if (!canvasInstance) return;
     
-    // بنجيب العنصر المحدد حالياً
     const activeObject = canvasInstance.getActiveObject();
-    
-    // لو اللي محدده نص، نعدله فوراً
-    if (activeObject && activeObject.type === 'text') {
+        if (activeObject && activeObject.type === 'text') {
         activeObject.set(attributeName, value);
-        canvasInstance.requestRenderAll(); // تحديث الشاشة فوراً
+        canvasInstance.requestRenderAll(); 
         showToast(`Text ${attributeName === 'fill' ? 'color' : 'font'} updated`, "info");
     } else {
         showToast("Please select a text first to edit", "warning");
     }
 };
-
-// دالة لحذف العنصر المحدد (صورة أو نص)
 window.deleteSelectedObject = function() {
     if (!canvasInstance) return;
     
     const activeObject = canvasInstance.getActiveObject();
     
     if (activeObject) {
-        canvasInstance.remove(activeObject); // مسح العنصر من الكانفاس
-        canvasInstance.discardActiveObject(); // إلغاء التحديد
-        canvasInstance.requestRenderAll(); // تحديث الشاشة
+        canvasInstance.remove(activeObject); 
+        canvasInstance.discardActiveObject(); 
+        canvasInstance.requestRenderAll(); 
         showToast("Element deleted", "info");
     } else {
         showToast("Please select an element to delete", "warning");
     }
 };
-// تشغيل زرار Delete و Backspace من الكيبورد لمسح العناصر من الكانفاس
 window.addEventListener('keydown', function(e) {
-    // نتأكد إن العميل مش بيكتب جوه مربع النص (عشان الكلمة متمسحش بالغلط وهو بيمسح حرف)
     if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') {
         return;
     }
-    
-    // لو داس Delete أو Backspace وفي عنصر متحدد، نمسحه فوراً
-    if ((e.key === 'Delete' || e.key === 'Backspace') && canvasInstance) {
+        if ((e.key === 'Delete' || e.key === 'Backspace') && canvasInstance) {
         const activeObject = canvasInstance.getActiveObject();
         if (activeObject) {
-            deleteSelectedObject(); // بننده على دالة المسح اللي إحنا مبرمجينها
+            deleteSelectedObject(); 
         }
     }
-});// --- دوال ترتيب الطبقات (Layers) في الاستوديو ---
+});
 window.bringForward = function() {
     if(!canvasInstance) return;
     const obj = canvasInstance.getActiveObject();
@@ -1942,7 +1901,6 @@ window.bringForward = function() {
         canvasInstance.requestRenderAll(); 
     }
 };
-
 window.sendBackward = function() {
     if(!canvasInstance) return;
     const obj = canvasInstance.getActiveObject();
@@ -1954,11 +1912,7 @@ window.sendBackward = function() {
 window.renderRelatedProducts = function(currentId) {
     const container = document.getElementById('related-products-container');
     if(!container) return;
-
-    // بنحاول نجيب منتجاتك
     let productList = window.allProducts || window.products || [];
-
-    // لو ملقاش منتجاتك أو لسة بتحمل، هيحط منتجات من عنده عشان يملى المكان وتشوف الديزاين
     if (productList.length === 0) {
         console.log("بنعرض منتجات تجريبية لحد ما منتجاتك الأساسية تحمل...");
         productList = [
@@ -1968,8 +1922,6 @@ window.renderRelatedProducts = function(currentId) {
             { id: '104', name: "Signature Sweatpants", price: 550, main_image: "https://via.placeholder.com/400x500/0e141a/4fb3d9?text=SWEATPANTS" }
         ];
     }
-
-    // فلترة وعرض
     const filtered = productList.filter(p => p.id != currentId);
     const selected = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
 
@@ -1983,3 +1935,200 @@ window.renderRelatedProducts = function(currentId) {
         </div>
     `).join('');
 };
+window.renderRelatedProducts = function(currentId) {
+    const container = document.getElementById('related-products-container');
+    if (!container) return;
+
+    let productList = window.shopProductsData || [];
+    if (productList.length === 0) return;
+    const filtered = productList.filter(p => p.id != currentId);
+        const selected = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
+    container.innerHTML = selected.map(p => `
+    <div class="group cursor-pointer" onclick="goToPDP('${p.id}')">
+        <div class="relative bg-[#0e141a] border border-[#1e2a36] aspect-[3/4] mb-3 overflow-hidden flex items-center justify-center">
+            <img src="${p.image_url || 'blanks.jpg'}" onerror="this.src='blanks.jpg'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+        </div>
+        <h4 class="text-white text-[9px] md:text-[10px] tracking-widest uppercase font-bold mb-1 truncate">${p.name}</h4>
+        <p class="text-[#8ea4be] text-[9px] tracking-widest uppercase">${p.price} EGP</p>
+    </div>
+`).join('');
+};
+function forceBlackColor() {
+    let attempts = 0;
+    let forceInterval = setInterval(() => {
+        const blackBtn = document.getElementById('default-black-btn');
+        if (blackBtn) {
+            blackBtn.click();
+            if (typeof changeStudioColor === 'function') {
+                changeStudioColor('#1e1e1e', blackBtn);
+            }
+        }
+        attempts++;
+        if (attempts > 10) { 
+            clearInterval(forceInterval);
+        }
+    }, 500);
+}
+
+window.addEventListener('load', forceBlackColor);
+
+if (typeof window.switchView === 'function') {
+    const oldSwitchView = window.switchView;
+    window.switchView = function(viewName) {
+        oldSwitchView(viewName); 
+        if (viewName === 'studio' || viewName === 'studio-view') {
+            forceBlackColor();
+        }
+    };
+}
+
+window.addEventListener('load', () => {
+    const tl = gsap.timeline();
+    
+    tl.from("#intro-bg-text", { opacity: 0, scale: 0.8, duration: 2, ease: "power3.out" })
+      .from("#intro-hero-img", { opacity: 0, y: 150, scale: 1.2, duration: 1.8, ease: "power4.out" }, "-=1.5")
+      .to("#intro-hero-img", { y: -20, repeat: -1, yoyo: true, duration: 2.5, ease: "sine.inOut" })
+      .to("#intro-ui", { opacity: 1, y: -20, duration: 1, ease: "power2.out" }, "-=2");
+});
+
+document.addEventListener('mousemove', (e) => {
+    const hoodie = document.getElementById('intro-hero-img');
+    if (hoodie && document.getElementById('premium-intro')) {
+        const x = (window.innerWidth / 2 - e.pageX) / 40;
+        const y = (window.innerHeight / 2 - e.pageY) / 40;
+        gsap.to(hoodie, { x: x, y: y, duration: 0.8, ease: "power1.out" });
+    }
+});
+
+window.enterPremiumSite = function() {
+    if (typeof gsap === 'undefined') return;
+    
+    const exitTl = gsap.timeline();
+    
+    exitTl.to("#intro-ui", { opacity: 0, y: 30, duration: 0.5, ease: "power2.inOut" })
+          .to("#intro-bg-text", { opacity: 0, scale: 1.1, duration: 0.8, ease: "power3.in" }, "<")
+          .to("#intro-hero-img", { scale: 5, opacity: 0, filter: "blur(10px)", duration: 1.2, ease: "expo.inOut" }, "-=0.5")
+          .to("#premium-intro", { opacity: 0, duration: 0.8, onComplete: () => {
+              const introEl = document.getElementById('premium-intro');
+              if(introEl) introEl.remove();
+              if(typeof window.switchView === 'function') {
+                  window.switchView('studio');
+              }
+          }}, "-=0.2");
+};
+window.addEventListener('load', () => {
+    try {
+        if (typeof gsap === 'undefined') {
+            console.error("GSAP is not loaded!");
+            return;
+        }
+
+        const tl = gsap.timeline();
+                tl.fromTo("#intro-bg-text", 
+            { opacity: 0, scale: 0.9 },
+            { opacity: 1, scale: 1, duration: 3, ease: "power4.out" }
+        )
+        .fromTo("#intro-hero-img", 
+            { opacity: 0, y: 80, scale: 1.1, filter: "blur(15px)" },
+            { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 2.5, ease: "power3.out" }, 
+            "-=2"
+        )
+        .to("#intro-hero-img", { y: -15, repeat: -1, yoyo: true, duration: 3, ease: "sine.inOut" })
+        .fromTo("#intro-ui", 
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" }, 
+            "-=2.5"
+        );
+        document.addEventListener('mousemove', (e) => {
+            const hoodie = document.getElementById('intro-hero-img');
+            const bgText = document.getElementById('intro-bg-text');
+            
+            if (hoodie && document.getElementById('premium-intro')) {
+                const x = (window.innerWidth / 2 - e.pageX) / 30;
+                const y = (window.innerHeight / 2 - e.pageY) / 30;
+                                gsap.to(hoodie, { x: x, y: y, duration: 1, ease: "power2.out" });
+                                if (bgText) gsap.to(bgText, { x: -x/2, y: -y/2, duration: 1.5, ease: "power2.out" }); 
+            }
+        });
+
+    } catch (err) {
+        console.error("Intro Animation Error:", err);
+    }
+});
+canvasInstance.on('object:modified', () => {
+    localStorage.setItem('userDesign', JSON.stringify(canvasInstance.toJSON()));
+});
+window.addEventListener('load', () => {
+    const saved = localStorage.getItem('userDesign');
+    if (saved) {
+        canvasInstance.loadFromJSON(saved, canvasInstance.renderAll.bind(canvasInstance));
+    }
+});
+// --- نظام إضاءة الاستوديو (Dark/Light Mode) ---
+// --- نظام إضاءة الاستوديو (Dark/Light Mode) ---
+
+
+// --- دالة الفرمتة والبدء من جديد (Start Over) ---
+function resetStudio() {
+    if (typeof canvasInstance === 'undefined') return;
+
+    // 1. مسح كل العناصر من الكانفاس (لوجوهات ونصوص)
+    canvasInstance.clear();
+    canvasInstance.backgroundColor = 'transparent';
+    canvasInstance.renderAll();
+
+    // 2. إرجاع السعر للأساسي (800 جنيه) - تأكد إن الـ ID بتاع السعر عندك هو ده
+    const priceDisplay = document.getElementById('dynamic-price-value');
+    if (priceDisplay) {
+        priceDisplay.innerText = '800';
+    }
+
+    // 3. إظهار رسالة للعميل (لو عندك دالة الإشعارات، لو مفيش هيعمل Alert شيك)
+    if (typeof showToast === 'function') {
+        showToast("Canvas has been completely cleared!", "success");
+    } else {
+        alert("تم مسح التصميم والبدء من جديد بنجاح!");
+    }
+}// --- الآلة الحاسبة الذكية للسعر (Dynamic Price) ---
+window.updateDynamicPrice = function() {
+    // 1. هات العنصر اللي مكتوب جواه السعر في الـ HTML (تأكد إن ده الـ ID الصح بتاعك)
+    // لو إنت مش عامل ID للرقم 800، ضيفله id="dynamic-price-value" في الـ HTML
+    const priceDisplay = document.getElementById('dynamic-price-value') || document.querySelector('.text-3xl.font-bold'); 
+    
+    if (!priceDisplay || typeof canvasInstance === 'undefined') return;
+
+    // 2. تحديد السعر الأساسي للقطعة المختارة
+    let basePrice = 800; // السعر الافتراضي للهودي
+    
+    // بنقرا مسار الصورة عشان نعرف العميل مختار إيه
+    const hoodieBaseImg = document.getElementById('hoodieBase');
+    if (hoodieBaseImg && hoodieBaseImg.src.includes('tshirt')) {
+        basePrice = 500; // سعر التيشيرت (تقدر تغير الرقم ده براحتك)
+    }
+
+    // 3. حساب تكلفة الطباعة (الديزاين)
+    let printCost = 0;
+    const objectsCount = canvasInstance.getObjects().length;
+
+    if (objectsCount > 0) {
+        printCost = 100; // هنزود 100 جنيه لو في أي صورة أو نص على الكانفاس
+        // (لو عايز تزود 50 جنيه على كل صورة لوحدها، خليها: printCost = objectsCount * 50;)
+    }
+
+    // 4. تحديث السعر النهائي على الشاشة
+    priceDisplay.innerText = basePrice + printCost;
+};
+
+// --- ربط الآلة الحاسبة بالكانفاس بأمان ---
+function attachPriceEvents() {
+    if (typeof canvasInstance !== 'undefined' && canvasInstance) {
+        // أول ما صورة تنضاف أو تتمسح، السعر يتحدث فوراً
+        canvasInstance.on('object:added', window.updateDynamicPrice);
+        canvasInstance.on('object:removed', window.updateDynamicPrice);
+    } else {
+        // لو الكانفاس لسة محملتش، جرب تاني بعد نص ثانية
+        setTimeout(attachPriceEvents, 500);
+    }
+}
+// تشغيل المراقبة
+attachPriceEvents();
