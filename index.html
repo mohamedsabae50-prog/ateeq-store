@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Oswald:wght@700&family=Permanent+Marker&family=Cinzel:wght@700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700;900&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Space+Grotesk:wght@400;600;700&family=Syncopate:wght@700&display=block" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -466,10 +467,12 @@
   </main>
 
   <main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#0e141a] flex-col lg:flex-row relative z-20 overflow-hidden">
-    <div class="relative w-full lg:w-[65%] h-[60vh] lg:h-screen flex items-center justify-center bg-[#f0f0f0]">
-      <div class="relative w-full max-w-[500px] aspect-[4/5] flex items-center justify-center mt-6">
-        <div class="absolute inset-0 w-full h-full bg-[#f0f0f0] rounded-lg"></div>
-        <div id="garment-color-layer" class="absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300" style="background-color: #ffffff; -webkit-mask-image: url('hoodie-front.webp'); mask-image: url('hoodie-front.webp'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-position: center; mask-position: center; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;"></div>
+<button onclick="toggleStudioLight()" id="light-toggle-btn" class="absolute bottom-8 left-8 z-50 bg-white/40 hover:bg-white/60 backdrop-blur-md border border-black/10 text-black/80 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm cursor-pointer">
+    <i class="fa-solid fa-moon"></i> Dark Mode
+</button>
+<div id="studio-bg-container" class="relative w-full lg:w-[65%] h-[60vh] lg:h-screen flex items-center justify-center bg-[#f0f0f0] sticky top-0 z-40 transition-colors duration-500">
+        <div class="relative w-full max-w-[500px] aspect-[4/5] flex items-center justify-center mt-6">
+<div id="inner-studio-bg" class="absolute inset-0 w-full h-full bg-[#f0f0f0] rounded-lg transition-colors duration-500"></div>        <div id="garment-color-layer" class="absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300" style="background-color: #ffffff; -webkit-mask-image: url('hoodie-front.webp'); mask-image: url('hoodie-front.webp'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-position: center; mask-position: center; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;"></div>
         <img id="hoodieBase" src="hoodie-front.webp" class="relative w-full h-full object-contain mix-blend-multiply pointer-events-none">
         
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="top: 2%;">
@@ -500,7 +503,8 @@
         <div class="mt-6 mb-8 border-b border-[#1e2a36] pb-6">
           <p class="text-[#6e849c] text-[10px] uppercase tracking-widest">Total Custom Price</p>
           <div class="flex items-end gap-2 mt-1">
-            <h1 class="text-white text-3xl font-bold leading-none"><span id="dynamic-price-value">800</span> EGP</h1>
+            <h1 class="text-white text-3xl font-bold leading-none">
+<div class="text-3xl font-bold"><span id="price-number">800</span> EGP</div>
           </div>
           <p id="price-breakdown" class="text-green-500 text-[10px] uppercase tracking-widest mt-2 hidden">+ 100 EGP (Back Print Added)</p>
         </div>
@@ -515,21 +519,26 @@
             </div>
           </div>
 
-          <!-- 01 / VIEW & COLOR -->
           <div>
             <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">01 / View & Color</h3>
             <div class="flex flex-col gap-4">
               <button type="button" id="flip-btn" onclick="toggleHoodieSide()" class="w-max bg-[#1a232c] border border-[#2b3a4a] text-white px-6 py-3 text-[10px] uppercase tracking-widest hover:border-[#4fb3d9] transition">
                   <i class="fa-solid fa-rotate mr-2"></i> View Back
               </button>
+<button onclick="resetStudio()" class="mt-6 w-full border border-red-500/30 text-red-500 bg-red-500/5 hover:bg-red-500/10 py-3 rounded text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 cursor-pointer">
+    <i class="fa-solid fa-trash-can"></i> Start Over
+</button>
               <div class="mt-2">
                 <span class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2">Fabric Color</span>
                 <div id="fabric-colors-container" class="flex flex-wrap gap-3">
-                  <button class="color-swatch-btn w-8 h-8 rounded-full border-2 border-white cursor-pointer transition active-color shadow-sm" style="background-color: #ffffff;" onclick="changeStudioColor('#ffffff', this)"></button>
-                  <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #1e1e1e;" onclick="changeStudioColor('#1e1e1e', this)"></button>    
-                  <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #4a4a4a;" onclick="changeStudioColor('#4a4a4a', this)"></button>
-                  <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #e3dac9;" onclick="changeStudioColor('#e3dac9', this)"></button>
-                </div>
+    <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #ffffff;" onclick="changeStudioColor('#ffffff', this)"></button>
+    
+    <button id="default-black-btn" class="color-swatch-btn w-8 h-8 rounded-full border-2 border-white transition shadow-sm" style="background-color: #1e1e1e;" onclick="changeStudioColor('#1e1e1e', this)"></button>    
+    
+    <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #4a4a4a;" onclick="changeStudioColor('#4a4a4a', this)"></button>
+    
+    <button class="color-swatch-btn w-8 h-8 rounded-full border border-[#2b3a4a] hover:border-[#4fb3d9] transition shadow-sm" style="background-color: #e3dac9;" onclick="changeStudioColor('#e3dac9', this)"></button>
+</div>
               </div>
             </div>
           </div>
@@ -699,7 +708,7 @@
       </div>
   </div>
 
-  <div class="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[100]">
+  <div class="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[100]">
     <button onclick="openWhatsApp()" class="bg-[#25D366] hover:bg-green-600 text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] transition hover:scale-110">
       <i class="fa-brands fa-whatsapp text-2xl md:text-3xl"></i>
     </button>
@@ -723,6 +732,37 @@
           </div>
       </div>
   </div>
+  <script>
+    let isStudioDarkMode = false;
+
+    function toggleStudioLight() {
+        const bgContainer = document.getElementById('studio-bg-container');
+        const innerBg = document.getElementById('inner-studio-bg'); 
+        const toggleBtn = document.getElementById('light-toggle-btn');
+        
+        if (!bgContainer || !toggleBtn) return;
+
+        isStudioDarkMode = !isStudioDarkMode;
+
+        if (isStudioDarkMode) {
+            // Dark Mode
+            bgContainer.style.backgroundColor = '#121212';
+            if (innerBg) innerBg.style.backgroundColor = '#121212';
+            
+            toggleBtn.innerHTML = '<i class="fa-solid fa-sun text-yellow-400"></i> <span class="text-white/90">Light Mode</span>';
+            toggleBtn.classList.remove('bg-white/40', 'border-black/10', 'text-black/80');
+            toggleBtn.classList.add('bg-black/40', 'border-white/10');
+        } else {
+            // Light Mode
+            bgContainer.style.backgroundColor = '#f0f0f0';
+            if (innerBg) innerBg.style.backgroundColor = '#f0f0f0';
+            
+            toggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i> <span class="text-black/80">Dark Mode</span>';
+            toggleBtn.classList.remove('bg-black/40', 'border-white/10');
+            toggleBtn.classList.add('bg-white/40', 'border-black/10', 'text-black/80');
+        }
+    }
+</script>
 </body>
 </html>
   <div id="sticky-cart-bar" class="fixed bottom-0 left-0 w-full bg-[#131b23]/90 backdrop-blur-md border-t border-[#2b3a4a] z-40 transform translate-y-full transition-transform duration-500 flex justify-between items-center px-4 md:px-10 py-3 md:py-4">
@@ -757,7 +797,7 @@
             <a href="https://www.instagram.com/ateeq__clothes/" target="_blank" class="hover:text-[#6e849c] transition border border-[#2b3a4a] px-6 py-3 md:px-8 md:py-4 rounded-full w-full sm:w-auto"><i class="fa-brands fa-instagram mr-2"></i> @ateeq__clothes</a>
         </div>
     </section>
-    <footer class="w-full py-10 md:py-16 border-t border-[#1e2a36] bg-[#0e141a] text-center slow-reveal">
+    <footer class="w-full pt-10 pb-32 md:py-16 border-t border-[#1e2a36] bg-[#  0e141a] text-center slow-reveal">
         <h2 class="brand-ar text-4xl md:text-7xl text-white mb-6 md:mb-8 opacity-90">عـتـيـق</h2>
         <p class="text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-[#6e849c]">© 2026 ATEEQ STUDIOS. CRAFTED IN ALEXANDRIA, EGYPT.
         <br>  created by mohamedsabae50@gmail.com<br>
@@ -775,12 +815,12 @@
     <i class="fa-solid fa-volume-high text-[10px] md:text-xs text-gray-300" id="music-icon"></i>
   </button>
 
-  <div class="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[100]">
+  <div class="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[100]">
     <button onclick="openWhatsApp()" class="bg-[#25D366] hover:bg-green-600 text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] transition hover:scale-110">
       <i class="fa-brands fa-whatsapp text-2xl md:text-3xl"></i>
     </button>
   </div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="main.js"></script>
   <div id="user-order-modal" class="fixed inset-0 bg-black/90 z-[250] hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
