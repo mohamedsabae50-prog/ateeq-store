@@ -1061,7 +1061,7 @@ function initStudioCanvas() {
             const blob = await processImageWithoutBackground(file);
             const url = URL.createObjectURL(blob);
             fabric.Image.fromURL(url, function(img) {
-                img.scaleToWidth(canvasInstance.getWidth() * 0.7);
+                img.scaleToWidth(canvasInstance.getWidth() * 0.3);
                 img.set({
                     left: canvasInstance.getWidth() / 2,
                     top: canvasInstance.getHeight() / 2,
@@ -1079,7 +1079,7 @@ function initStudioCanvas() {
             const fallbackReader = new FileReader();
             fallbackReader.onload = function(f) {
                 fabric.Image.fromURL(f.target.result, function(img) {
-                    img.scaleToWidth(canvasInstance.getWidth() * 0.7);
+                    img.scaleToWidth(canvasInstance.getWidth() * 0.3);
                     img.set({ left: canvasInstance.getWidth() / 2, top: canvasInstance.getHeight() / 2, originX: 'center', originY: 'center' });
                     canvasInstance.add(img);
                     canvasInstance.setActiveObject(img);
@@ -1182,22 +1182,47 @@ async function generateFinalProof() {
 }
 
 window.addStudioToCart = async function() {
+    
     if (!canvasInstance) return;
     designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
     let hasFront = designState.front && JSON.parse(designState.front).objects.length > 0;
     let hasBack = designState.back && JSON.parse(designState.back).objects.length > 0;
+    
     if (!hasFront && !hasBack) {
         showToast("Please add a design to the front or back first!", "error");
         return;
     }
+    
     showToast("Generating design proof...", "info");
+    
     try {
+        const requestedColor = document.getElementById('custom-color-input').value || 'Default Black';
         const finalDesignData = await generateFinalProof();
         const sizeInput = document.querySelector('input[name="studio-size"]:checked');
         const size = sizeInput ? sizeInput.value : 'L';
         let placementText = [];
         if (hasFront) placementText.push("Front");
         if (hasBack) placementText.push("Back");
+        
+        // سحب الملاحظات اللي العميل كتبها
+        const customerNotes = document.getElementById('order-notes-input') ? document.getElementById('order-notes-input').value : '';
+        
+        let hqFileData = '';
+        const hqFileInput = document.getElementById('hq-file-input');
+        
+        if (hqFileInput && hqFileInput.files.length > 0) {
+            const file = hqFileInput.files[0];
+            if (file.size > 4 * 1024 * 1024) {
+                showToast("File is too large! Maximum allowed size is 4MB.", "error");
+                return; 
+            }
+            hqFileData = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
         cart.push({
             id: Date.now(),
             type: 'CUSTOM',
@@ -1205,12 +1230,17 @@ window.addStudioToCart = async function() {
             size: size,
             price: CUSTOM_PRICE,
             placement: placementText.join(' & '),
-            preview: finalDesignData
+            color: requestedColor,
+            preview: finalDesignData,
+            hqFile: hqFileData,
+            notes: customerNotes // <-- ضفنا الملاحظات هنا
         });
+        
         saveCart();
         toggleCart();
         animateCartIcon();
         showToast("Custom design added to cart!", "success");
+        
     } catch (e) {
         console.error(e);
         showToast("Error generating design proof.", "error");
@@ -1260,8 +1290,7 @@ window.changeStudioProduct = function(productType) {
     const baseImg = document.getElementById('hoodieBase');
     if (!baseImg) return;
     
-    // 🚀 التعديل هنا: لو تيشرت هياخد مسار بصيغة png، لو هودي هياخد webp
-    const ext = productType === 'tshirt' ? 'png' : 'webp';
+const ext = 'png';
     baseImg.src = `${currentProduct}-${currentSide}.${ext}`; 
     const colorLayer = document.getElementById('garment-color-layer');
     if (colorLayer) colorLayer.style.webkitMaskImage = `url('${currentProduct}-${currentSide}.${ext}')`;
@@ -1295,8 +1324,7 @@ window.toggleHoodieSide = function() {
     designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
     
     // 🚀 تحديد الامتداد صح
-    const ext = currentProduct === 'tshirt' ? 'png' : 'webp';
-
+const ext = 'png';
     if (currentSide === 'front') {
         currentSide = 'back';
         hoodie.src = `${currentProduct}-back.${ext}`; 
