@@ -15,7 +15,55 @@ let userOrders = [];
 
 const BLANK_PRICE = 800;
 const CUSTOM_PRICE = 850;
+// كود رفع الصورة وربطه بـ Remove.bg API الخاص بك
+window.forceImageUpload = async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
+    // 1. تغيير شكل الزرار وإظهار أنيميشن التحميل
+    const uploadDiv = event.target.nextElementSibling;
+    const originalHTML = uploadDiv.innerHTML;
+    uploadDiv.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-[#4fb3d9]"></i><p class="text-[10px] tracking-widest uppercase font-bold text-[#4fb3d9]">Processing AI...</p>';
+
+    // تصفير الخانة
+    event.target.value = '';
+
+    try {
+        const noBgBlob = await processImageWithoutBackground(file);
+        const reader = new FileReader();
+        reader.onload = function(f) {
+            fabric.Image.fromURL(f.target.result, function(img) {
+                img.scaleToWidth(150);
+                if (typeof canvasInstance !== 'undefined' && canvasInstance) {
+                    canvasInstance.add(img);
+                    canvasInstance.centerObject(img);
+                    canvasInstance.setActiveObject(img);
+                    canvasInstance.renderAll();
+                }
+            });
+        };
+        reader.readAsDataURL(noBgBlob);
+
+    } catch (error) {
+        console.error("API Error:", error);
+        const fallbackReader = new FileReader();
+        fallbackReader.onload = function(f) {
+            fabric.Image.fromURL(f.target.result, function(img) {
+                img.scaleToWidth(150);
+                if (typeof canvasInstance !== 'undefined' && canvasInstance) {
+                    canvasInstance.add(img);
+                    canvasInstance.centerObject(img);
+                    canvasInstance.setActiveObject(img);
+                    canvasInstance.renderAll();
+                }
+            });
+        };
+        fallbackReader.readAsDataURL(file);
+    } finally {
+        // 2. إرجاع الزرار لشكله الطبيعي بعد انتهاء المعالجة أو في حالة الخطأ
+        uploadDiv.innerHTML = originalHTML;
+    }
+};
 function saveCart() {
     localStorage.setItem('ateeq_cart', JSON.stringify(cart));
     updateCartUI();
@@ -203,27 +251,16 @@ window.currentProductId = product.id;
 renderRelatedProducts(productId);    }
 switchView('pdp');
     window.scrollTo(0, 0);
-}; // <-- دي القفلة اللي كانت ناقصة وموقفة الدنيا!
-
-// --- دالة المنتجات المقترحة (الآن خارج الدالة القديمة وبأسماء داتا صحيحة) ---
+};
 window.renderRelatedProducts = function(currentId) {
     const container = document.getElementById('related-products-container');
     if (!container) return;
-
-    // بنسحب المنتجات من المصفوفة الحقيقية بتاعتك اللي في سطر 182
     let productList = window.shopProductsData || [];
-
     if (productList.length === 0) {
-        return; // لو لسة محملتش ميعملش إيرور
+        return; 
     }
-
-    // فلترة المنتجات عشان نشيل المنتج الحالي
     const filtered = productList.filter(p => p.id != currentId);
-    
-    // لخبطة وعرض 4 منتجات عشوائية
-    const selected = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
-
-    // رسم المنتجات بالبيانات الحقيقية (الاسم، السعر، والصورة)
+        const selected = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
     container.innerHTML = selected.map(p => `
         <div class="group cursor-pointer" onclick="goToPDP('${p.id}')">
             <div class="relative bg-[#0e141a] border border-[#1e2a36] aspect-[3/4] mb-3 overflow-hidden flex items-center justify-center">
@@ -1104,8 +1141,6 @@ window.addTextToStudio = function() {
         return;
     }
     if (!canvasInstance) return;
-
-    // 🚀 السحر هنا: بنسحب اللون والخط من الزراير مباشرة قبل ما نرسم الكلمة
     const selectedColor = document.getElementById('text-color-picker').value;
     const selectedFont = document.getElementById('text-font-selector').value;
 
@@ -1117,17 +1152,11 @@ window.addTextToStudio = function() {
         fontSize: 40,
         selectable: true
     });
-
-    canvasInstance.add(textObj);
-    
-    // 🚀 بنخلي الكلمة تتحدد أوتوماتيك أول ما تنزل عشان لو العميل حب يغير اللون فوراً
+    canvasInstance.add(textObj);   
     canvasInstance.setActiveObject(textObj); 
-    canvasInstance.renderAll();
-    
+    canvasInstance.renderAll(); 
     document.getElementById('studioTextContainer').value = '';
     showToast("Text added!", "success");
-    
-    // تحديث السعر لو إحنا على الضهر
     if (typeof updateDynamicPrice === 'function') updateDynamicPrice();
 };
 
@@ -1181,8 +1210,7 @@ async function generateFinalProof() {
     return compCanvas.toDataURL('image/png', 1.0);
 }
 
-window.addStudioToCart = async function() {
-    
+window.addStudioToCart = async function() {    
     if (!canvasInstance) return;
     designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
     let hasFront = designState.front && JSON.parse(designState.front).objects.length > 0;
@@ -1203,10 +1231,7 @@ window.addStudioToCart = async function() {
         let placementText = [];
         if (hasFront) placementText.push("Front");
         if (hasBack) placementText.push("Back");
-        
-        // سحب الملاحظات اللي العميل كتبها
-        const customerNotes = document.getElementById('order-notes-input') ? document.getElementById('order-notes-input').value : '';
-        
+        const customerNotes = document.getElementById('order-notes-input') ? document.getElementById('order-notes-input').value : '';       
         let hqFileData = '';
         const hqFileInput = document.getElementById('hq-file-input');
         
@@ -1233,7 +1258,7 @@ window.addStudioToCart = async function() {
             color: requestedColor,
             preview: finalDesignData,
             hqFile: hqFileData,
-            notes: customerNotes // <-- ضفنا الملاحظات هنا
+            notes: customerNotes 
         });
         
         saveCart();
@@ -1309,21 +1334,16 @@ const ext = 'png';
         activeBtn.classList.remove('border-[#333]', 'text-gray-500');
         activeBtn.classList.add('border-white', 'text-white');
     }
-
-    // تحديث مقاسات الاستوديو فوراً
     if (typeof renderSizes === 'function') {
         renderSizes('studio-size-container', currentProduct, 'studio-size');
     }
 };
-
 window.toggleHoodieSide = function() {
     const hoodie = document.getElementById('hoodieBase');
     const flipBtn = document.getElementById('flip-btn');
     if (!hoodie || !canvasInstance) return;
     
-    designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
-    
-    // 🚀 تحديد الامتداد صح
+    designState[currentSide] = JSON.stringify(canvasInstance.toJSON());   
 const ext = 'png';
     if (currentSide === 'front') {
         currentSide = 'back';
@@ -1346,12 +1366,9 @@ const ext = 'png';
     showToast("Switched to " + currentSide + " view", "info");
 };
 window.changeStudioColor = function(color, btn) {
-    // السر هنا: بنلون طبقة الماسك بس
     const colorLayer = document.getElementById('garment-color-layer');
     if (colorLayer) colorLayer.style.backgroundColor = color; 
-    
-    // تظبيط شكل زراير الألوان
-    document.querySelectorAll('.color-swatch-btn').forEach(b => {
+        document.querySelectorAll('.color-swatch-btn').forEach(b => {
         b.classList.remove('active-color', 'border-white', 'border-2');
         b.classList.add('border-[#333]', 'border');
     });
@@ -1830,43 +1847,29 @@ window.updateSelectedOpacity = function(opacity) {
 const BASE_PRICE = 800; 
 const BACK_PRINT_PRICE = 100; 
 let totalCustomPrice = BASE_PRICE;
-// --- متغيرات ذكية عشان الميموري تفتكر الوش والضهر ---
 window.frontHasDesign = false;
 window.backHasDesign = false;
-
-// --- الآلة الحاسبة الذكية للسعر (Dynamic Price) ---
 window.updateDynamicPrice = function() {
-    const priceElement = document.getElementById('price-number'); 
-    
+    const priceElement = document.getElementById('price-number');    
     if (!priceElement || typeof canvasInstance === 'undefined') return;
-
-    // 1. تحديد السعر الأساسي ومعرفة إحنا واقفين في الوش ولا الضهر
-    let basePrice = 800; // سعر الهودي الافتراضي
+    let basePrice = 800; 
     let isCurrentlyBack = false;
-
     const hoodieBaseImg = document.getElementById('hoodieBase');
     if (hoodieBaseImg) {
-        if (hoodieBaseImg.src.includes('tshirt')) basePrice = 500; // لو تيشيرت
-        if (hoodieBaseImg.src.includes('back')) isCurrentlyBack = true; // لو الصورة اللي ظاهرة هي الضهر
+        if (hoodieBaseImg.src.includes('tshirt')) basePrice = 500; 
+        if (hoodieBaseImg.src.includes('back')) isCurrentlyBack = true; 
     }
-
-    // 2. تحديث حالة الوجه الحالي (هل العميل حط صور/نصوص ولا مسحها؟)
     const objectsCount = canvasInstance.getObjects().length;
-    
-    if (isCurrentlyBack) {
-        window.backHasDesign = (objectsCount > 0); // لو في الضهر وفي عناصر، سجلها
+     if (isCurrentlyBack) {
+        window.backHasDesign = (objectsCount > 0); 
     } else {
-        window.frontHasDesign = (objectsCount > 0); // لو في الوش وفي عناصر، سجلها
+        window.frontHasDesign = (objectsCount > 0); 
     }
-
-    // 3. حساب تكلفة الطباعة (50 على كل وجه)
     let printCost = 0;
-    if (window.frontHasDesign) printCost += 50; // زيادة 50 لو الوش عليه شغل
-    if (window.backHasDesign) printCost += 50;  // زيادة 50 كمان لو الضهر عليه شغل
-
-    // 4. تحديث السعر النهائي على الشاشة
+    if (window.frontHasDesign) printCost += 50; 
+    if (window.backHasDesign) printCost += 50;  
     priceElement.innerText = basePrice + printCost;
-    console.log("السعر دلوقتي: " + (basePrice + printCost)); // عشان تتابع في الكونسول
+    console.log("السعر دلوقتي: " + (basePrice + printCost)); 
 };
 window.updateSelectedTextAttribute = function(attributeName, value) {
     if (!canvasInstance) return;
@@ -2062,7 +2065,6 @@ window.addEventListener('load', () => {
                                 if (bgText) gsap.to(bgText, { x: -x/2, y: -y/2, duration: 1.5, ease: "power2.out" }); 
             }
         });
-
     } catch (err) {
         console.error("Intro Animation Error:", err);
     }
@@ -2076,69 +2078,41 @@ window.addEventListener('load', () => {
         canvasInstance.loadFromJSON(saved, canvasInstance.renderAll.bind(canvasInstance));
     }
 });
-// --- نظام إضاءة الاستوديو (Dark/Light Mode) ---
-// --- نظام إضاءة الاستوديو (Dark/Light Mode) ---
-
-
-// --- دالة الفرمتة والبدء من جديد (Start Over) ---
 function resetStudio() {
     if (typeof canvasInstance === 'undefined') return;
-
-    // 1. مسح كل العناصر من الكانفاس (لوجوهات ونصوص)
     canvasInstance.clear();
     canvasInstance.backgroundColor = 'transparent';
     canvasInstance.renderAll();
-
-    // 2. إرجاع السعر للأساسي (800 جنيه) - تأكد إن الـ ID بتاع السعر عندك هو ده
     const priceDisplay = document.getElementById('dynamic-price-value');
     if (priceDisplay) {
         priceDisplay.innerText = '800';
     }
-
-    // 3. إظهار رسالة للعميل (لو عندك دالة الإشعارات، لو مفيش هيعمل Alert شيك)
     if (typeof showToast === 'function') {
         showToast("Canvas has been completely cleared!", "success");
     } else {
         alert("تم مسح التصميم والبدء من جديد بنجاح!");
     }
-}// --- الآلة الحاسبة الذكية للسعر (Dynamic Price) ---
+}
 window.updateDynamicPrice = function() {
-    // 1. هات العنصر اللي مكتوب جواه السعر في الـ HTML (تأكد إن ده الـ ID الصح بتاعك)
-    // لو إنت مش عامل ID للرقم 800، ضيفله id="dynamic-price-value" في الـ HTML
-    const priceDisplay = document.getElementById('dynamic-price-value') || document.querySelector('.text-3xl.font-bold'); 
-    
+    const priceDisplay = document.getElementById('dynamic-price-value') || document.querySelector('.text-3xl.font-bold');   
     if (!priceDisplay || typeof canvasInstance === 'undefined') return;
-
-    // 2. تحديد السعر الأساسي للقطعة المختارة
     let basePrice = 800; // السعر الافتراضي للهودي
-    
-    // بنقرا مسار الصورة عشان نعرف العميل مختار إيه
     const hoodieBaseImg = document.getElementById('hoodieBase');
     if (hoodieBaseImg && hoodieBaseImg.src.includes('tshirt')) {
         basePrice = 500; // سعر التيشيرت (تقدر تغير الرقم ده براحتك)
     }
-
-    // 3. حساب تكلفة الطباعة (الديزاين)
-    let printCost = 0;
+     let printCost = 0;
     const objectsCount = canvasInstance.getObjects().length;
-
     if (objectsCount > 0) {
-        printCost = 100; // هنزود 100 جنيه لو في أي صورة أو نص على الكانفاس
-        // (لو عايز تزود 50 جنيه على كل صورة لوحدها، خليها: printCost = objectsCount * 50;)
+        printCost = 100; 
     }
-
-    // 4. تحديث السعر النهائي على الشاشة
     priceDisplay.innerText = basePrice + printCost;
 };
-
-// --- ربط الآلة الحاسبة بالكانفاس بأمان ---
 function attachPriceEvents() {
     if (typeof canvasInstance !== 'undefined' && canvasInstance) {
-        // أول ما صورة تنضاف أو تتمسح، السعر يتحدث فوراً
         canvasInstance.on('object:added', window.updateDynamicPrice);
         canvasInstance.on('object:removed', window.updateDynamicPrice);
     } else {
-        // لو الكانفاس لسة محملتش، جرب تاني بعد نص ثانية
         setTimeout(attachPriceEvents, 500);
     }
 }
