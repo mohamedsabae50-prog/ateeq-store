@@ -472,8 +472,7 @@
     <div id="studio-bg-container"
      class="relative w-full lg:w-[65%] h-[60vh] lg:h-screen flex items-center justify-center sticky top-0 z-40" style="background-image: url('studio-bg.png'); background-size: cover; background-position: center bottom; background-color: transparent !important;">
     
-    <div class="relative w-full max-w-[500px] aspect-[4/5] flex items-center justify-center mt-6" style="background: transparent !important; border: none !important; box-shadow: none !important; animation: floatPerfect 4s ease-in-out infinite;">
-        
+<div class="relative w-full max-w-[500px] aspect-[4/5] flex items-center justify-center mt-6 transform scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100 origin-top transition-transform duration-300" style="background: transparent;">        
         <div id="garment-color-layer" style="display: none !important;"></div>
         
 <img id="hoodieBase" src="hoodie-front.png" class="relative w-full h-full object-contain pointer-events-none" style="background: transparent !important; filter: drop-shadow(0 25px 35px rgba(0,0,0,0.9)) contrast(1.15) brightness(0.95);">
@@ -488,8 +487,7 @@
         
     </div>
 </div>
-    <div class="w-full lg:w-[35%] h-full lg:h-screen overflow-y-auto bg-[#131b23] border-l border-[#1e2a36] p-8 md:p-12 flex flex-col justify-between shadow-[-10px_0_30px_rgba(0,0,0,0.5)] z-10 hide-scroll">
-      <div>
+<div class="w-full lg:w-[35%] min-h-[50vh] lg:h-screen overflow-y-auto bg-[#131b23] border-t lg:border-t-0 lg:border-l border-[#1e2a36] p-6 md:p-12 pb-28 lg:pb-12 flex flex-col z-30 relative shadow-[0_-10px_20px_rgba(0,0,0,0.3)] lg:shadow-none">      <div>
         <h2 class="display-font text-3xl md:text-4xl text-white uppercase tracking-tighter mb-2">CUSTOM LAB</h2>
         <p class="text-[#6e849c] text-[10px] tracking-widest uppercase mb-10">Design your own 3D prototype</p>
         
@@ -752,7 +750,6 @@
         isStudioDarkMode = !isStudioDarkMode;
 
         if (isStudioDarkMode) {
-            // Dark Mode
             bgContainer.style.backgroundColor = '#121212';
             if (innerBg) innerBg.style.backgroundColor = '#121212';
             
@@ -760,7 +757,6 @@
             toggleBtn.classList.remove('bg-white/40', 'border-black/10', 'text-black/80');
             toggleBtn.classList.add('bg-black/40', 'border-white/10');
         } else {
-            // Light Mode
             bgContainer.style.backgroundColor = '#f0f0f0';
             if (innerBg) innerBg.style.backgroundColor = '#f0f0f0';
             
@@ -784,7 +780,6 @@
 </div>
 
 <script>
-    // النصوص بتاعت السياسات
     const policies = {
         privacy: {
             title: "PRIVACY POLICY",
@@ -800,14 +795,12 @@
         }
     };
 
-    // فانكشن الفتح
     window.openPolicy = function(type) {
         document.getElementById('policy-title').textContent = policies[type].title;
         document.getElementById('policy-text').textContent = policies[type].text;
         document.getElementById('policy-modal').classList.remove('hidden');
     };
 
-    // فانكشن القفل
     window.closePolicy = function() {
         document.getElementById('policy-modal').classList.add('hidden');
     };
