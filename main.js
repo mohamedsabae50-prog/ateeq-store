@@ -1,7 +1,6 @@
 const SUPABASE_URL = 'https://kkbejeioqltbllshhlcp.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_F8LXj9xjlkJKv4VQJDzoxQ_P3io41th';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 let isLoggedIn = false;
 let currentSide = 'front';
 let currentProduct = 'hoodie'; 
@@ -12,73 +11,28 @@ let activeCouponCode = null;
 let cart = JSON.parse(localStorage.getItem('ateeq_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
 let userOrders = []; 
-
 const BLANK_PRICE = 800;
 const CUSTOM_PRICE = 850;
-// كود رفع الصورة وربطه بـ Remove.bg API الخاص بك
-window.forceImageUpload = async function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // 1. تغيير شكل الزرار وإظهار أنيميشن التحميل
-    const uploadDiv = event.target.nextElementSibling;
-    const originalHTML = uploadDiv.innerHTML;
-    uploadDiv.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-[#4fb3d9]"></i><p class="text-[10px] tracking-widest uppercase font-bold text-[#4fb3d9]">Processing AI...</p>';
-
-    // تصفير الخانة
-    event.target.value = '';
-
-    try {
-        const noBgBlob = await processImageWithoutBackground(file);
-        const reader = new FileReader();
-        reader.onload = function(f) {
-            fabric.Image.fromURL(f.target.result, function(img) {
-                img.scaleToWidth(150);
-                if (typeof canvasInstance !== 'undefined' && canvasInstance) {
-                    canvasInstance.add(img);
-                    canvasInstance.centerObject(img);
-                    canvasInstance.setActiveObject(img);
-                    canvasInstance.renderAll();
-                }
-            });
-        };
-        reader.readAsDataURL(noBgBlob);
-
-    } catch (error) {
-        console.error("API Error:", error);
-        const fallbackReader = new FileReader();
-        fallbackReader.onload = function(f) {
-            fabric.Image.fromURL(f.target.result, function(img) {
-                img.scaleToWidth(150);
-                if (typeof canvasInstance !== 'undefined' && canvasInstance) {
-                    canvasInstance.add(img);
-                    canvasInstance.centerObject(img);
-                    canvasInstance.setActiveObject(img);
-                    canvasInstance.renderAll();
-                }
-            });
-        };
-        fallbackReader.readAsDataURL(file);
-    } finally {
-        // 2. إرجاع الزرار لشكله الطبيعي بعد انتهاء المعالجة أو في حالة الخطأ
-        uploadDiv.innerHTML = originalHTML;
-    }
-};
-function saveCart() {
+const BASE_PRICE = 800; 
+const BACK_PRINT_PRICE = 100; 
+let totalCustomPrice = BASE_PRICE;
+window.frontHasDesign = false;
+window.backHasDesign = false;
+let canvasInstance = null;
+const REMOVE_BG_KEYS = ['o1AkssPAwYnCxy3MuyhGqjki', 'siyGKSwHaciGGjxSZQWsiWr6'];
+window.shopProductsData = [];function saveCart() {
     localStorage.setItem('ateeq_cart', JSON.stringify(cart));
     updateCartUI();
     trackAbandonedCart(); 
 }
 async function trackAbandonedCart() {
     if (!isLoggedIn || !currentUser) return; 
-    
     try {
         if (cart.length > 0) {
             const cleanCart = cart.map(item => {
                 if (item.type === 'CUSTOM') { const { preview, ...rest } = item; return rest; }
                 return item;
             });
-
             await supabaseClient.from('abandoned_carts').upsert({
                 user_id: currentUser.id,
                 email: currentUser.email,
@@ -88,14 +42,12 @@ async function trackAbandonedCart() {
         } else {
             await supabaseClient.from('abandoned_carts').delete().eq('user_id', currentUser.id);
         }
-    } catch (error) { console.error("Cart tracking error:", error); }
+    } catch (error) {}
 }
 function saveWishlist() {
     localStorage.setItem('ateeq_wishlist', JSON.stringify(wishlist));
-    renderWishlist();
-}
-
-window.switchView = function(viewId, addToHistory = true) {
+    if(typeof renderWishlist === 'function') renderWishlist();
+}window.switchView = function(viewId, addToHistory = true) {
     document.querySelectorAll('.view-section').forEach(el => {
         el.classList.add('hidden');
         el.classList.remove('block', 'flex'); 
@@ -105,6 +57,8 @@ window.switchView = function(viewId, addToHistory = true) {
         if (viewId === 'studio') {
             targetView.classList.remove('hidden');
             targetView.classList.add('flex');
+            setTimeout(initStudioCanvas, 150);
+            if(typeof forceBlackColor === 'function') forceBlackColor();
         } else {
             targetView.classList.remove('hidden');
             targetView.classList.add('block');
@@ -124,9 +78,8 @@ window.switchView = function(viewId, addToHistory = true) {
     }
     if (addToHistory) {
         history.pushState({ view: viewId }, '', `#${viewId}`);
-    }
-}
-
+    };
+};
 window.addEventListener('popstate', (event) => {
     if (event.state && event.state.view) {
         switchView(event.state.view, false);
@@ -134,7 +87,6 @@ window.addEventListener('popstate', (event) => {
         switchView('home', false);
     }
 });
-
 window.addEventListener('load', () => {
     if (!window.location.hash) {
         history.replaceState({ view: 'home' }, '', '#home');
@@ -147,15 +99,11 @@ window.addEventListener('load', () => {
         setTimeout(() => switchView(initialView, false), 100);
     }
 });
-
 window.goHome = () => switchView('home');
 window.goToShop = () => switchView('shop');
-
 window.openStudio = function(mode, color = 'Black') {
     switchView('studio');
 };
-
-window.shopProductsData = [];
 window.loadShopProducts = async function() {
     const container = document.getElementById('products-container');
     if (!container) return;
@@ -193,40 +141,9 @@ window.loadShopProducts = async function() {
         if(resultsCount) resultsCount.textContent = products.length + ' Results';
         if(typeof applyFilters === 'function') applyFilters();
     } catch (error) {
-        container.innerHTML = '<div class="col-span-full text-center text-red-500 py-10">Failed to load products. Check console.</div>';
+        container.innerHTML = '<div class="col-span-full text-center text-red-500 py-10">Failed to load products.</div>';
     }
-};
-
-window.applyCouponCode = async function() {
-    const code = document.getElementById('coupon-code').value.trim().toUpperCase();
-    const msg = document.getElementById('coupon-message');
-    if (!code) { showToast("Please enter a coupon code", "error"); return; }
-    try {
-        const { data, error } = await supabaseClient.from('coupons').select('*').eq('code', code).eq('active', true).single();
-        msg.classList.remove('hidden', 'text-red-500', 'text-green-500');
-        if (error || !data) {
-            appliedDiscount = 0;
-            activeCouponCode = null;
-            msg.textContent = "Invalid or Expired Coupon";
-            msg.classList.add('text-red-500');
-            showToast("Coupon not found", "error");
-        } else {
-            appliedDiscount = data.discount_percent;
-            activeCouponCode = data.code;
-            msg.textContent = `Coupon Applied: ${data.discount_percent}% Discount`;
-            msg.classList.add('text-green-500');
-            showToast("Discount applied successfully", "success");
-            let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
-            let discountAmount = (totalAmount * (appliedDiscount / 100));
-            let finalTotal = totalAmount - discountAmount;
-            showToast(`New Total: ${finalTotal} EGP`, "info");
-        }
-    } catch (err) {
-        console.error(err);
-    }
-};
-
-window.goToPDP = function(productId) {
+};window.goToPDP = function(productId) {
     const product = window.shopProductsData.find(p => p.id == productId);
     if(!product) return;
     document.getElementById('pdp-title').textContent = product.name;
@@ -245,37 +162,33 @@ window.goToPDP = function(productId) {
     galleryContainer.innerHTML = galleryHTML;
     const categoryName = product.category ? product.category.toLowerCase() : 'hoodies';
     if(typeof renderSizes === 'function') renderSizes('pdp-size-container', categoryName, 'pdp-size');
-window.currentProductId = product.id; 
+    window.currentProductId = product.id; 
     if(typeof fetchReviews === 'function') fetchReviews(product.id); 
-    if (typeof renderRelatedProducts === 'function') {
-renderRelatedProducts(productId);    }
-switchView('pdp');
+    if (typeof renderRelatedProducts === 'function') renderRelatedProducts(productId);    
+    switchView('pdp');
     window.scrollTo(0, 0);
 };
 window.renderRelatedProducts = function(currentId) {
     const container = document.getElementById('related-products-container');
     if (!container) return;
     let productList = window.shopProductsData || [];
-    if (productList.length === 0) {
-        return; 
-    }
+    if (productList.length === 0) return;
     const filtered = productList.filter(p => p.id != currentId);
-        const selected = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
+    const selected = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
     container.innerHTML = selected.map(p => `
-        <div class="group cursor-pointer" onclick="goToPDP('${p.id}')">
-            <div class="relative bg-[#0e141a] border border-[#1e2a36] aspect-[3/4] mb-3 overflow-hidden flex items-center justify-center">
-                <img src="${p.image_url || 'blanks.jpg'}" onerror="this.src='blanks.jpg'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-            </div>
-            <h4 class="text-white text-[9px] md:text-[10px] tracking-widest uppercase font-bold mb-1 truncate">${p.name}</h4>
-            <p class="text-[#8ea4be] text-[9px] tracking-widest uppercase">${p.price} EGP</p>
+    <div class="group cursor-pointer" onclick="goToPDP('${p.id}')">
+        <div class="relative bg-[#0e141a] border border-[#1e2a36] aspect-[3/4] mb-3 overflow-hidden flex items-center justify-center">
+            <img src="${p.image_url || 'blanks.jpg'}" onerror="this.src='blanks.jpg'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
         </div>
+        <h4 class="text-white text-[9px] md:text-[10px] tracking-widest uppercase font-bold mb-1 truncate">${p.name}</h4>
+        <p class="text-[#8ea4be] text-[9px] tracking-widest uppercase">${p.price} EGP</p>
+    </div>
     `).join('');
-};
-    
-window.showToast = function(message, type = 'info') {
+};window.showToast = function(message, type = 'info') {
     const toast = document.getElementById('toast-notification');
     const toastMsg = document.getElementById('toast-message');
     const toastIcon = document.getElementById('toast-icon');
+    if(!toast || !toastMsg || !toastIcon) return;
     if (type === 'error') toastIcon.className = 'fa-solid fa-circle-exclamation text-red-500 text-lg';
     else if (type === 'success') toastIcon.className = 'fa-solid fa-circle-check text-green-500 text-lg';
     else toastIcon.className = 'fa-solid fa-circle-info text-white text-lg';
@@ -287,7 +200,6 @@ window.showToast = function(message, type = 'info') {
         toast.classList.add('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
     }, 3000);
 };
-
 window.toggleAuthModal = function() {
     const modal = document.getElementById('auth-modal');
     if (modal) {
@@ -301,8 +213,7 @@ window.toggleAuthModal = function() {
             modal.classList.remove('flex');
         }
     }
-}
-
+};
 window.toggleMobileMenu = function() {
     const menu = document.getElementById('mobile-menu');
     if (menu) {
@@ -316,16 +227,21 @@ window.toggleMobileMenu = function() {
             menu.style.visibility = 'visible';
         }
     }
-}
-
-function toggleSizeGuide() {
+};
+window.toggleSizeGuide = function() {
     const modal = document.getElementById('size-modal');
-    modal.classList.toggle('hidden');
-    setTimeout(() => modal.classList.toggle('opacity-0'), 10);
-}
-
-async function __handleLogin(e) {
+    if(modal) {
+        modal.classList.toggle('hidden');
+        setTimeout(() => modal.classList.toggle('opacity-0'), 10);
+    }
+};async function __handleLogin(e) {
     if (e) e.preventDefault();
+    const mobAuthBtn = document.getElementById('mobile-auth-btn');
+    const mobProfBtn = document.getElementById('mobile-profile-btn');
+    if (mobAuthBtn && mobProfBtn) {
+        mobAuthBtn.classList.add('hidden');
+        mobProfBtn.classList.remove('hidden');
+    }
     const emailEl = document.getElementById('login-email');
     const passEl = document.getElementById('login-password');
     const email = emailEl ? emailEl.value : '';
@@ -347,7 +263,6 @@ async function __handleLogin(e) {
         }
     } catch (error) { showToast("Invalid Email or Password!", "error"); }
 }
-
 async function __handleRegister(e) {
     if (e) e.preventDefault();
     const emailEl = document.getElementById('reg-email');
@@ -378,6 +293,12 @@ window.handleLogin = __handleLogin;
 window.handleRegister = __handleRegister;
 try { if (window.parent) { window.parent.handleLogin = __handleLogin; window.parent.handleRegister = __handleRegister; } } catch(e) {}
 window.handleLogout = async function() {
+    const mobAuthBtn = document.getElementById('mobile-auth-btn');
+    const mobProfBtn = document.getElementById('mobile-profile-btn');
+    if (mobAuthBtn && mobProfBtn) {
+        mobAuthBtn.classList.remove('hidden');
+        mobProfBtn.classList.add('hidden');
+    }
     await supabaseClient.auth.signOut();
     isLoggedIn = false;
     currentUser = null;
@@ -387,14 +308,15 @@ window.handleLogout = async function() {
     saveWishlist();
     const chkEmail = document.getElementById('chk-email');
     if (chkEmail) chkEmail.value = '';
-    
-    toggleSettingsModal();
+    if(typeof toggleSettingsModal === 'function') {
+        const modal = document.getElementById('settings-modal');
+        if(modal && !modal.classList.contains('hidden')) toggleSettingsModal();
+    }
     document.getElementById('nav-auth-btn').style.display = ''; 
     document.getElementById('nav-profile-btn').style.display = 'none';
     switchView('home');
     showToast("Logged out successfully.", "info");
-}
-
+};
 window.animateCartIcon = function() {
     const cartLink = document.querySelector('a[onclick="toggleCart(); return false;"]');
     if(cartLink) {
@@ -403,7 +325,6 @@ window.animateCartIcon = function() {
         setTimeout(() => { cartLink.style.transform = 'scale(1)'; cartLink.style.color = ''; }, 300);
     }
 }
-
 window.toggleCart = function() {
     const overlay = document.getElementById('cart-overlay');
     const panel = document.getElementById('cart-panel');
@@ -416,7 +337,6 @@ window.toggleCart = function() {
         panel.classList.add('translate-x-full');
     }
 };
-
 window.updateCartUI = function() {
   const cartCount = document.getElementById('cart-count');
   const cartItemsContainer = document.getElementById('cart-items');
@@ -427,10 +347,10 @@ window.updateCartUI = function() {
       cartItemsContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center h-full text-center mt-10">
               <i class="fa-solid fa-cart-shopping text-5xl text-[#222] mb-6"></i>
-              <p class="text-gray-500 text-xs tracking-widest uppercase mb-6">Your cart is feeling empty.</p>
+              <p class="text-gray-500 text-xs tracking-widest uppercase mb-6">Your cart is empty.</p>
               <div class="flex flex-col gap-3 w-full max-w-[250px] mx-auto">
-                  <button onclick="toggleCart(); switchView('shop');" class="w-full border border-[#333] text-white py-4 text-[10px] uppercase tracking-widest font-bold hover:border-white hover:bg-white hover:text-black transition">Shop The Collection</button>
-                  <button onclick="toggleCart(); openStudio('custom');" class="w-full border border-[#333] text-gray-500 py-4 text-[10px] uppercase tracking-widest hover:border-white hover:text-white transition">Design Custom</button>
+                  <button onclick="toggleCart(); switchView('shop');" class="w-full border border-[#333] text-white py-4 text-[10px] uppercase tracking-widest font-bold hover:border-white hover:bg-white hover:text-black transition">Shop</button>
+                  <button onclick="toggleCart(); openStudio('custom');" class="w-full border border-[#333] text-gray-500 py-4 text-[10px] uppercase tracking-widest hover:border-white hover:text-white transition">Custom</button>
               </div>
           </div>
       `;
@@ -460,7 +380,6 @@ window.removeFromCart = function(index) {
     cart.splice(index, 1); 
     saveCart(); 
 }
-
 window.addPdpToCart = function() {
     const sizeInput = document.querySelector('input[name="pdp-size"]:checked');
     const size = sizeInput ? sizeInput.value : 'L';
@@ -471,15 +390,13 @@ window.addPdpToCart = function() {
     saveCart();
     toggleCart();
     animateCartIcon(); 
-}
-
+};
 window.goToCheckout = function() {
     if (!isLoggedIn) {
         toggleCart(); toggleAuthModal(); 
         showToast("Please Log In or Register first to proceed.", "error"); return;
     }
     if(cart.length === 0) { showToast("Your cart is empty!", "error"); return; }
-    
     if (currentUser && currentUser.email) {
         const chkEmail = document.getElementById('chk-email');
         if (chkEmail) {
@@ -488,10 +405,34 @@ window.goToCheckout = function() {
             chkEmail.classList.add('opacity-70', 'cursor-not-allowed');
         }
     }
-    
     toggleCart(); switchView('checkout');
 }
-
+window.applyCouponCode = async function() {
+    const code = document.getElementById('coupon-code').value.trim().toUpperCase();
+    const msg = document.getElementById('coupon-message');
+    if (!code) { showToast("Please enter a coupon code", "error"); return; }
+    try {
+        const { data, error } = await supabaseClient.from('coupons').select('*').eq('code', code).eq('active', true).single();
+        msg.classList.remove('hidden', 'text-red-500', 'text-green-500');
+        if (error || !data) {
+            appliedDiscount = 0;
+            activeCouponCode = null;
+            msg.textContent = "Invalid or Expired Coupon";
+            msg.classList.add('text-red-500');
+            showToast("Coupon not found", "error");
+        } else {
+            appliedDiscount = data.discount_percent;
+            activeCouponCode = data.code;
+            msg.textContent = `Coupon Applied: ${data.discount_percent}% Discount`;
+            msg.classList.add('text-green-500');
+            showToast("Discount applied successfully", "success");
+            let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
+            let discountAmount = (totalAmount * (appliedDiscount / 100));
+            let finalTotal = totalAmount - discountAmount;
+            showToast(`New Total: ${finalTotal} EGP`, "info");
+        }
+    } catch (err) {}
+};
 window.trackOrder = async function(event) {
     const serial = document.getElementById('track-serial').value.trim();
     if(!serial) { showToast("Please enter a valid serial number", "error"); return; }
@@ -516,18 +457,15 @@ window.trackOrder = async function(event) {
         }
     } catch(err) {} 
     finally { if (btn && typeof originalText !== 'undefined') btn.innerHTML = originalText; if (btn) btn.disabled = false; }
-};
-
-window.submitOrder = async function(event) {
+};window.submitOrder = async function(event) {
     event.preventDefault();
     const emailEl = document.getElementById('chk-email');
-    const email = emailEl ? emailEl.value : '';
+    const email = (emailEl && emailEl.value) ? emailEl.value : (currentUser ? currentUser.email : '');
     const paymentInput = document.querySelector('input[name="payment"]:checked');
     if (!paymentInput) { showToast("Please select a payment method.", "error"); return; }
     const paymentMethod = paymentInput.value;
-    
     if (!isLoggedIn || !currentUser) { showToast("Please log in to complete your order.", "error"); return; }
-        const receiptInput = document.getElementById('instapay-receipt');
+    const receiptInput = document.getElementById('instapay-receipt');
     let receiptFile = null;
     if (paymentMethod === 'Instapay') {
         if (!receiptInput || !receiptInput.files || receiptInput.files.length === 0) {
@@ -536,29 +474,18 @@ window.submitOrder = async function(event) {
         }
         receiptFile = receiptInput.files[0];
     }
-
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
-    
     const p1 = document.getElementById('chk-phone1') ? document.getElementById('chk-phone1').value : '';
     const p2 = document.getElementById('chk-phone2') ? document.getElementById('chk-phone2').value : '';
     const phoneRegex = /^01[0125][0-9]{8}$/;
-    
-    if (!phoneRegex.test(p1)) {
-        showToast("Please enter a valid 11-digit Egyptian phone number", "error");
-        return; 
-    }
+    if (!phoneRegex.test(p1)) { showToast("Please enter a valid 11-digit Egyptian phone number", "error"); return; }
     const customerPhone = p2 ? `${p1} (WhatsApp: ${p2})` : p1;
-    
     submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
     submitBtn.disabled = true;
-    
     try {
         let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
-        if (appliedDiscount > 0) {
-            totalAmount = totalAmount - (totalAmount * (appliedDiscount / 100));
-        }
-        
+        if (appliedDiscount > 0) totalAmount = totalAmount - (totalAmount * (appliedDiscount / 100));
         let serialNumber = 'ATQ-2026-' + Math.floor(100000 + Math.random() * 900000);
         const customerName = document.getElementById('chk-name') ? document.getElementById('chk-name').value : 'N/A';
         const mainAddr = document.getElementById('chk-address') ? document.getElementById('chk-address').value : '';
@@ -567,47 +494,64 @@ window.submitOrder = async function(event) {
         const apt = document.getElementById('chk-apt') ? document.getElementById('chk-apt').value : '';
         const mark = document.getElementById('chk-landmark') ? document.getElementById('chk-landmark').value : '';
         const customerAddress = `${mainAddr}, Bldg: ${bldg}, Floor: ${floor}, Apt: ${apt} ${mark ? '(Mark: '+mark+')' : ''}`;
+        
         let receiptUrl = null;
         if (receiptFile) {
             showToast("Uploading receipt image...", "info");
             const fileExt = receiptFile.name.split('.').pop();
             const fileName = `receipt-${serialNumber}.${fileExt}`;
-            
-            const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                .from('receipts')
-                .upload(`public/${fileName}`, receiptFile);
-                
-            if (uploadError) {
-                console.error("Receipt Upload Error:", uploadError);
-                throw new Error("Failed to upload receipt. Please try again.");
-            }
-            
-            const { data: publicUrlData } = supabaseClient.storage.from('receipts').getPublicUrl(`public/${fileName}`);
-            receiptUrl = publicUrlData.publicUrl;
+            const { error: uploadError } = await supabaseClient.storage.from('receipts').upload(`public/${fileName}`, receiptFile);
+            if (uploadError) throw new Error("Failed to upload receipt.");
+            receiptUrl = supabaseClient.storage.from('receipts').getPublicUrl(`public/${fileName}`).data.publicUrl;
         }
 
-        const cleanCartForDB = cart.map(item => {
+        let customDesignUrl = null;
+        const hasCustomItem = cart.some(item => item.type === 'CUSTOM');
+        const customItemWithPreview = cart.find(item => item.type === 'CUSTOM' && item.preview);
+        if (hasCustomItem) {
+            if (!customItemWithPreview) throw new Error("Design image is missing!");
+            showToast("Uploading custom design...", "info");
+            const blob = dataURLtoBlob(customItemWithPreview.preview);
+            const designFileName = `design-${serialNumber}.png`;
+            const { error: designError } = await supabaseClient.storage.from('custom-designs').upload(designFileName, blob, { contentType: 'image/png' });
+            if (designError) throw new Error("Storage Error: " + designError.message);
+            customDesignUrl = supabaseClient.storage.from('custom-designs').getPublicUrl(designFileName).data.publicUrl;
+        }
+
+        // رفع ملف الـ HQ الأصلي وحفظه في الطلب
+        const cleanCartForDB = await Promise.all(cart.map(async item => {
             if (item.type === 'CUSTOM') {
-                const { preview, ...restOfItem } = item; 
+                let uploadedHqUrl = null;
+                if (item.hqFile && item.hqFile.startsWith('data:image')) {
+                    try {
+                        showToast("Uploading HQ print file...", "info");
+                        const blob = dataURLtoBlob(item.hqFile);
+                        // استخراج الامتداد
+                        const mimeString = item.hqFile.split(',')[0].split(':')[1].split(';')[0];
+                        const ext = mimeString.split('/')[1] || 'png';
+                        const fileName = `hq-${serialNumber}-${Date.now()}.${ext}`;
+                        
+                        const { error } = await supabaseClient.storage.from('custom-designs').upload(`public/${fileName}`, blob);
+                        if (!error) {
+                            uploadedHqUrl = supabaseClient.storage.from('custom-designs').getPublicUrl(`public/${fileName}`).data.publicUrl;
+                        }
+                    } catch(e) { console.error("HQ Upload error", e); }
+                }
+                const { preview, hqFile, ...restOfItem } = item; 
+                if (uploadedHqUrl) restOfItem.hqFile = uploadedHqUrl; 
                 return restOfItem; 
             }
             return item;
-        });
-        const { error } = await supabaseClient.from('orders').insert([{
-            user_id: currentUser.id, 
-            serial_number: serialNumber, 
-            total_amount: totalAmount,
-            payment_method: paymentMethod, 
-            status: 'Pending', 
-            full_name: customerName,
-            phone: customerPhone, 
-            address: customerAddress, 
-            items: cleanCartForDB,
-            receipt_url: receiptUrl 
-        }]);
-        
-        if (error) throw error;
+        }));
 
+        const { error } = await supabaseClient.from('orders').insert([{
+            user_id: currentUser.id, serial_number: serialNumber, total_amount: totalAmount,
+            payment_method: paymentMethod, status: 'Pending', full_name: customerName,
+            phone: customerPhone, address: customerAddress, items: cleanCartForDB,
+            receipt_url: receiptUrl, custom_design_url: customDesignUrl 
+        }]);
+        if (error) throw error;
+        
         for (const item of cart) {
             if (item.type === 'STORE' && item.title) {
                 const { data: prod } = await supabaseClient.from('products').select('stock_count').eq('name', item.title).single();
@@ -619,68 +563,41 @@ window.submitOrder = async function(event) {
             }
         }
         
-        try {
-            await emailjs.send("service_58ov5us", "template_kmoa9gi", {
-                serial_number: serialNumber, email: email, total_amount: totalAmount, payment_method: paymentMethod
-            });
-        } catch (emailErr) {}
+        try { await emailjs.send("service_58ov5us", "template_kmoa9gi", { serial_number: serialNumber, email: email, total_amount: totalAmount, payment_method: paymentMethod }); } catch (emailErr) {}
         
-        document.getElementById('order-serial').textContent = serialNumber;
-        document.getElementById('user-email-confirm').textContent = email;
+        const serialEl = document.getElementById('order-serial');
+        if (serialEl) { if (serialEl.tagName === 'INPUT') serialEl.value = serialNumber; else serialEl.textContent = serialNumber; }
+        const emailConfirmEl = document.getElementById('user-email-confirm');
+        if (emailConfirmEl) emailConfirmEl.textContent = email || (currentUser ? currentUser.email : '');
+
         const modal = document.getElementById('success-modal');
         modal.classList.remove('hidden'); 
         setTimeout(() => { modal.classList.remove('opacity-0'); }, 50);
         
-        cart = []; 
-        appliedDiscount = 0;
-        activeCouponCode = null;
-        saveCart();
-        
+        cart = []; appliedDiscount = 0; activeCouponCode = null; saveCart();
     } catch (error) { 
-        console.error("Order Failed: ", error);
         showToast(error.message || "Failed to place order.", "error"); 
     } finally {
-        submitBtn.innerHTML = originalBtnText; 
-        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText; submitBtn.disabled = false;
     }
 };
-
 window.closeSuccessModal = function() {
     const modal = document.getElementById('success-modal');
     modal.classList.add('opacity-0');
     setTimeout(() => { modal.classList.add('hidden'); switchView('home'); }, 500);
 }
-
-window.removeFromWishlist = function(index) {
-    wishlist.splice(index, 1); saveWishlist(); showToast('Removed from wishlist.', 'info');
-}
-
-window.goToPDP_ByName = function(name) {
-    const p = window.shopProductsData.find(x => x.name === name);
-    if(p) goToPDP(p.id);
-}
-
-window.switchProfileTab = function(tabName) {
-    const tabHistory = document.getElementById('tab-history');
-    const tabWishlist = document.getElementById('tab-wishlist');
-    const ordersContent = document.getElementById('tab-orders');
-    const wishlistContent = document.getElementById('tab-wishlist-content');
-    if (tabName === 'history') {
-        if(tabHistory) { tabHistory.classList.remove('border-transparent', 'text-gray-500'); tabHistory.classList.add('border-white', 'text-white'); }
-        if(tabWishlist) { tabWishlist.classList.remove('border-white', 'text-white'); tabWishlist.classList.add('border-transparent', 'text-gray-500'); }
-        if(ordersContent) ordersContent.classList.replace('hidden', 'block');
-        if(wishlistContent) wishlistContent.classList.replace('block', 'hidden');
-        if (typeof fetchUserOrders === 'function') fetchUserOrders();
-    } else if (tabName === 'wishlist') {
-        if(tabWishlist) { tabWishlist.classList.remove('border-transparent', 'text-gray-500'); tabWishlist.classList.add('border-white', 'text-white'); }
-        if(tabHistory) { tabHistory.classList.remove('border-white', 'text-white'); tabHistory.classList.add('border-transparent', 'text-gray-500'); }
-        if(ordersContent) ordersContent.classList.replace('block', 'hidden');
-        if(wishlistContent) wishlistContent.classList.replace('hidden', 'block');
-        if (typeof fetchUserWishlist === 'function') fetchUserWishlist();
+window.toggleInstapayUI = function(show) {
+    const block = document.getElementById('instapay-block');
+    if (block) {
+        if (show) {
+            block.classList.remove('hidden');
+            block.classList.add('block');
+        } else {
+            block.classList.add('hidden');
+            block.classList.remove('block');
+        }
     }
-}
-
-window.fetchUserOrders = async function() {
+};window.fetchUserOrders = async function() {
     if (!isLoggedIn || !currentUser) return;
     const container = document.getElementById('orders-container');
     if (!container) return;
@@ -704,7 +621,7 @@ window.fetchUserOrders = async function() {
             const date = new Date(order.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
             const statusColor = order.status === 'Pending' ? 'text-yellow-500 border-yellow-500' : 'text-green-500 border-green-500';
             return `
-            <div onclick="openUserOrderModal('${order.id}')" class="border border-[#222] p-6 bg-[#050505] cursor-pointer hover:border-gray-500 transition-all duration-300">
+            <div onclick="openUserOrderModal('${order.id}')" class="border border-[#222] p-6 bg-[#050505] cursor-pointer hover:border-gray-500 transition-all duration-300 mb-4">
                 <div class="flex justify-between items-start mb-6">
                     <div>
                         <p class="text-gray-500 text-[10px] tracking-widest uppercase mb-1">Order #${order.serial_number} (Click for details)</p>
@@ -724,12 +641,33 @@ window.fetchUserOrders = async function() {
                 </div>
             </div>`;
         }).join('');
-    } catch (error) {
-        console.error("Error:", error.message);
-    }
+    } catch (error) {}
 };
-
-window.toggleSettingsModal = async function() {
+window.openUserOrderModal = function(id) {
+    const order = userOrders.find(o => o.id === id);
+    if (!order) return;
+    const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    let itemsHtml = '';
+    if (order.items && Array.isArray(order.items)) {
+        itemsHtml = order.items.map(item => `
+            <div class="flex justify-between items-center text-xs mt-2 bg-[#111] p-3 border border-[#222]">
+                <span class="text-gray-300">- ${item.title || item.name} <b class="text-white ml-1">(Size: ${item.size || 'N/A'})</b></span>
+                <span class="text-white font-bold">${item.price} EGP</span>
+            </div> `).join('');
+    } else {
+        itemsHtml = '<div class="text-gray-600 text-xs mt-1">No items recorded</div>';
+    }
+    const content = document.getElementById('user-modal-order-content');
+    if(content) {
+        content.innerHTML = `<div class="flex justify-between items-center border-b border-[#222] pb-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Serial Number</span><span class="text-white font-bold">${order.serial_number}</span></div><div class="flex justify-between items-center border-b border-[#222] py-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Date</span><span class="text-white">${date}</span></div><div class="py-3 border-b border-[#222]"><div class="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Items Ordered</div>${itemsHtml}</div><div class="flex justify-between items-center border-b border-[#222] py-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Payment Method</span><span class="text-white">${order.payment_method}</span></div><div class="flex justify-between items-center pt-3"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Total Amount</span><span class="text-white font-bold text-lg">${order.total_amount} EGP</span></div>`;
+    }
+    const modal = document.getElementById('user-order-modal');
+    if(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+};
+window.closeUserOrderModal = function() {
+    const modal = document.getElementById('user-order-modal');
+    if(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+};window.toggleSettingsModal = async function() {
     const modal = document.getElementById('settings-modal');
     if (!modal) return;
     if (modal.classList.contains('hidden')) {
@@ -757,53 +695,42 @@ window.toggleSettingsModal = async function() {
         setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
     }
 };
-
-async function __saveProfileData(e) {
+window.saveProfileData = async function(e) {
     if (e) e.preventDefault();
-    const newNameEl = document.getElementById('edit-name');
-    const newPhoneEl = document.getElementById('edit-phone');
-    const newAgeEl = document.getElementById('edit-age');
-    const newCityEl = document.getElementById('edit-city');
-    const newName = newNameEl ? newNameEl.value : '';
-    const newPhone = newPhoneEl ? newPhoneEl.value : '';
-    const newAge = newAgeEl ? newAgeEl.value : '';
-    const newCity = newCityEl ? newCityEl.value : '';
-    try {
-        const { error } = await supabaseClient.from('profiles').update({
-            full_name: newName, phone: newPhone, age: newAge ? parseInt(newAge) : null, city: newCity
-        }).eq('id', currentUser ? currentUser.id : null);
-        if (error) throw error;
-        showToast("Profile Updated Successfully!", "success");
-        if (typeof toggleSettingsModal === 'function') toggleSettingsModal();
-    } catch (error) { showToast("Failed to update profile.", "error"); }
-}
-
-window.saveProfileData = __saveProfileData;
-try { if (window.parent) window.parent.saveProfileData = __saveProfileData; } catch(e) {}
-
-window.openUserOrderModal = function(id) {
-    const order = userOrders.find(o => o.id === id);
-    if (!order) return;
-    const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    let itemsHtml = '';
-    if (order.items && Array.isArray(order.items)) {
-        itemsHtml = order.items.map(item => `
-            <div class="flex justify-between items-center text-xs mt-2 bg-[#111] p-3 border border-[#222]">
-                <span class="text-gray-300">- ${item.title || item.name} <b class="text-white ml-1">(Size: ${item.size || 'N/A'})</b></span>
-                <span class="text-white font-bold">${item.price} EGP</span>
-            </div> `).join('');
-    } else {
-        itemsHtml = '<div class="text-gray-600 text-xs mt-1">No items recorded</div>';
+    if (!isLoggedIn || !currentUser) {
+        showToast("You are not logged in!", "error");
+        return;
     }
-    const content = document.getElementById('user-modal-order-content');
-    content.innerHTML = `<div class="flex justify-between items-center border-b border-[#222] pb-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Serial Number</span><span class="text-white font-bold">${order.serial_number}</span></div><div class="flex justify-between items-center border-b border-[#222] py-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Date</span><span class="text-white">${date}</span></div><div class="py-3 border-b border-[#222]"><div class="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Items Ordered</div>${itemsHtml}</div><div class="flex justify-between items-center border-b border-[#222] py-2"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Payment Method</span><span class="text-white">${order.payment_method}</span></div><div class="flex justify-between items-center pt-3"><span class="text-gray-500 text-[10px] uppercase tracking-widest">Total Amount</span><span class="text-white font-bold text-lg">${order.total_amount} EGP</span></div>`;
-    const modal = document.getElementById('user-order-modal');
-    if(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-};
-
-window.closeUserOrderModal = function() {
-    const modal = document.getElementById('user-order-modal');
-    if(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    const btn = document.getElementById('save-profile-btn');
+    let originalText = '';
+    if(btn) {
+        originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+        btn.style.pointerEvents = 'none';
+    }
+    const nameEl = document.getElementById('edit-name');
+    const phoneEl = document.getElementById('edit-phone');
+    const ageEl = document.getElementById('edit-age');
+    const cityEl = document.getElementById('edit-city');
+    const name = nameEl ? nameEl.value : '';
+    const phone = phoneEl ? phoneEl.value : '';
+    const age = ageEl ? ageEl.value : '';
+    const city = cityEl ? cityEl.value : '';
+    try {
+        const { error } = await supabaseClient.from('profiles').update({ 
+            full_name: name, phone: phone, age: age ? parseInt(age) : null, city: city
+        }).eq('id', currentUser.id);
+        if (error) throw error;
+        showToast("Profile updated successfully!", "success");
+        toggleSettingsModal();
+    } catch (error) {
+        showToast("Failed to update profile.", "error");
+    } finally {
+        if(btn) {
+            btn.innerHTML = originalText;
+            btn.style.pointerEvents = 'auto';
+        }
+    }
 };window.toggleWishlist = async function(productId, event, btnElement = null) {
     if(event) event.stopPropagation();
     const button = btnElement || (event ? event.currentTarget : null);
@@ -815,11 +742,7 @@ window.closeUserOrderModal = function() {
     }
     try {
         if (icon) icon.className = "fa-solid fa-circle-notch fa-spin text-gray-500";
-        const { data, error } = await supabaseClient
-            .from('wishlist')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .eq('product_id', productId);
+        const { data, error } = await supabaseClient.from('wishlist').select('*').eq('user_id', currentUser.id).eq('product_id', productId);
         if (data && data.length > 0) {
             await supabaseClient.from('wishlist').delete().eq('user_id', currentUser.id).eq('product_id', productId);
             showToast("Removed from Wishlist", "info");
@@ -837,26 +760,21 @@ window.closeUserOrderModal = function() {
                 if (icon) icon.className = "fa-solid fa-heart";
             }
         }
-        const wishlistTab = document.getElementById('tab-wishlist-content');
+        const wishlistTab = document.getElementById('wishlist-container');
         if (wishlistTab && !wishlistTab.classList.contains('hidden')) {
             fetchUserWishlist();
         }
     } catch(err) {
-        console.error("Wishlist Error:", err.message);
         if (icon) icon.className = "fa-regular fa-heart text-white";
     }
 }
-
 window.fetchUserWishlist = async function() {
     if (!isLoggedIn || !currentUser) return;
     const container = document.getElementById('wishlist-container');
     if (!container) return;
     container.innerHTML = '<p class="text-center col-span-full text-gray-500 text-xs tracking-widest uppercase py-10"><i class="fa-solid fa-circle-notch fa-spin text-xl"></i></p>';
     try {
-        const { data: wishlistItems, error } = await supabaseClient
-            .from('wishlist')
-            .select(`product_id, products (*)`)
-            .eq('user_id', currentUser.id);
+        const { data: wishlistItems, error } = await supabaseClient.from('wishlist').select(`product_id, products (*)`).eq('user_id', currentUser.id);
         if (error) throw error;
         if (!wishlistItems || wishlistItems.length === 0) {
             container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center text-center py-10"><i class="fa-regular fa-heart text-4xl text-[#222] mb-4"></i><p class="text-gray-500 text-xs tracking-widest uppercase">Your wishlist is empty.</p></div>`;
@@ -865,75 +783,152 @@ window.fetchUserWishlist = async function() {
         container.innerHTML = wishlistItems.map(item => {
             const prod = item.products;
             if (!prod) return '';
-            return `<div class="group relative bg-[#050505] border border-[#111] p-4 transition hover:border-[#222]"><div class="relative overflow-hidden aspect-square mb-4 cursor-pointer" onclick="switchView('shop')"><img src="${prod.image_url}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500"></div><div class="flex justify-between items-start"><div><h4 class="text-xs uppercase text-white font-bold tracking-wider">${prod.name}</h4><p class="text-[10px] text-gray-500 mt-1">${prod.price} EGP</p></div><button onclick="toggleWishlist('${prod.id}', event, this)" class="border border-[#333] hover:border-white w-14 h-14 flex items-center justify-center transition text-white"><i class="fa-solid fa-heart text-red-500"></i></button></div></div>`;
+            return `<div class="group relative bg-[#050505] border border-[#111] p-4 transition hover:border-[#222]"><div class="relative overflow-hidden aspect-square mb-4 cursor-pointer" onclick="goToPDP('${prod.id}')"><img src="${prod.image_url}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500"></div><div class="flex justify-between items-start"><div><h4 class="text-xs uppercase text-white font-bold tracking-wider">${prod.name}</h4><p class="text-[10px] text-gray-500 mt-1">${prod.price} EGP</p></div><button onclick="toggleWishlist('${prod.id}', event, this)" class="border border-[#333] hover:border-white w-14 h-14 flex items-center justify-center transition text-white"><i class="fa-solid fa-heart text-red-500"></i></button></div></div>`;
         }).join('');
     } catch(err) {
-        console.error(err);
         container.innerHTML = '<p class="text-center col-span-full text-red-500 text-xs tracking-widest uppercase">Error loading wishlist.</p>';
     }
 }
-
 window.toggleWishlistFromPDP = function(event, btnElement) {
-    const titleElement = document.getElementById('pdp-title');
-    if (!titleElement) return;
-    const title = titleElement.textContent.trim();
-    if (window.shopProductsData && window.shopProductsData.length > 0) {
-        const product = window.shopProductsData.find(p => p.name.toUpperCase() === title.toUpperCase());
-        if (product && product.id) {
-            toggleWishlist(product.id, event, btnElement);
-        } else {
-            console.error("Product ID not found for: ", title);
-        }
-    } else {
-        console.error("Shop products data is not loaded yet.");
+    if(!window.currentProductId) return;
+    toggleWishlist(window.currentProductId, event, btnElement);
+}
+window.removeFromWishlist = function(index) {
+    wishlist.splice(index, 1); saveWishlist(); showToast('Removed from wishlist.', 'info');
+};
+window.goToPDP_ByName = function(name) {
+    
+    const p = window.shopProductsData.find(x => x.name === name);
+    if(p) goToPDP(p.id);
+}
+window.switchProfileTab = function(tabName) {
+    const tabHistory = document.getElementById('tab-history');
+    const tabWishlist = document.getElementById('tab-wishlist');
+    const ordersContent = document.getElementById('tab-orders');
+    const wishlistContent = document.getElementById('wishlist-container');
+    if (tabName === 'history') {
+        if(tabHistory) { tabHistory.classList.remove('border-transparent', 'text-gray-500'); tabHistory.classList.add('border-white', 'text-white'); }
+        if(tabWishlist) { tabWishlist.classList.remove('border-white', 'text-white'); tabWishlist.classList.add('border-transparent', 'text-gray-500'); }
+        if(ordersContent) ordersContent.classList.replace('hidden', 'block');
+        if(wishlistContent) wishlistContent.classList.replace('grid', 'hidden');
+        if (typeof fetchUserOrders === 'function') fetchUserOrders();
+    } else if (tabName === 'wishlist') {
+        if(tabWishlist) { tabWishlist.classList.remove('border-transparent', 'text-gray-500'); tabWishlist.classList.add('border-white', 'text-white'); }
+        if(tabHistory) { tabHistory.classList.remove('border-white', 'text-white'); tabHistory.classList.add('border-transparent', 'text-gray-500'); }
+        if(ordersContent) { ordersContent.classList.remove('block'); ordersContent.classList.add('hidden'); }
+        if(wishlistContent) { wishlistContent.classList.remove('hidden'); wishlistContent.classList.add('grid'); }
+        if (typeof fetchUserWishlist === 'function') fetchUserWishlist();
     }
 }
-
+window.toggleReviewForm = function() {
+    const form = document.getElementById('add-review-form');
+    if(form) form.classList.toggle('hidden');
+};
+window.fetchReviews = async function(productId) {
+    const container = document.getElementById('reviews-container');
+    if(!container) return;
+    container.innerHTML = '<p class="text-gray-500 text-[10px] tracking-widest uppercase">Loading reviews...</p>';
+    try {
+        const { data: reviews, error } = await supabaseClient.from('reviews').select('*').eq('product_id', productId).order('created_at', { ascending: false });
+        if (error) throw error;
+        if (!reviews || reviews.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-[10px] tracking-widest uppercase border border-[#222] p-4 text-center">No reviews yet. Be the first!</p>';
+            const avgRatingEl = document.getElementById('avg-rating');
+            if(avgRatingEl) avgRatingEl.innerText = '';
+            return;
+        }
+        const avg = Math.round(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length);
+        const avgRatingEl = document.getElementById('avg-rating');
+        if(avgRatingEl) avgRatingEl.innerText = '★'.repeat(avg) + '☆'.repeat(5 - avg);
+        container.innerHTML = reviews.map(review => `
+            <div class="bg-[#0a0a0a] p-4 border border-[#222]">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="text-white text-xs font-bold uppercase block">${review.customer_name}</span>
+                        <span class="text-green-500 text-[9px] uppercase tracking-widest"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                    </div>
+                    <span class="text-yellow-500 text-xs">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</span>
+                </div>
+                <p class="text-gray-400 text-[11px] leading-relaxed">${review.comment}</p>
+                <p class="text-[#444] text-[9px] mt-3 uppercase tracking-widest">${new Date(review.created_at).toLocaleDateString()}</p>
+            </div>
+        `).join('');
+    } catch (error) {
+        container.innerHTML = '<p class="text-red-500 text-[10px] uppercase">Failed to load reviews.</p>';
+    }
+};window.submitReview = async function(event) {
+    event.preventDefault();
+    if (!window.currentProductId) return;
+    const btn = document.getElementById('submit-review-btn');
+    if(btn) { btn.innerHTML = 'SUBMITTING...'; btn.disabled = true; }
+    const nameEl = document.getElementById('review-name');
+    const ratingEl = document.getElementById('review-rating');
+    const commentEl = document.getElementById('review-comment');
+    const name = nameEl ? nameEl.value : 'Anonymous';
+    const rating = ratingEl ? parseInt(ratingEl.value) : 5;
+    const comment = commentEl ? commentEl.value : '';
+    try {
+        const { error } = await supabaseClient.from('reviews').insert([{ 
+            product_id: window.currentProductId, customer_name: name, rating: rating, comment: comment 
+        }]);
+        if (error) throw error;
+        showToast("Review submitted successfully!", "success");
+        const form = document.getElementById('add-review-form');
+        if(form) form.reset();
+        toggleReviewForm();
+        fetchReviews(window.currentProductId); 
+    } catch (error) {
+        showToast("Failed to submit review.", "error");
+    } finally {
+        if(btn) { btn.innerHTML = 'SUBMIT REVIEW'; btn.disabled = false; }
+    }
+};
 document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
     async function checkUserStatus() {
-     const { data: { session } } = await supabaseClient.auth.getSession();
-     if (session && session.user) {
-         isLoggedIn = true; currentUser = session.user;
-         const authBtn = document.getElementById('nav-auth-btn');
-         const profileBtn = document.getElementById('nav-profile-btn');
-         if(authBtn) authBtn.style.display = 'none';
-         if(profileBtn) { profileBtn.classList.remove('hidden'); profileBtn.style.display = 'block'; }
-     }
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+            isLoggedIn = true; currentUser = session.user;
+            const authBtn = document.getElementById('nav-auth-btn');
+            const profileBtn = document.getElementById('nav-profile-btn');
+            if(authBtn) authBtn.style.display = 'none';
+            if(profileBtn) { profileBtn.classList.remove('hidden'); profileBtn.style.display = 'block'; }
+        }
     }
     checkUserStatus();
     setTimeout(() => {
-       const splash = document.getElementById('splash-screen');
-       if(splash){ splash.classList.add('slide-up'); setTimeout(() => splash.style.display = 'none', 1200); }
+        const splash = document.getElementById('splash-screen');
+        if(splash){ splash.classList.add('slide-up'); setTimeout(() => splash.style.display = 'none', 1200); }
     }, 1000);
     loadShopProducts(); 
     let activeFilters = { category: 'all', size: 'all', color: 'all', fit: 'all' };
     let currentSort = 'default';
     window.applyFilters = function() {
-         const container = document.getElementById('products-container');
-         let products = Array.from(document.querySelectorAll('.product-card'));
-         let visibleCount = 0;
-         products.forEach(product => {
-             const productCategory = product.getAttribute('data-category') || '';
-             const productSizes = product.getAttribute('data-sizes') || '';
-             const productColors = product.getAttribute('data-colors') || '';
-             const productFit = product.getAttribute('data-fit') || '';
-             let categoryMatch = activeFilters.category === 'all' || productCategory.includes(activeFilters.category);
-             let sizeMatch = activeFilters.size === 'all' || productSizes.includes(activeFilters.size);
-             let colorMatch = activeFilters.color === 'all' || productColors.includes(activeFilters.color);
-             let fitMatch = activeFilters.fit === 'all' || productFit.includes(activeFilters.fit);
-             if (categoryMatch && sizeMatch && colorMatch && fitMatch) {
-                 product.style.display = 'block'; product.classList.add('is-visible'); visibleCount++;
-             } else {
-                 product.style.display = 'none'; product.classList.remove('is-visible');
-             }
-         });
-         let visibleProducts = products.filter(p => p.classList.contains('is-visible'));
-         if (currentSort === 'price-asc') visibleProducts.sort((a, b) => parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price')));
-         else if (currentSort === 'price-desc') visibleProducts.sort((a, b) => parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price')));
-         visibleProducts.forEach(p => container.appendChild(p));
-         const resultsCount = document.getElementById('results-count');
-         if(resultsCount) resultsCount.textContent = visibleCount + (visibleCount === 1 ? ' Result' : ' Results');
+        const container = document.getElementById('products-container');
+        if(!container) return;
+        let products = Array.from(document.querySelectorAll('.product-card'));
+        let visibleCount = 0;
+        products.forEach(product => {
+            const productCategory = product.getAttribute('data-category') || '';
+            const productSizes = product.getAttribute('data-sizes') || '';
+            const productColors = product.getAttribute('data-colors') || '';
+            const productFit = product.getAttribute('data-fit') || '';
+            let categoryMatch = activeFilters.category === 'all' || productCategory.includes(activeFilters.category);
+            let sizeMatch = activeFilters.size === 'all' || productSizes.includes(activeFilters.size);
+            let colorMatch = activeFilters.color === 'all' || productColors.includes(activeFilters.color);
+            let fitMatch = activeFilters.fit === 'all' || productFit.includes(activeFilters.fit);
+            if (categoryMatch && sizeMatch && colorMatch && fitMatch) {
+                product.style.display = 'block'; product.classList.add('is-visible'); visibleCount++;
+            } else {
+                product.style.display = 'none'; product.classList.remove('is-visible');
+            }
+        });
+        let visibleProducts = products.filter(p => p.classList.contains('is-visible'));
+        if (currentSort === 'price-asc') visibleProducts.sort((a, b) => parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price')));
+        else if (currentSort === 'price-desc') visibleProducts.sort((a, b) => parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price')));
+        visibleProducts.forEach(p => container.appendChild(p));
+        const resultsCount = document.getElementById('results-count');
+        if(resultsCount) resultsCount.textContent = visibleCount + (visibleCount === 1 ? ' Result' : ' Results');
     }
     const sortSelect = document.getElementById('sort-select');
     if(sortSelect) { sortSelect.addEventListener('change', function() { currentSort = this.value; applyFilters(); }); }
@@ -948,8 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.filter-fit-checkbox').forEach(cb => cb.checked = false);
             this.checked = true; activeFilters.fit = this.value; applyFilters();
         });
-    });
-    document.querySelectorAll('.filter-size-btn').forEach(btn => {
+    });document.querySelectorAll('.filter-size-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const size = this.getAttribute('data-size');
             if (activeFilters.size === size) { activeFilters.size = 'all'; this.classList.remove('bg-white', 'text-black'); } 
@@ -1025,19 +1019,18 @@ document.addEventListener('DOMContentLoaded', () => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting && !document.getElementById('pdp-view').classList.contains('hidden')) {
                     stickyBar.classList.remove('translate-y-full');
-                    document.getElementById('sticky-title').textContent = document.getElementById('pdp-title').textContent;
-                    document.getElementById('sticky-img').src = document.getElementById('main-pdp-img').src;
+                    const pdpTitle = document.getElementById('pdp-title');
+                    const stickyTitle = document.getElementById('sticky-title');
+                    if(pdpTitle && stickyTitle) stickyTitle.textContent = pdpTitle.textContent;
+                    const pdpImg = document.getElementById('main-pdp-img');
+                    const stickyImg = document.getElementById('sticky-img');
+                    if(pdpImg && stickyImg) stickyImg.src = pdpImg.src;
                 } else stickyBar.classList.add('translate-y-full');
             });
         }, { threshold: 0 }); 
         observer.observe(mainAddBtn);
     }
-});
-
-let canvasInstance = null;
-const REMOVE_BG_KEYS = ['o1AkssPAwYnCxy3MuyhGqjki', 'siyGKSwHaciGGjxSZQWsiWr6'];
-
-async function processImageWithoutBackground(imageFile) {
+});async function processImageWithoutBackground(imageFile) {
     const formData = new FormData();
     formData.append('image_file', imageFile);
     formData.append('size', 'auto');
@@ -1057,14 +1050,52 @@ async function processImageWithoutBackground(imageFile) {
         }
     }
 }
-
+window.forceImageUpload = async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const uploadDiv = event.target.nextElementSibling;
+    const originalHTML = uploadDiv.innerHTML;
+    uploadDiv.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-[#4fb3d9]"></i><p class="text-[10px] tracking-widest uppercase font-bold text-[#4fb3d9]">Processing AI...</p>';
+    event.target.value = '';
+    try {
+        const noBgBlob = await processImageWithoutBackground(file);
+        const reader = new FileReader();
+        reader.onload = function(f) {
+            fabric.Image.fromURL(f.target.result, function(img) {
+                img.scaleToWidth(150);
+                if (typeof canvasInstance !== 'undefined' && canvasInstance) {
+                    canvasInstance.add(img);
+                    canvasInstance.centerObject(img);
+                    canvasInstance.setActiveObject(img);
+                    canvasInstance.renderAll();
+                }
+            });
+        };
+        reader.readAsDataURL(noBgBlob);
+    } catch (error) {
+        const fallbackReader = new FileReader();
+        fallbackReader.onload = function(f) {
+            fabric.Image.fromURL(f.target.result, function(img) {
+                img.scaleToWidth(150);
+                if (typeof canvasInstance !== 'undefined' && canvasInstance) {
+                    canvasInstance.add(img);
+                    canvasInstance.centerObject(img);
+                    canvasInstance.setActiveObject(img);
+                    canvasInstance.renderAll();
+                }
+            });
+        };
+        fallbackReader.readAsDataURL(file);
+    } finally {
+        uploadDiv.innerHTML = originalHTML;
+    }
+};
 function initStudioCanvas() {
     if (canvasInstance) return;
-
     const wrapper = document.getElementById('canvas-wrapper');
+    if(!wrapper) return;
     const canvasWidth = wrapper.clientWidth || 400;
     const canvasHeight = wrapper.clientHeight || 500;
-
     canvasInstance = new fabric.Canvas('studioCanvas', {
         width: canvasWidth,
         height: canvasHeight,
@@ -1072,7 +1103,6 @@ function initStudioCanvas() {
         selection: true,
         preserveObjectStacking: true 
     });
-
     fabric.Object.prototype.set({
         transparentCorners: false,
         cornerColor: '#1e1e1e',
@@ -1084,66 +1114,21 @@ function initStudioCanvas() {
         borderDashArray: [4, 4],
         borderScaleFactor: 2
     });
-    document.getElementById('studioImageUpload').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const labelSpan = this.previousElementSibling;
-        const iconElement = labelSpan.previousElementSibling;
-        const originalIconClass = iconElement.className;
-        const originalText = labelSpan.textContent;
-        iconElement.className = "fa-solid fa-circle-notch fa-spin text-2xl mb-3 text-white";
-        labelSpan.textContent = "Removing Background...";
-        showToast("Magic Eraser is working... Please wait", "info");
-        try {
-            const blob = await processImageWithoutBackground(file);
-            const url = URL.createObjectURL(blob);
-            fabric.Image.fromURL(url, function(img) {
-                img.scaleToWidth(canvasInstance.getWidth() * 0.3);
-                img.set({
-                    left: canvasInstance.getWidth() / 2,
-                    top: canvasInstance.getHeight() / 2,
-                    originX: 'center',
-                    originY: 'center'
-                });
-                canvasInstance.add(img);
-                canvasInstance.setActiveObject(img);
-                canvasInstance.renderAll();
-                showToast("Background removed successfully!", "success");
-            });
-        } catch (error) {
-            console.error(error);
-            showToast("Failed to remove background. Loading original image.", "error");
-            const fallbackReader = new FileReader();
-            fallbackReader.onload = function(f) {
-                fabric.Image.fromURL(f.target.result, function(img) {
-                    img.scaleToWidth(canvasInstance.getWidth() * 0.3);
-                    img.set({ left: canvasInstance.getWidth() / 2, top: canvasInstance.getHeight() / 2, originX: 'center', originY: 'center' });
-                    canvasInstance.add(img);
-                    canvasInstance.setActiveObject(img);
-                    canvasInstance.renderAll();
-                });
-            };
-            fallbackReader.readAsDataURL(file);
-        } finally {
-            iconElement.className = originalIconClass;
-            labelSpan.textContent = originalText;
-            e.target.value = '';
-        }
-    });
-   canvasInstance.on('object:added', window.updateDynamicPrice);
-canvasInstance.on('object:removed', window.updateDynamicPrice);
-}
-
-window.addTextToStudio = function() {
-    const textInput = document.getElementById('studioTextContainer').value;
+    setupCanvasEvents();
+    attachPriceEvents();
+}window.addTextToStudio = function() {
+    const textInputEl = document.getElementById('studioTextInput');
+    if(!textInputEl) return;
+    const textInput = textInputEl.value;
     if (!textInput) {
         showToast("Please enter some text", "warning");
         return;
     }
     if (!canvasInstance) return;
-    const selectedColor = document.getElementById('text-color-picker').value;
-    const selectedFont = document.getElementById('text-font-selector').value;
-
+    const colorEl = document.getElementById('studioTextColor');
+    const fontEl = document.getElementById('studioTextFont');
+    const selectedColor = colorEl ? colorEl.value : '#ffffff';
+    const selectedFont = fontEl ? fontEl.value : 'Montserrat';
     const textObj = new fabric.Text(textInput, {
         left: 150,
         top: 150,
@@ -1155,17 +1140,15 @@ window.addTextToStudio = function() {
     canvasInstance.add(textObj);   
     canvasInstance.setActiveObject(textObj); 
     canvasInstance.renderAll(); 
-    document.getElementById('studioTextContainer').value = '';
+    textInputEl.value = '';
     showToast("Text added!", "success");
     if (typeof updateDynamicPrice === 'function') updateDynamicPrice();
 };
-
 window.clearStudioCanvas = function() {
     if (!canvasInstance) return;
     canvasInstance.clear();
     showToast("Design reset completed", "info");
 };
-
 async function generateFinalProof() {
     designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
     const cw = canvasInstance.getWidth();
@@ -1176,7 +1159,6 @@ async function generateFinalProof() {
     const ctx = compCanvas.getContext('2d');
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, compCanvas.width, compCanvas.height);
-
     const drawSide = async (side, offsetX) => {
         return new Promise((resolve) => {
             const img = new Image();
@@ -1209,32 +1191,29 @@ async function generateFinalProof() {
     await drawSide('back', cw);
     return compCanvas.toDataURL('image/png', 1.0);
 }
-
 window.addStudioToCart = async function() {    
     if (!canvasInstance) return;
     designState[currentSide] = JSON.stringify(canvasInstance.toJSON());
     let hasFront = designState.front && JSON.parse(designState.front).objects.length > 0;
     let hasBack = designState.back && JSON.parse(designState.back).objects.length > 0;
-    
     if (!hasFront && !hasBack) {
         showToast("Please add a design to the front or back first!", "error");
         return;
     }
-    
     showToast("Generating design proof...", "info");
-    
     try {
-        const requestedColor = document.getElementById('custom-color-input').value || 'Default Black';
+        const colorInput = document.getElementById('custom-color-input');
+        const requestedColor = colorInput ? colorInput.value : 'Default Black';
         const finalDesignData = await generateFinalProof();
         const sizeInput = document.querySelector('input[name="studio-size"]:checked');
         const size = sizeInput ? sizeInput.value : 'L';
         let placementText = [];
         if (hasFront) placementText.push("Front");
         if (hasBack) placementText.push("Back");
-        const customerNotes = document.getElementById('order-notes-input') ? document.getElementById('order-notes-input').value : '';       
+        const notesInput = document.getElementById('order-notes-input');
+        const customerNotes = notesInput ? notesInput.value : '';       
         let hqFileData = '';
         const hqFileInput = document.getElementById('hq-file-input');
-        
         if (hqFileInput && hqFileInput.files.length > 0) {
             const file = hqFileInput.files[0];
             if (file.size > 4 * 1024 * 1024) {
@@ -1247,536 +1226,33 @@ window.addStudioToCart = async function() {
                 reader.readAsDataURL(file);
             });
         }
-
         cart.push({
             id: Date.now(),
             type: 'CUSTOM',
             title: 'DTF CUSTOM PRINT',
             size: size,
-            price: CUSTOM_PRICE,
+            price: totalCustomPrice,
             placement: placementText.join(' & '),
             color: requestedColor,
             preview: finalDesignData,
             hqFile: hqFileData,
             notes: customerNotes 
         });
-        
         saveCart();
         toggleCart();
         animateCartIcon();
         showToast("Custom design added to cart!", "success");
-        
     } catch (e) {
-        console.error(e);
         showToast("Error generating design proof.", "error");
-    }
-};
-
-const originalSwitchView = window.switchView;
-window.switchView = function(viewId, addToHistory = true) {
-    originalSwitchView(viewId, addToHistory);
-    if (viewId === 'studio') {
-        setTimeout(initStudioCanvas, 150);
-    }
-};
-
-window.deleteActiveObject = function() {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject) {
-        canvasInstance.remove(activeObject);
-        canvasInstance.discardActiveObject();
-        canvasInstance.renderAll();
-        showToast("Item deleted", "info");
-    } else {
-        showToast("Please select an item to delete first", "error");
-    }
-};
-window.renderSizes = function(containerId, category, inputName) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    let sizes = [];
-    if (category === 'pants') {
-        sizes = ['30', '32', '34', '36', '38', '40'];
-    } else {
-        sizes = ['S', 'M', 'L', 'XL', 'XXL'];
-    }
-    container.innerHTML = sizes.map((size, index) => `
-        <label class="cursor-pointer group">
-            <input type="radio" name="${inputName}" value="${size}" class="hidden peer" ${index === 2 ? 'checked' : ''}>
-            <div class="w-10 h-10 border border-[#333] flex items-center justify-center text-[10px] uppercase tracking-widest text-gray-500 peer-checked:bg-white peer-checked:text-black peer-checked:border-white hover:border-white transition">
-                ${size}
-            </div>
-        </label>
-    `).join('');
-};
-window.changeStudioProduct = function(productType) {
-    currentProduct = productType; 
-    const baseImg = document.getElementById('hoodieBase');
-    if (!baseImg) return;
-    
-const ext = 'png';
-    baseImg.src = `${currentProduct}-${currentSide}.${ext}`; 
-    const colorLayer = document.getElementById('garment-color-layer');
-    if (colorLayer) colorLayer.style.webkitMaskImage = `url('${currentProduct}-${currentSide}.${ext}')`;
-    
-    if(canvasInstance) canvasInstance.clear();
-    designState = { front: null, back: null };
-    
-    showToast(`Switched to ${productType.toUpperCase()}`, "info");
-    
-    document.querySelectorAll('.product-selector-btn').forEach(btn => {
-        btn.classList.remove('border-white', 'text-white');
-        btn.classList.add('border-[#333]', 'text-gray-500');
-    });
-    const activeBtn = document.getElementById(`btn-${productType}`);
-    if (activeBtn) {
-        activeBtn.classList.remove('border-[#333]', 'text-gray-500');
-        activeBtn.classList.add('border-white', 'text-white');
-    }
-    if (typeof renderSizes === 'function') {
-        renderSizes('studio-size-container', currentProduct, 'studio-size');
-    }
-};
-window.toggleHoodieSide = function() {
-    const hoodie = document.getElementById('hoodieBase');
-    const flipBtn = document.getElementById('flip-btn');
-    if (!hoodie || !canvasInstance) return;
-    
-    designState[currentSide] = JSON.stringify(canvasInstance.toJSON());   
-const ext = 'png';
-    if (currentSide === 'front') {
-        currentSide = 'back';
-        hoodie.src = `${currentProduct}-back.${ext}`; 
-        const colorLayer = document.getElementById('garment-color-layer');
-    if (colorLayer) colorLayer.style.webkitMaskImage = `url('${hoodie.getAttribute('src')}')`;
-        flipBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Front';
-    } else {
-        currentSide = 'front';
-        hoodie.src = `${currentProduct}-front.${ext}`; 
-        const colorLayer = document.getElementById('garment-color-layer');
-    if (colorLayer) colorLayer.style.webkitMaskImage = `url('${hoodie.getAttribute('src')}')`;
-        flipBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Back';
-    }
-    
-    canvasInstance.clear();
-    if (designState[currentSide]) {
-        canvasInstance.loadFromJSON(designState[currentSide], canvasInstance.renderAll.bind(canvasInstance));
-    }
-    showToast("Switched to " + currentSide + " view", "info");
-};
-window.changeStudioColor = function(color, btn) {
-    const colorLayer = document.getElementById('garment-color-layer');
-    if (colorLayer) colorLayer.style.backgroundColor = color; 
-        document.querySelectorAll('.color-swatch-btn').forEach(b => {
-        b.classList.remove('active-color', 'border-white', 'border-2');
-        b.classList.add('border-[#333]', 'border');
-    });
-    btn.classList.remove('border-[#333]', 'border');
-    btn.classList.add('active-color', 'border-white', 'border-2');
-};
-window.openWhatsApp = function() {
-    let phone = "201220543105"; 
-    let message = "أهلاً عتيق، محتاج مساعدة 🖤";
-    
-    const pdpView = document.getElementById('pdp-view');
-    if (pdpView && !pdpView.classList.contains('hidden')) {
-        let productName = document.getElementById('pdp-title').textContent;
-        let productPrice = document.getElementById('pdp-price').textContent;
-        message = `أهلاً عتيق، أنا بستفسر عن الهودي ده:\n*${productName}*\nسعره: ${productPrice}`;
-    }
-    
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
-};
-
-window.toggleInstapayUI = function(show) {
-    const block = document.getElementById('instapay-block');
-    if (block) {
-        if (show) {
-            block.classList.remove('hidden');
-            block.classList.add('block');
-        } else {
-            block.classList.add('hidden');
-            block.classList.remove('block');
-        }
-    }
-};
-const legalPolicies = {
-    'privacy': {
-        title: 'Privacy Policy',
-        content: '<p>At ATEEQ, we are committed to protecting your privacy. We collect personal information such as your name, email, phone number, and shipping address solely for the purpose of fulfilling your orders and providing customer support.</p><p>We do not sell, rent, or share your personal data with third parties. Your payment information is processed securely. By using our website, you consent to our collection and use of your information as described in this policy.</p>'
-    },
-    'terms': {
-        title: 'Terms of Service',
-        content: '<p>Welcome to ATEEQ. By accessing or using our website, you agree to be bound by these Terms of Service. All content, designs, and graphics on this site are the exclusive property of ATEEQ STUDIOS.</p><p>We reserve the right to refuse service, cancel orders, or correct any errors, inaccuracies, or omissions at any time without prior notice. Custom products generated via our Custom Lab are created specifically for you and are subject to specific return guidelines.</p>'
-    },
-    'refund': {
-        title: 'Refund & Return Policy',
-        content: '<p>We want you to be completely satisfied with your purchase. ATEEQ accepts returns and exchanges within 14 days of delivery, provided the items are unworn, unwashed, and in their original packaging.</p><p><b>Exceptions:</b> Please note that custom-designed pieces (orders made via the Custom Lab) are final sale and non-refundable unless defective. To initiate a return, please contact our support team via WhatsApp or Email.</p>'
-    }
-};
-
-
-window.shareDesign = async function() {
-    const shareText = "🔥 صممت الهودي بتاعي بنفسي على ATEEQ STUDIOS! \nادخل صمم طقمك المخصوص من هنا:\n";
-    const shareUrl = window.location.origin; 
-
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: 'My Custom ATEEQ Design',
-                text: shareText,
-                url: shareUrl
-            });
-            showToast("Thanks for sharing! 🖤", "success");
-        } catch (err) {
-            console.log("Share cancelled or failed.", err);
-        }
-    } else {
-        const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
-        window.open(waUrl, '_blank');
-        showToast("Opening WhatsApp...", "info");
-    }
-};
-async function fetchInstagramFeed() {
-    const endpoint = 'https://feeds.behold.so/XIY9sTJl0RgeFdBNI8TB';
-
-    const placeholders = [
-        '3.png', 
-        '4.png',
-        '5.png', 
-        '6.png',
-        '9.png',
-        '10.png',
-        '11.png'
-
-    ];
-
-    try {
-        const response = await fetch(endpoint);
-        const posts = await response.json(); 
-        const feedContainer = document.getElementById('insta-feed');
-        
-        if(feedContainer) feedContainer.innerHTML = '';
-
-        let singleSet = '';
-
-        for (let i = 0; i < 6; i++) {
-            let imgUrl = posts[i] ? posts[i].mediaUrl : placeholders[i];
-            let postLink = posts[i] ? posts[i].permalink : '#'; 
-
-            singleSet += `
-                <a href="${postLink}" target="_blank" class="flex-shrink-0 w-64 md:w-72 h-80 relative group overflow-hidden rounded-md block cursor-pointer">
-                    <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Ateeq Instagram Post">
-                    
-                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-                    </div>
-                </a>
-            `;
-        }
-
-        feedContainer.innerHTML = singleSet + singleSet + singleSet;
-
-    } catch (error) {
-        console.error('Error fetching Instagram feed:', error);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
-function dataURLtoBlob(dataurl) {
-    let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-    while(n--){
-        u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], {type:mime});
-}
-window.submitOrder = async function(event) {
-    event.preventDefault();
-    const emailEl = document.getElementById('chk-email');
-    
-    const email = (emailEl && emailEl.value) ? emailEl.value : (currentUser ? currentUser.email : '');
-    
-    const paymentInput = document.querySelector('input[name="payment"]:checked');
-    if (!paymentInput) { showToast("Please select a payment method.", "error"); return; }
-    const paymentMethod = paymentInput.value;
-    
-    if (!isLoggedIn || !currentUser) { showToast("Please log in to complete your order.", "error"); return; }
-    
-    const receiptInput = document.getElementById('instapay-receipt');
-    let receiptFile = null;
-    if (paymentMethod === 'Instapay') {
-        if (!receiptInput || !receiptInput.files || receiptInput.files.length === 0) {
-            showToast("Please upload your Instapay payment screenshot.", "error");
-            return; 
-        }
-        receiptFile = receiptInput.files[0];
-    }
-
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    
-    const p1 = document.getElementById('chk-phone1') ? document.getElementById('chk-phone1').value : '';
-    const p2 = document.getElementById('chk-phone2') ? document.getElementById('chk-phone2').value : '';
-    const phoneRegex = /^01[0125][0-9]{8}$/;
-    
-    if (!phoneRegex.test(p1)) {
-        showToast("Please enter a valid 11-digit Egyptian phone number", "error");
-        return; 
-    }
-    const customerPhone = p2 ? `${p1} (WhatsApp: ${p2})` : p1;
-    
-    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-    submitBtn.disabled = true;
-    
-    try {
-        let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
-        if (appliedDiscount > 0) {
-            totalAmount = totalAmount - (totalAmount * (appliedDiscount / 100));
-        }
-        
-        let serialNumber = 'ATQ-2026-' + Math.floor(100000 + Math.random() * 900000);
-        const customerName = document.getElementById('chk-name') ? document.getElementById('chk-name').value : 'N/A';
-        const mainAddr = document.getElementById('chk-address') ? document.getElementById('chk-address').value : '';
-        const bldg = document.getElementById('chk-building') ? document.getElementById('chk-building').value : '';
-        const floor = document.getElementById('chk-floor') ? document.getElementById('chk-floor').value : '';
-        const apt = document.getElementById('chk-apt') ? document.getElementById('chk-apt').value : '';
-        const mark = document.getElementById('chk-landmark') ? document.getElementById('chk-landmark').value : '';
-        const customerAddress = `${mainAddr}, Bldg: ${bldg}, Floor: ${floor}, Apt: ${apt} ${mark ? '(Mark: '+mark+')' : ''}`;
-
-        let receiptUrl = null;
-        if (receiptFile) {
-            showToast("Uploading receipt image...", "info");
-            const fileExt = receiptFile.name.split('.').pop();
-            const fileName = `receipt-${serialNumber}.${fileExt}`;
-            
-            const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                .from('receipts')
-                .upload(`public/${fileName}`, receiptFile);
-                
-            if (uploadError) throw new Error("Failed to upload receipt. Please try again.");
-            
-            const { data: publicUrlData } = supabaseClient.storage.from('receipts').getPublicUrl(`public/${fileName}`);
-            receiptUrl = publicUrlData.publicUrl;
-        }
-
-        let customDesignUrl = null;
-                const hasCustomItem = cart.some(item => item.type === 'CUSTOM');
-        const customItemWithPreview = cart.find(item => item.type === 'CUSTOM' && item.preview);
-if (hasCustomItem) {
-            if (!customItemWithPreview) {
-                throw new Error("Design image is missing! Please remove the item from cart and design it again.");
-            }
-
-            showToast("Uploading custom design...", "info");
-            const blob = dataURLtoBlob(customItemWithPreview.preview);
-            const designFileName = `design-${serialNumber}.png`;
-            
-            const { data: designData, error: designError } = await supabaseClient.storage
-                .from('custom-designs')
-                .upload(designFileName, blob, { contentType: 'image/png' });
-                
-            if (designError) {
-                console.error("Supabase Upload Error:", designError);
-                throw new Error("Storage Error: " + designError.message);
-            }
-              const { data: designUrlData } = supabaseClient.storage.from('custom-designs').getPublicUrl(designFileName);
-            customDesignUrl = designUrlData.publicUrl;
-        }
-
-        const cleanCartForDB = cart.map(item => {
-            if (item.type === 'CUSTOM') {
-                const { preview, ...restOfItem } = item; 
-                return restOfItem; 
-            }
-            return item;
-        });
-        const { error } = await supabaseClient.from('orders').insert([{
-            user_id: currentUser.id, 
-            serial_number: serialNumber, 
-            total_amount: totalAmount,
-            payment_method: paymentMethod, 
-            status: 'Pending', 
-            full_name: customerName,
-            phone: customerPhone, 
-            address: customerAddress, 
-            items: cleanCartForDB,
-            receipt_url: receiptUrl,
-            custom_design_url: customDesignUrl 
-        }]);
-        
-        if (error) throw error;
-
-        for (const item of cart) {
-            if (item.type === 'STORE' && item.title) {
-                const { data: prod } = await supabaseClient.from('products').select('stock_count').eq('name', item.title).single();
-                if (prod) {
-                    let newCount = prod.stock_count - 1;
-                    let newStatus = newCount <= 0 ? 'Out of Stock' : 'In Stock';
-                    await supabaseClient.from('products').update({ stock_count: newCount, stock_status: newStatus }).eq('name', item.title);
-                }
-            }
-        }
-        
-        try {
-            await emailjs.send("service_58ov5us", "template_kmoa9gi", {
-                serial_number: serialNumber, email: email, total_amount: totalAmount, payment_method: paymentMethod
-            });
-        } catch (emailErr) {}
-                const serialEl = document.getElementById('order-serial');
-        if (serialEl) {
-            if (serialEl.tagName === 'INPUT') serialEl.value = serialNumber;
-            else serialEl.textContent = serialNumber;
-        }
-        
-        const emailConfirmEl = document.getElementById('user-email-confirm');
-        if (emailConfirmEl) {
-            emailConfirmEl.textContent = email || (currentUser ? currentUser.email : '');
-        }
-
-        const modal = document.getElementById('success-modal');
-        modal.classList.remove('hidden'); 
-        setTimeout(() => { modal.classList.remove('opacity-0'); }, 50);
-        
-        cart = []; 
-        appliedDiscount = 0;
-        activeCouponCode = null;
-        saveCart();
-        
-    } catch (error) { 
-        console.error("Order Failed: ", error);
-        showToast(error.message || "Failed to place order.", "error"); 
-    } finally {
-        submitBtn.innerHTML = originalBtnText; 
-        submitBtn.disabled = false;
-    }
-};
-window.toggleReviewForm = function() {
-    document.getElementById('add-review-form').classList.toggle('hidden');
-};
-window.fetchReviews = async function(productId) {
-    const container = document.getElementById('reviews-container');
-    container.innerHTML = '<p class="text-gray-500 text-[10px] tracking-widest uppercase">Loading reviews...</p>';
-    
-    try {
-        const { data: reviews, error } = await supabaseClient
-            .from('reviews')
-            .select('*')
-            .eq('product_id', productId)
-            .order('created_at', { ascending: false });
-            
-        if (error) throw error;
-        
-        if (!reviews || reviews.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-[10px] tracking-widest uppercase border border-[#222] p-4 text-center">No reviews yet. Be the first!</p>';
-            document.getElementById('avg-rating').innerText = '';
-            return;
-        }
-        
-        const avg = Math.round(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length);
-        document.getElementById('avg-rating').innerText = '★'.repeat(avg) + '☆'.repeat(5 - avg);
-
-        container.innerHTML = reviews.map(review => `
-            <div class="bg-[#0a0a0a] p-4 border border-[#222]">
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <span class="text-white text-xs font-bold uppercase block">${review.customer_name}</span>
-                        <span class="text-green-500 text-[9px] uppercase tracking-widest"><i class="fa-solid fa-circle-check"></i> Verified</span>
-                    </div>
-                    <span class="text-yellow-500 text-xs">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</span>
-                </div>
-                <p class="text-gray-400 text-[11px] leading-relaxed">${review.comment}</p>
-                <p class="text-[#444] text-[9px] mt-3 uppercase tracking-widest">${new Date(review.created_at).toLocaleDateString()}</p>
-            </div>
-        `).join('');
-        
-    } catch (error) {
-        console.error("Error fetching reviews:", error);
-        container.innerHTML = '<p class="text-red-500 text-[10px] uppercase">Failed to load reviews.</p>';
-    }
-};
-window.submitReview = async function(event) {
-    event.preventDefault();
-    if (!window.currentProductId) return;
-    
-    const btn = document.getElementById('submit-review-btn');
-    btn.innerHTML = 'SUBMITTING...';
-    btn.disabled = true;
-    
-    const name = document.getElementById('review-name').value;
-    const rating = parseInt(document.getElementById('review-rating').value);
-    const comment = document.getElementById('review-comment').value;
-    
-    try {
-        const { error } = await supabaseClient
-            .from('reviews')
-            .insert([{ 
-                product_id: window.currentProductId, 
-                customer_name: name, 
-                rating: rating, 
-                comment: comment 
-            }]);
-            
-        if (error) throw error;
-        
-        showToast("Review submitted successfully!", "success");
-        document.getElementById('add-review-form').reset();
-        toggleReviewForm();
-        fetchReviews(window.currentProductId); 
-    } catch (error) {
-        console.error("Error submitting review:", error);
-        showToast("Failed to submit review.", "error");
-    } finally {
-        btn.innerHTML = 'SUBMIT REVIEW';
-        btn.disabled = false;
-    }
-};
-window.openStudioWith = function(productType) {
-    if (typeof switchView === 'function') {
-        switchView('studio');
-    }
-    if (typeof changeStudioProduct === 'function') {
-        setTimeout(() => {
-            changeStudioProduct(productType);
-        }, 100);
-    }
-};
-window.deleteSelected = function() {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject) {
-        canvasInstance.remove(activeObject); 
-        canvasInstance.discardActiveObject(); 
-        canvasInstance.requestRenderAll(); 
-        document.getElementById('editing-toolbar').classList.add('hidden');
-        showToast("Item deleted", "info");
-    }
-};
-window.updateSelectedColor = function(color) {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject && activeObject.type === 'text') {
-        activeObject.set('fill', color);
-        canvasInstance.requestRenderAll();
-    }
-};
-window.updateSelectedFont = function(font) {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject && activeObject.type === 'text') {
-        activeObject.set('fontFamily', font);
-        canvasInstance.requestRenderAll();
     }
 };
 function setupCanvasEvents() {
     if (!canvasInstance) return;
-    
     canvasInstance.on('selection:created', handleSelection);
     canvasInstance.on('selection:updated', handleSelection);
-    
     canvasInstance.on('selection:cleared', function() {
-        document.getElementById('editing-toolbar').classList.add('hidden');
+        const toolbar = document.getElementById('editing-toolbar');
+        if(toolbar) toolbar.classList.add('hidden');
     });
 }
 function handleSelection(e) {
@@ -1785,74 +1261,34 @@ function handleSelection(e) {
     const colorWrapper = document.getElementById('edit-color-wrapper');
     const fontWrapper = document.getElementById('edit-font-wrapper');
     const opacityWrapper = document.getElementById('edit-opacity-wrapper'); 
-    
-    if (!activeObject) {
-        toolbar.classList.add('hidden'); 
+    if (!activeObject || !toolbar) {
+        if(toolbar) toolbar.classList.add('hidden'); 
         return;
     }
     toolbar.classList.remove('hidden'); 
-        if (activeObject.type === 'text') {
-        colorWrapper.style.display = 'flex';
-        fontWrapper.style.display = 'flex';
-        opacityWrapper.style.display = 'none'; 
-                document.getElementById('item-color').value = activeObject.fill || '#1e1e1e';
-        document.getElementById('item-font').value = activeObject.fontFamily || 'Arial';
+    if (activeObject.type === 'text') {
+        if(colorWrapper) colorWrapper.style.display = 'flex';
+        if(fontWrapper) fontWrapper.style.display = 'flex';
+        if(opacityWrapper) opacityWrapper.style.display = 'none'; 
+        const itemColor = document.getElementById('item-color');
+        const itemFont = document.getElementById('item-font');
+        if(itemColor) itemColor.value = activeObject.fill || '#1e1e1e';
+        if(itemFont) itemFont.value = activeObject.fontFamily || 'Arial';
     } else {
-        colorWrapper.style.display = 'none';
-        fontWrapper.style.display = 'none';
-        opacityWrapper.style.display = 'flex'; 
-                const currentOpacity = activeObject.opacity !== undefined ? activeObject.opacity : 1;
-        document.getElementById('item-opacity').value = currentOpacity;
-        document.getElementById('opacity-value').innerText = Math.round(currentOpacity * 100) + '%';
+        if(colorWrapper) colorWrapper.style.display = 'none';
+        if(fontWrapper) fontWrapper.style.display = 'none';
+        if(opacityWrapper) opacityWrapper.style.display = 'flex'; 
+        const currentOpacity = activeObject.opacity !== undefined ? activeObject.opacity : 1;
+        const itemOpacity = document.getElementById('item-opacity');
+        const opacityVal = document.getElementById('opacity-value');
+        if(itemOpacity) itemOpacity.value = currentOpacity;
+        if(opacityVal) opacityVal.innerText = Math.round(currentOpacity * 100) + '%';
     }
 }
-window.toggleAlignmentGrid = function(input) {
-    if (!canvasInstance) return;
-    if (input.checked) {
-        drawGridPattern();
-    } else {
-        canvasInstance.setBackgroundColor('#00000000', canvasInstance.renderAll.bind(canvasInstance));
-        canvasInstance.setBackgroundPattern(null, canvasInstance.renderAll.bind(canvasInstance));
-    }
-    showToast(`Alignment grid ${input.checked ? 'on' : 'off'}`, "info");
-};
-function drawGridPattern() {
-    const gridSize = 25; 
-    const pattern = new fabric.Pattern({
-        source: function() {
-            const patternCanvas = fabric.util.createCanvasElement(gridSize, gridSize);
-            const ctx = patternCanvas.getContext('2d');
-            ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
-            ctx.lineWidth = 0.5;
-            ctx.beginPath(); 
-            ctx.moveTo(0, 0);
-            ctx.lineTo(gridSize, 0);
-            ctx.lineTo(gridSize, gridSize);
-            ctx.stroke();
-            return patternCanvas;
-        },
-        repeat: 'repeat' 
-    });
-    canvasInstance.setBackgroundColor(pattern, canvasInstance.renderAll.bind(canvasInstance));
-}
-window.updateSelectedOpacity = function(opacity) {
-    if (!canvasInstance) return;
-    const activeObject = canvasInstance.getActiveObject();
-    if (activeObject) {
-        activeObject.set('opacity', parseFloat(opacity)); 
-        canvasInstance.requestRenderAll();
-        document.getElementById('opacity-value').innerText = Math.round(opacity * 100) + '%';
-    }
-};
-const BASE_PRICE = 800; 
-const BACK_PRINT_PRICE = 100; 
-let totalCustomPrice = BASE_PRICE;
-window.frontHasDesign = false;
-window.backHasDesign = false;
 window.updateDynamicPrice = function() {
-    const priceElement = document.getElementById('price-number');    
-    if (!priceElement || typeof canvasInstance === 'undefined') return;
-    let basePrice = 800; 
+    const priceDisplay = document.getElementById('dynamic-price-value') || document.getElementById('price-number');   
+    if (!priceDisplay || typeof canvasInstance === 'undefined') return;
+    let basePrice = BASE_PRICE; 
     let isCurrentlyBack = false;
     const hoodieBaseImg = document.getElementById('hoodieBase');
     if (hoodieBaseImg) {
@@ -1868,26 +1304,20 @@ window.updateDynamicPrice = function() {
     let printCost = 0;
     if (window.frontHasDesign) printCost += 50; 
     if (window.backHasDesign) printCost += 50;  
-    priceElement.innerText = basePrice + printCost;
-    console.log("السعر دلوقتي: " + (basePrice + printCost)); 
+    totalCustomPrice = basePrice + printCost;
+    priceDisplay.innerText = totalCustomPrice;
 };
-window.updateSelectedTextAttribute = function(attributeName, value) {
-    if (!canvasInstance) return;
-    
-    const activeObject = canvasInstance.getActiveObject();
-        if (activeObject && activeObject.type === 'text') {
-        activeObject.set(attributeName, value);
-        canvasInstance.requestRenderAll(); 
-        showToast(`Text ${attributeName === 'fill' ? 'color' : 'font'} updated`, "info");
+function attachPriceEvents() {
+    if (typeof canvasInstance !== 'undefined' && canvasInstance) {
+        canvasInstance.on('object:added', window.updateDynamicPrice);
+        canvasInstance.on('object:removed', window.updateDynamicPrice);
     } else {
-        showToast("Please select a text first to edit", "warning");
+        setTimeout(attachPriceEvents, 500);
     }
-};
+}
 window.deleteSelectedObject = function() {
     if (!canvasInstance) return;
-    
     const activeObject = canvasInstance.getActiveObject();
-    
     if (activeObject) {
         canvasInstance.remove(activeObject); 
         canvasInstance.discardActiveObject(); 
@@ -1901,77 +1331,80 @@ window.addEventListener('keydown', function(e) {
     if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') {
         return;
     }
-        if ((e.key === 'Delete' || e.key === 'Backspace') && canvasInstance) {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && canvasInstance) {
         const activeObject = canvasInstance.getActiveObject();
         if (activeObject) {
-            deleteSelectedObject(); 
+            window.deleteSelectedObject(); 
         }
     }
 });
-window.bringForward = function() {
-    if(!canvasInstance) return;
-    const obj = canvasInstance.getActiveObject();
-    if(obj) { 
-        canvasInstance.bringForward(obj); 
-        canvasInstance.requestRenderAll(); 
+window.openWhatsApp = function() {
+    let phone = "201220543105"; 
+    let message = "أهلاً عتيق، محتاج مساعدة 🖤";
+    const pdpView = document.getElementById('pdp-view');
+    if (pdpView && !pdpView.classList.contains('hidden')) {
+        const titleEl = document.getElementById('pdp-title');
+        const priceEl = document.getElementById('pdp-price');
+        let productName = titleEl ? titleEl.textContent : '';
+        let productPrice = priceEl ? priceEl.textContent : '';
+        message = `أهلاً عتيق، أنا بستفسر عن الهودي ده:\n*${productName}*\nسعره: ${productPrice}`;
+    }
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+};
+window.shareDesign = async function() {
+    const shareText = "🔥 صممت الهودي بتاعي بنفسي على ATEEQ STUDIOS! \nادخل صمم طقمك المخصوص من هنا:\n";
+    const shareUrl = window.location.origin; 
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'My Custom ATEEQ Design',
+                text: shareText,
+                url: shareUrl
+            });
+            showToast("Thanks for sharing! 🖤", "success");
+        } catch (err) {}
+    } else {
+        const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
+        window.open(waUrl, '_blank');
     }
 };
-window.sendBackward = function() {
-    if(!canvasInstance) return;
-    const obj = canvasInstance.getActiveObject();
-    if(obj) { 
-        canvasInstance.sendBackwards(obj); 
-        canvasInstance.requestRenderAll(); 
+async function fetchInstagramFeed() {
+    const endpoint = 'https://feeds.behold.so/XIY9sTJl0RgeFdBNI8TB';
+    const placeholders = ['3.png', '4.png', '5.png', '6.png', '9.png', '10.png', '11.png'];
+    try {
+        const response = await fetch(endpoint);
+        const posts = await response.json(); 
+        const feedContainer = document.getElementById('insta-feed');
+        if(feedContainer) feedContainer.innerHTML = '';
+        let singleSet = '';
+        for (let i = 0; i < 6; i++) {
+            let imgUrl = posts[i] ? posts[i].mediaUrl : placeholders[i];
+            let postLink = posts[i] ? posts[i].permalink : '#'; 
+            singleSet += `
+                <a href="${postLink}" target="_blank" class="flex-shrink-0 w-64 md:w-72 h-80 relative group overflow-hidden rounded-md block cursor-pointer">
+                    <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Ateeq Instagram Post">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    </div>
+                </a>
+            `;
+        }
+        if(feedContainer) feedContainer.innerHTML = singleSet + singleSet + singleSet;
+    } catch (error) {}
+}
+document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
+function dataURLtoBlob(dataurl) {
+    let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
     }
-};
-window.renderRelatedProducts = function(currentId) {
-    const container = document.getElementById('related-products-container');
-    if(!container) return;
-    let productList = window.allProducts || window.products || [];
-    if (productList.length === 0) {
-        console.log("بنعرض منتجات تجريبية لحد ما منتجاتك الأساسية تحمل...");
-        productList = [
-            { id: '101', name: "Oversized Heavy Hoodie", price: 850, main_image: "https://via.placeholder.com/400x500/0e141a/4fb3d9?text=ATEEQ+HOODIE" },
-            { id: '102', name: "Streetwear Cargo", price: 700, main_image: "https://via.placeholder.com/400x500/0e141a/4fb3d9?text=CARGO+PANTS" },
-            { id: '103', name: "Essential T-Shirt", price: 450, main_image: "https://via.placeholder.com/400x500/0e141a/4fb3d9?text=T-SHIRT" },
-            { id: '104', name: "Signature Sweatpants", price: 550, main_image: "https://via.placeholder.com/400x500/0e141a/4fb3d9?text=SWEATPANTS" }
-        ];
-    }
-    const filtered = productList.filter(p => p.id != currentId);
-    const selected = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
-
-    container.innerHTML = selected.map(p => `
-        <div class="group cursor-pointer" onclick="goToPDP('${p.id}')">
-            <div class="relative bg-[#0e141a] border border-[#1e2a36] aspect-[3/4] mb-3 overflow-hidden flex items-center justify-center">
-                <img src="${p.main_image || p.image || p.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-            </div>
-            <h4 class="text-white text-[9px] md:text-[10px] tracking-widest uppercase font-bold mb-1 truncate">${p.name || p.title}</h4>
-            <p class="text-[#8ea4be] text-[9px] tracking-widest uppercase">${p.price} EGP</p>
-        </div>
-    `).join('');
-};
-window.renderRelatedProducts = function(currentId) {
-    const container = document.getElementById('related-products-container');
-    if (!container) return;
-
-    let productList = window.shopProductsData || [];
-    if (productList.length === 0) return;
-    const filtered = productList.filter(p => p.id != currentId);
-        const selected = filtered.sort(() => 0.5 - Math.random()).slice(0, 4);
-    container.innerHTML = selected.map(p => `
-    <div class="group cursor-pointer" onclick="goToPDP('${p.id}')">
-        <div class="relative bg-[#0e141a] border border-[#1e2a36] aspect-[3/4] mb-3 overflow-hidden flex items-center justify-center">
-            <img src="${p.image_url || 'blanks.jpg'}" onerror="this.src='blanks.jpg'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-        </div>
-        <h4 class="text-white text-[9px] md:text-[10px] tracking-widest uppercase font-bold mb-1 truncate">${p.name}</h4>
-        <p class="text-[#8ea4be] text-[9px] tracking-widest uppercase">${p.price} EGP</p>
-    </div>
-`).join('');
-};
+    return new Blob([u8arr], {type:mime});
+}
 function forceBlackColor() {
     let attempts = 0;
     let forceInterval = setInterval(() => {
-        const blackBtn = document.getElementById('default-black-btn');
+        const blackBtn = document.getElementById('default-black-btn') || document.querySelector('[data-color="Black"]');
         if (blackBtn) {
             blackBtn.click();
             if (typeof changeStudioColor === 'function') {
@@ -1979,151 +1412,61 @@ function forceBlackColor() {
             }
         }
         attempts++;
-        if (attempts > 10) { 
-            clearInterval(forceInterval);
-        }
+        if (attempts > 10) clearInterval(forceInterval);
     }, 500);
 }
-
 window.addEventListener('load', forceBlackColor);
-
-if (typeof window.switchView === 'function') {
-    const oldSwitchView = window.switchView;
-    window.switchView = function(viewName) {
-        oldSwitchView(viewName); 
-        if (viewName === 'studio' || viewName === 'studio-view') {
-            forceBlackColor();
-        }
-    };
-}
-
-window.addEventListener('load', () => {
-    const tl = gsap.timeline();
+window.toggleHoodieSide = function() {
+    const hoodie = document.getElementById('hoodieBase');
+    const flipBtn = document.getElementById('sideToggleBtn');
+    if (!hoodie || !canvasInstance) return;
     
-    tl.from("#intro-bg-text", { opacity: 0, scale: 0.8, duration: 2, ease: "power3.out" })
-      .from("#intro-hero-img", { opacity: 0, y: 150, scale: 1.2, duration: 1.8, ease: "power4.out" }, "-=1.5")
-      .to("#intro-hero-img", { y: -20, repeat: -1, yoyo: true, duration: 2.5, ease: "sine.inOut" })
-      .to("#intro-ui", { opacity: 1, y: -20, duration: 1, ease: "power2.out" }, "-=2");
-});
-
-document.addEventListener('mousemove', (e) => {
-    const hoodie = document.getElementById('intro-hero-img');
-    if (hoodie && document.getElementById('premium-intro')) {
-        const x = (window.innerWidth / 2 - e.pageX) / 40;
-        const y = (window.innerHeight / 2 - e.pageY) / 40;
-        gsap.to(hoodie, { x: x, y: y, duration: 0.8, ease: "power1.out" });
-    }
-});
-
-window.enterPremiumSite = function() {
-    if (typeof gsap === 'undefined') return;
+    // حفظ التصميم قبل التقليب
+    designState[currentSide] = JSON.stringify(canvasInstance.toJSON());   
+    const ext = 'png';
     
-    const exitTl = gsap.timeline();
+    if (currentSide === 'front') {
+        currentSide = 'back';
+        hoodie.src = `${currentProduct}-back.${ext}`; 
+    } else {
+        currentSide = 'front';
+        hoodie.src = `${currentProduct}-front.${ext}`; 
+    }
     
-    exitTl.to("#intro-ui", { opacity: 0, y: 30, duration: 0.5, ease: "power2.inOut" })
-          .to("#intro-bg-text", { opacity: 0, scale: 1.1, duration: 0.8, ease: "power3.in" }, "<")
-          .to("#intro-hero-img", { scale: 5, opacity: 0, filter: "blur(10px)", duration: 1.2, ease: "expo.inOut" }, "-=0.5")
-          .to("#premium-intro", { opacity: 0, duration: 0.8, onComplete: () => {
-              const introEl = document.getElementById('premium-intro');
-              if(introEl) introEl.remove();
-              if(typeof window.switchView === 'function') {
-                  window.switchView('studio');
-              }
-          }}, "-=0.2");
-};
-window.addEventListener('load', () => {
-    try {
-        if (typeof gsap === 'undefined') {
-            console.error("GSAP is not loaded!");
-            return;
-        }
-
-        const tl = gsap.timeline();
-                tl.fromTo("#intro-bg-text", 
-            { opacity: 0, scale: 0.9 },
-            { opacity: 1, scale: 1, duration: 3, ease: "power4.out" }
-        )
-        .fromTo("#intro-hero-img", 
-            { opacity: 0, y: 80, scale: 1.1, filter: "blur(15px)" },
-            { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 2.5, ease: "power3.out" }, 
-            "-=2"
-        )
-        .to("#intro-hero-img", { y: -15, repeat: -1, yoyo: true, duration: 3, ease: "sine.inOut" })
-        .fromTo("#intro-ui", 
-            { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" }, 
-            "-=2.5"
-        );
-        document.addEventListener('mousemove', (e) => {
-            const hoodie = document.getElementById('intro-hero-img');
-            const bgText = document.getElementById('intro-bg-text');
-            
-            if (hoodie && document.getElementById('premium-intro')) {
-                const x = (window.innerWidth / 2 - e.pageX) / 30;
-                const y = (window.innerHeight / 2 - e.pageY) / 30;
-                                gsap.to(hoodie, { x: x, y: y, duration: 1, ease: "power2.out" });
-                                if (bgText) gsap.to(bgText, { x: -x/2, y: -y/2, duration: 1.5, ease: "power2.out" }); 
-            }
-        });
-    } catch (err) {
-        console.error("Intro Animation Error:", err);
-    }
-});
-canvasInstance.on('object:modified', () => {
-    localStorage.setItem('userDesign', JSON.stringify(canvasInstance.toJSON()));
-});
-window.addEventListener('load', () => {
-    const saved = localStorage.getItem('userDesign');
-    if (saved) {
-        canvasInstance.loadFromJSON(saved, canvasInstance.renderAll.bind(canvasInstance));
-    }
-});
-function resetStudio() {
-    if (typeof canvasInstance === 'undefined') return;
+    const textKey = currentSide === 'back' ? 'view_front' : 'view_back';
+    const renderedText = siteTranslations[currentLang] ? siteTranslations[currentLang][textKey] : (currentSide === 'back' ? 'View Front' : 'View Back');
+    if(flipBtn) flipBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> <span data-tr="${textKey}">${renderedText}</span>`;
+    
+    // مسح الشاشة وعرض تصميم الجنب التاني
     canvasInstance.clear();
-    canvasInstance.backgroundColor = 'transparent';
-    canvasInstance.renderAll();
-    const priceDisplay = document.getElementById('dynamic-price-value');
-    if (priceDisplay) {
-        priceDisplay.innerText = '800';
+    if (designState[currentSide]) {
+        canvasInstance.loadFromJSON(designState[currentSide], canvasInstance.renderAll.bind(canvasInstance));
     }
-    if (typeof showToast === 'function') {
-        showToast("Canvas has been completely cleared!", "success");
-    } else {
-        alert("تم مسح التصميم والبدء من جديد بنجاح!");
-    }
-}
-window.updateDynamicPrice = function() {
-    const priceDisplay = document.getElementById('dynamic-price-value') || document.querySelector('.text-3xl.font-bold');   
-    if (!priceDisplay || typeof canvasInstance === 'undefined') return;
-    let basePrice = 800; // السعر الافتراضي للهودي
-    const hoodieBaseImg = document.getElementById('hoodieBase');
-    if (hoodieBaseImg && hoodieBaseImg.src.includes('tshirt')) {
-        basePrice = 500; // سعر التيشيرت (تقدر تغير الرقم ده براحتك)
-    }
-     let printCost = 0;
-    const objectsCount = canvasInstance.getObjects().length;
-    if (objectsCount > 0) {
-        printCost = 100; 
-    }
-    priceDisplay.innerText = basePrice + printCost;
+    showToast("Switched to " + currentSide + " view", "info");
+    if(typeof updateDynamicPrice === 'function') updateDynamicPrice();
 };
-function attachPriceEvents() {
-    if (typeof canvasInstance !== 'undefined' && canvasInstance) {
-        canvasInstance.on('object:added', window.updateDynamicPrice);
-        canvasInstance.on('object:removed', window.updateDynamicPrice);
+
+window.changeGarment = function(garment) {
+    currentProduct = garment.replace('-', ''); 
+    currentSide = 'front';
+    document.getElementById('hoodieBase').src = currentProduct + '-front.png';
+    
+    const btnH = document.getElementById('btn-hoodie');
+    const btnT = document.getElementById('btn-tshirt');
+    
+    if (currentProduct === 'hoodie') {
+        btnH.classList.add('text-white'); btnH.classList.remove('text-[#6e849c]');
+        btnT.classList.add('text-[#6e849c]'); btnT.classList.remove('text-white');
     } else {
-        setTimeout(attachPriceEvents, 500);
+        btnT.classList.add('text-white'); btnT.classList.remove('text-[#6e849c]');
+        btnH.classList.add('text-[#6e849c]'); btnH.classList.remove('text-white');
     }
-}
-window.openPolicy = function(type) {
-    if (type === 'privacy') {
-        alert("PRIVACY POLICY\n\nWe respect your privacy. Your personal information is only used to process your orders and communicate with you. We do not sell or share your data with third parties.");
-    } 
-    else if (type === 'terms') {
-        alert("TERMS OF SERVICE\n\nBy using our website, you agree to our terms. All custom designs must be owned by you. We reserve the right to refuse printing any inappropriate or copyrighted materials.");
-    } 
-    else if (type === 'refund') {
-        alert("REFUND POLICY\n\nSince our products are custom-made specifically for you, we cannot accept returns or exchanges unless there is a manufacturing defect or a printing error on our part.");
-    }
+    
+    const sideBtn = document.getElementById('sideToggleBtn');
+    const backText = siteTranslations[currentLang] ? siteTranslations[currentLang]['view_back'] : 'View Back';
+    if(sideBtn) sideBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> <span data-tr="view_back">${backText}</span>`;
+    
+    if(canvasInstance) canvasInstance.clear();
+    designState = { front: null, back: null };
+    if(typeof updateDynamicPrice === 'function') updateDynamicPrice();
 };
