@@ -466,160 +466,131 @@
           <div id="wishlist-container" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
       </div>
     </div>
-  </main><main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#0e141a] flex-col lg:flex-row relative z-20 overflow-hidden">
-    
-  <!-- 1. شاشة العرض (التيشيرت) بتمثل 45% من الشاشة في الموبايل -->
-<div id="studio-bg-container" class="relative w-full lg:w-[65%] h-[45vh] lg:h-screen flex items-center justify-center z-10">
-    
-    <!-- الحاوية السحرية: بتصغر بناءً على العرض بدل الـ scale اللي بيبوظ -->
-    <div class="relative w-[65%] sm:w-[50%] lg:w-full max-w-[450px] aspect-[4/5] flex items-center justify-center mt-4 lg:mt-0">
+  </main>
+
+<!-- ===================================== -->
+<!-- قسم الاستوديو بالكامل -->
+<!-- ===================================== -->
+<main id="studio-view" class="view-section hidden w-full min-h-screen bg-[#0e141a] flex-col lg:flex-row relative z-20 overflow-hidden">
+
+    <!-- الجزء الأيسر (التيشيرت والخلفية) -->
+    <div id="studio-bg-container" class="relative w-full lg:w-[65%] h-[45vh] lg:h-screen flex items-center justify-center z-10" style="background: url('studio-bg.png') center/cover no-repeat;">
         
-        <div id="garment-color-layer" style="display: none !important;"></div>
-        
-        <img id="hoodieBase" src="hoodie-front.png" class="relative w-full h-full object-contain pointer-events-none drop-shadow-2xl">
-        
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="top: 2%;">
-            <div class="w-[85%] h-[85%] relative flex items-center justify-center" id="canvas-wrapper">
-                <canvas id="studioCanvas"></canvas>
+        <!-- حاوية التيشيرت (متظبطة مقاساتها للموبايل واللاب) -->
+        <div class="relative w-[50%] sm:w-[40%] lg:w-full max-w-[500px] aspect-[4/5] flex items-center justify-center mt-4 lg:mt-0">
+            <div id="garment-color-layer" style="display: none !important;"></div>
+            
+            <img id="hoodieBase" src="hoodie-front.png" class="relative w-full h-full object-contain pointer-events-none drop-shadow-2xl">
+            
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="top: 2%;">
+                <div class="w-[85%] h-[85%] relative flex items-center justify-center" id="canvas-wrapper">
+                    <canvas id="studioCanvas"></canvas>
+                </div>
             </div>
         </div>
-        
-    </div>
-</div>
 
-<!-- 2. لوحة التحكم (الزراير) بتمثل 55% من الشاشة وفيها سكرول -->
-<div class="w-full lg:w-[35%] h-[55vh] lg:h-screen overflow-y-auto bg-[#131b23] border-t lg:border-t-0 lg:border-l border-[#1e2a36] p-6 lg:p-12 pb-28 flex flex-col z-30 shadow-[0_-15px_30px_rgba(0,0,0,0.6)] lg:shadow-none relative">
+    </div>
+
+    <div class="w-full lg:w-[35%] h-[55vh] lg:h-screen overflow-y-auto bg-[#131b23] border-t lg:border-t-0 lg:border-l border-[#1e2a36] p-6 lg:p-12 pb-32 flex flex-col z-30 relative shadow-[0_-15px_30px_rgba(0,0,0,0.5)] lg:shadow-none">
+        
         <h2 class="display-font text-3xl md:text-4xl text-white uppercase tracking-tighter mb-2">CUSTOM LAB</h2>
         <p class="text-[#6e849c] text-[10px] tracking-widest uppercase mb-10">Design your own 3D prototype</p>
         
         <div class="mt-6 mb-8 border-b border-[#1e2a36] pb-6">
-          <p class="text-[#6e849c] text-[10px] uppercase tracking-widest">Total Custom Price</p>
-          <div class="flex items-end gap-2 mt-1">
-            <h1 class="text-white text-3xl font-bold leading-none">
-                <div class="text-3xl font-bold"><span id="price-number">800</span> EGP</div>
-            </h1>
-          </div>
-          <p id="price-breakdown" class="text-green-500 text-[10px] uppercase tracking-widest mt-2 hidden">+ 100 EGP (Back Print Added)</p>
+            <p class="text-[#6e849c] text-[10px] uppercase tracking-widest">Total Custom Price</p>
+            <div class="flex items-end gap-2 mt-1">
+                <h1 class="text-white text-3xl font-bold leading-none"><span id="price-number">800</span> EGP</h1>
+            </div>
+            <p id="price-breakdown" class="text-green-500 text-[10px] uppercase tracking-widest mt-2 hidden">+ 100 EGP (Back Print)</p>
         </div>
 
         <div class="space-y-8">
-          <div>
-            <span class="text-[#6e849c] text-[10px] uppercase tracking-widest block mb-3">00 / SELECT GARMENT</span>
-            <div class="grid grid-cols-2 gap-2">
-              <button id="btn-hoodie" onclick="changeStudioProduct('hoodie')" class="product-selector-btn border border-white text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-[#1a232c] transition">Hoodie</button>
-              <button id="btn-tshirt" onclick="changeStudioProduct('tshirt')" class="product-selector-btn border border-[#2b3a4a] text-[#6e849c] py-3 text-[10px] uppercase tracking-widest hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">T-Shirt</button>
-            </div>
-          </div>
-
-          <div>
-            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">01 / View & Color</h3>
-            <div class="flex flex-col gap-4">
-              <button type="button" id="flip-btn" onclick="toggleHoodieSide()" class="w-max bg-[#1a232c] border border-[#2b3a4a] text-white px-6 py-3 text-[10px] uppercase tracking-widest hover:border-[#4fb3d9] transition">
-                  <i class="fa-solid fa-rotate mr-2"></i> View Back
-              </button>
-              <div class="mt-4 border-t border-[#1e2a36] pt-4">
-  <label for="custom-color-input" class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2">Requested Garment Color</label>
-  
-  <select id="custom-color-input" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none focus:border-[#4fb3d9] transition uppercase tracking-widest cursor-pointer appearance-none">
-    <option value="Black" selected>Black </option>
-    <option value="White">White </option>
-    <option value="Gray">Gray </option>
-  </select>
-  
-  <p class="text-[#8ea4be] text-[8px] mt-2 tracking-widest uppercase">* Select the color of the garment.</p>
-</div>
- <div class="mt-4 border-t border-[#1e2a36] pt-4">
-  <label for="hq-file-input" class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2">High-Quality Print File (PNG/JPG)</label>
-  
-  <input type="file" id="hq-file-input" accept="image/png, image/jpeg, application/pdf" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-[#8ea4be] p-2 text-[10px] outline-none transition file:mr-4 file:py-2 file:px-4 file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:bg-[#f5f5f5] file:text-black hover:file:bg-[#cda434] hover:file:text-white cursor-pointer">
-  
-  <p class="text-[#8ea4be] text-[8px] mt-2 tracking-widest uppercase">* Upload your design file (Max size: 4MB).</p>
-</div>
- </div>
-          </div>
-
-          <div>
-            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">02 / Graphic Artwork</h3>
-            <label class="flex flex-col items-center justify-center border border-[#2b3a4a] bg-[#0e141a] py-8 cursor-pointer hover:border-[#4fb3d9] transition group rounded-md">
-              <i class="fa-solid fa-cloud-arrow-up text-2xl mb-3 text-gray-600 group-hover:text-[#4fb3d9] transition"></i>
-              <span class="text-[10px] tracking-widest uppercase font-bold text-[#6e849c] group-hover:text-[#4fb3d9] transition">Upload Image</span>
-              <input type="file" id="studioImageUpload" accept="image/png, image/jpeg" class="hidden">
-            </label>
             
-            <div id="editing-toolbar" class="hidden mt-4 p-4 bg-[#0e141a] border border-[#1e2a36] transition-all">
-              <span class="text-white text-[10px] uppercase tracking-widest block mb-4 border-b border-[#1e2a36] pb-2">Edit Item</span>
-              <div class="flex flex-wrap items-center gap-4">
-                
-                <div id="edit-opacity-wrapper" class="w-24 flex flex-col gap-1">
-                  <div class="flex justify-between items-center">
-                    <label class="text-[#8ea4be] text-[9px] uppercase tracking-widest">Opacity</label>
-                    <span id="opacity-value" class="text-white text-[9px] tracking-widest font-bold">100%</span>
-                  </div>
-                  <input type="range" id="item-opacity" min="0" max="1" step="0.05" value="1" oninput="updateSelectedOpacity(this.value)" class="w-full h-1 bg-[#1a232c] accent-[#4fb3d9] cursor-pointer opacity-80 hover:opacity-100 transition mt-2">
+            <div>
+                <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">00 / SELECT GARMENT</h3>
+                <div class="flex border border-[#2b3a4a] text-xs">
+                    <button onclick="changeGarment('hoodie')" id="btn-hoodie" class="flex-1 py-3 text-center text-white bg-[#1a232c] border-r border-[#2b3a4a] transition font-bold uppercase tracking-widest">Hoodie</button>
+                    <button onclick="changeGarment('t-shirt')" id="btn-tshirt" class="flex-1 py-3 text-center text-[#6e849c] hover:bg-[#1a232c] transition font-bold uppercase tracking-widest">T-Shirt</button>
                 </div>
+            </div>
 
-                <div class="flex flex-col gap-1 border-l border-[#1e2a36] pl-4">
-                    <label class="text-[#8ea4be] text-[9px] uppercase tracking-widest mb-1">Layers</label>
-                    <div class="flex gap-2">
-                        <button onclick="bringForward()" class="bg-[#1a232c] border border-[#2b3a4a] hover:border-[#4fb3d9] hover:text-[#4fb3d9] text-white w-8 h-8 flex items-center justify-center transition rounded-sm" title="Bring Forward"><i class="fa-solid fa-arrow-up text-xs"></i></button>
-                        <button onclick="sendBackward()" class="bg-[#1a232c] border border-[#2b3a4a] hover:border-[#4fb3d9] hover:text-[#4fb3d9] text-white w-8 h-8 flex items-center justify-center transition rounded-sm" title="Send Backward"><i class="fa-solid fa-arrow-down text-xs"></i></button>
+            <div>
+                <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">01 / VIEW & COLOR</h3>
+                <button onclick="toggleHoodieSide()" id="sideToggleBtn" class="w-1/2 border border-[#2b3a4a] text-[#8ea4be] py-3 text-[10px] tracking-widest uppercase hover:bg-[#1a232c] transition flex items-center justify-center gap-2 mb-4">
+                    <i class="fa-solid fa-rotate"></i> View Back
+                </button>
+                <div class="mt-4">
+                    <label class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2">Requested Garment Color</label>
+                    <input type="text" id="custom-color-input" placeholder="e.g. Navy Blue, Dark Red" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none focus:border-[#4fb3d9] transition uppercase tracking-widest">
+                    <p class="text-[#4a5f75] text-[8px] mt-2 uppercase tracking-widest">* Select the color of the garment.</p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">02 / GRAPHIC ARTWORK</h3>
+                <div class="border border-dashed border-[#2b3a4a] p-6 text-center hover:border-[#4fb3d9] transition cursor-pointer bg-[#131b23] relative group">
+                    <input type="file" id="hq-file-input" accept="image/png, image/jpeg, image/webp" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleImageUpload(event)">
+                    <div class="text-[#6e849c] group-hover:text-[#4fb3d9] transition">
+                        <i class="fa-solid fa-cloud-arrow-up text-2xl mb-2"></i>
+                        <p class="text-[10px] tracking-widest uppercase font-bold">Upload Image</p>
                     </div>
                 </div>
-              </div>
+                <p class="text-[#4a5f75] text-[8px] mt-2 uppercase tracking-widest">* Upload your design file (Max Size: 4MB).</p>
             </div>
-          </div>
 
-          <div>
-            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">03 / Typography</h3>
-            <div class="flex flex-col gap-3">
-              <input type="text" id="studioTextContainer" placeholder="TYPE SOMETHING..." class="bg-[#0e141a] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none focus:border-[#4fb3d9] transition">
-              <div class="flex gap-2 items-center">
-                <input type="color" id="text-color-picker" value="#ffffff" onchange="updateSelectedTextAttribute('fill', this.value)" class="w-10 h-10 rounded border border-[#2b3a4a] cursor-pointer bg-transparent" title="Text Color">
-                <select id="text-font-selector" onchange="updateSelectedTextAttribute('fontFamily', this.value)" class="flex-1 bg-[#1a232c] border border-[#2b3a4a] text-white text-[10px] p-2 outline-none cursor-pointer hover:border-[#4fb3d9] transition">
-                  <option value="Montserrat" selected>Montserrat (Modern Bold)</option>
-                  <option value="'Oswald', sans-serif">Oswald (Streetwear)</option>
-                  <option value="'Permanent Marker', cursive">Permanent Marker (Graffiti)</option>
-                  <option value="'Cinzel', serif">Cinzel (Elegant Serif)</option>
-                  <option value="'Dancing Script', cursive">Dancing Script (Handwriting)</option>
-                </select>
-                <button onclick="deleteActiveObject()" class="border border-red-900/50 text-red-500 w-10 h-10 flex items-center justify-center hover:bg-red-600 hover:text-[#4fb3d9] transition" title="Delete Text"><i class="fa-solid fa-trash text-xs"></i></button>
-              </div>
-              <button type="button" onclick="addTextToStudio()" class="bg-[#1a232c] border border-[#2b3a4a] text-white py-3 text-[10px] uppercase tracking-widest font-bold hover:border-[#4fb3d9] transition">Add Text</button>
+            <div>
+                <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">03 / TYPOGRAPHY</h3>
+                <input type="text" id="studioTextInput" placeholder="TYPE SOMETHING..." class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none mb-3 focus:border-[#4fb3d9] transition uppercase tracking-widest">
+                <div class="flex gap-2 mb-3">
+                    <input type="color" id="studioTextColor" value="#ffffff" class="w-10 h-10 border border-[#2b3a4a] cursor-pointer bg-[#1a232c] p-1">
+                    <select id="studioTextFont" class="flex-1 bg-[#1a232c] border border-[#2b3a4a] text-white p-2 text-[10px] outline-none uppercase tracking-widest cursor-pointer">
+                        <option value="Montserrat">Montserrat (Modern Bold)</option>
+                        <option value="Aref Ruqaa">Aref Ruqaa (Arabic Classic)</option>
+                        <option value="Space Grotesk">Space Grotesk (Tech)</option>
+                        <option value="Syncopate">Syncopate (Wide Display)</option>
+                    </select>
+                    <button type="button" onclick="deleteSelectedObject()" class="bg-[#1a232c] border border-[#2b3a4a] text-red-500 px-3 hover:bg-red-500/20 transition">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+                <button type="button" onclick="addTextToStudio()" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white py-3 text-[10px] tracking-widest uppercase font-bold hover:border-[#4fb3d9] hover:text-[#4fb3d9] transition">
+                    Add Text
+                </button>
             </div>
-          </div>
 
-          <div>
-            <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">04 / Select Size</h3>
-            <div class="grid grid-cols-5 gap-2">
-              <label class="cursor-pointer"><input type="radio" name="studio-size" value="S" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] transition">S</div></label>
-              <label class="cursor-pointer"><input type="radio" name="studio-size" value="M" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] transition">M</div></label>
-              <label class="cursor-pointer"><input type="radio" name="studio-size" value="L" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] transition">L</div></label>
-              <label class="cursor-pointer"><input type="radio" name="studio-size" value="XL" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] transition">XL</div></label>
-              <label class="cursor-pointer"><input type="radio" name="studio-size" value="XXL" class="hidden peer"><div class="py-3 border border-[#2b3a4a] text-center text-[10px] text-[#6e849c] uppercase peer-checked:bg-[#4fb3d9] peer-checked:text-[#090e13] peer-checked:font-bold hover:border-[#4fb3d9] transition">XXL</div></label>
+            <div>
+                <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2">04 / SELECT SIZE</h3>
+                <div class="grid grid-cols-5 gap-2">
+                    <label class="cursor-pointer"><input type="radio" name="studio-size" value="S" class="hidden peer"><div class="peer-checked:bg-white peer-checked:text-black border border-[#2b3a4a] text-white py-3 text-center text-xs transition">S</div></label>
+                    <label class="cursor-pointer"><input type="radio" name="studio-size" value="M" class="hidden peer"><div class="peer-checked:bg-white peer-checked:text-black border border-[#2b3a4a] text-white py-3 text-center text-xs transition">M</div></label>
+                    <label class="cursor-pointer"><input type="radio" name="studio-size" value="L" class="hidden peer" checked><div class="peer-checked:bg-white peer-checked:text-black border border-[#2b3a4a] text-white py-3 text-center text-xs transition">L</div></label>
+                    <label class="cursor-pointer"><input type="radio" name="studio-size" value="XL" class="hidden peer"><div class="peer-checked:bg-white peer-checked:text-black border border-[#2b3a4a] text-white py-3 text-center text-xs transition">XL</div></label>
+                    <label class="cursor-pointer"><input type="radio" name="studio-size" value="XXL" class="hidden peer"><div class="peer-checked:bg-white peer-checked:text-black border border-[#2b3a4a] text-white py-3 text-center text-xs transition">XXL</div></label>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-      <div class="mt-8 border-t border-[#1e2a36] pt-6 mb-4">
-  <label for="order-notes-input" class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2">05 / Order Notes (Optional)</label>
-  <textarea id="order-notes-input" placeholder="Any special requests or instructions for your design..." class="w-full h-20 bg-[#1a232c] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none focus:border-[#4fb3d9] transition resize-none uppercase tracking-widest"></textarea>
-</div>
 
-      <div class="mt-12 space-y-3 pt-8 border-t border-[#1e2a36]">
-        <button onclick="resetStudio()" class="w-full border border-red-500/30 text-red-500 bg-red-500/5 hover:bg-red-500/10 py-3 rounded text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 cursor-pointer mb-4">
-            <i class="fa-solid fa-rotate-left"></i> Reset Design
-        </button>
-        <div class="flex gap-3">
-            <button type="button" onclick="shareDesign()" class="w-1/4 bg-[#25D366] text-white py-4 text-xs tracking-widest font-bold uppercase hover:bg-green-600 transition flex items-center justify-center shadow-[0_0_15px_rgba(37,211,102,0.2)]" title="Share with friends">
-                <i class="fa-brands fa-whatsapp text-xl md:text-2xl"></i>
-            </button>
-            <button type="button" onclick="addStudioToCart()" class="w-3/4 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3">
-              ADD TO CART <i class="fa-solid fa-cart-plus text-base"></i>
-            </button>
-        </div>
-      </div>
-    </div>
-  </main><main id="checkout-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 relative z-20">
+            <div class="mt-8 border-t border-[#1e2a36] pt-6 mb-4">
+                <label for="order-notes-input" class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2">05 / Order Notes (Optional)</label>
+                <textarea id="order-notes-input" placeholder="Any special requests or instructions for your design..." class="w-full h-20 bg-[#1a232c] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none focus:border-[#4fb3d9] transition resize-none uppercase tracking-widest"></textarea>
+            </div>
+
+            <div class="mt-12 space-y-3 pt-8 border-t border-[#1e2a36]">
+                <button onclick="resetStudio()" class="w-full border border-red-500/30 text-red-500 bg-red-500/5 hover:bg-red-500/10 text-xs tracking-widest uppercase py-4 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Design
+                </button>
+                <div class="flex gap-3">
+                    <button type="button" onclick="shareDesign()" class="w-1/4 bg-[#25D366] text-white py-4 text-xs tracking-widest font-bold uppercase hover:bg-green-600 transition flex items-center justify-center">
+                        <i class="fa-brands fa-whatsapp text-xl md:text-2xl"></i>
+                    </button>
+                    <button onclick="addStudioToCart()" class="flex-1 bg-white text-black py-4 text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-2">
+                        Add to Cart <i class="fa-solid fa-cart-shopping"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div> </div> </main> ```
+
+اعمل Save وارفع.. هتلاقي كل الأقسام اللي اختفت رجعت، الزراير بقت مرصوصة صح، والموقع شغال معاك على الموبايل واللاب توب مسطرة مفيش فيه غلطة!<main id="checkout-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 relative z-20">
     <div class="max-w-4xl mx-auto px-4 md:px-6 pb-16 md:pb-24">
       <button onclick="toggleCart(); switchView('shop');" class="mb-6 md:mb-10 text-[9px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition border border-[#2b3a4a] px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur flex items-center gap-2 text-white w-max"><i class="fa-solid fa-arrow-left"></i> BACK</button>
       <h2 class="display-font text-4xl md:text-7xl text-white uppercase mb-4 text-center">Checkout</h2>
@@ -804,6 +775,49 @@
 
     window.closePolicy = function() {
         document.getElementById('policy-modal').classList.add('hidden');
+    };
+</script>
+<script>
+    // كود التبديل السحري بين التيشيرت والهودي
+    window.currentGarment = 'hoodie';
+    window.currentSide = 'front';
+
+    window.changeGarment = function(garment) {
+        // عشان نضمن إنه يقرأ الكلمة صح سواء فيها شرطة أو لأ
+        window.currentGarment = garment.replace('-', ''); 
+        window.currentSide = 'front';
+        
+        // 1. تغيير الصورة بناءً على الملفات اللي عندك
+        document.getElementById('hoodieBase').src = window.currentGarment + '-front.png';
+        
+        // 2. تنوير زرار الموديل اللي تم اختياره وتطفية التاني
+        const btnH = document.getElementById('btn-hoodie');
+        const btnT = document.getElementById('btn-tshirt');
+        
+        if (window.currentGarment === 'hoodie') {
+            btnH.classList.add('text-white'); btnH.classList.remove('text-[#6e849c]');
+            btnT.classList.add('text-[#6e849c]'); btnT.classList.remove('text-white');
+        } else {
+            btnT.classList.add('text-white'); btnT.classList.remove('text-[#6e849c]');
+            btnH.classList.add('text-[#6e849c]'); btnH.classList.remove('text-white');
+        }
+        
+        // 3. إرجاع زرار (الظهر والوش) لشكله الطبيعي
+        const sideBtn = document.getElementById('sideToggleBtn');
+        if(sideBtn) sideBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Back';
+    };
+
+    // بالمرة دي الفانكشن اللي بتلف التيشيرت (ظهر ووش) عشان نضمن إنها شغالة
+    window.toggleHoodieSide = function() {
+        window.currentSide = window.currentSide === 'front' ? 'back' : 'front';
+        document.getElementById('hoodieBase').src = window.currentGarment + '-' + window.currentSide + '.png';
+        
+        const sideBtn = document.getElementById('sideToggleBtn');
+        if (window.currentSide === 'back') {
+            sideBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Front';
+        } else {
+            sideBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> View Back';
+        }
     };
 </script>
 </body>
