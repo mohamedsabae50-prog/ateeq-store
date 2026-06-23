@@ -1399,23 +1399,7 @@ const legalPolicies = {
     }
 };
 
-window.openPolicy = function(type) {
-    document.getElementById('policy-title').textContent = legalPolicies[type].title;
-    document.getElementById('policy-content').innerHTML = legalPolicies[type].content;
-    const modal = document.getElementById('policy-modal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => modal.classList.remove('opacity-0'), 10);
-};
 
-window.closePolicy = function() {
-    const modal = document.getElementById('policy-modal');
-    modal.classList.add('opacity-0');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }, 300);
-};
 window.shareDesign = async function() {
     const shareText = "🔥 صممت الهودي بتاعي بنفسي على ATEEQ STUDIOS! \nادخل صمم طقمك المخصوص من هنا:\n";
     const shareUrl = window.location.origin; 
@@ -2158,5 +2142,14 @@ function attachPriceEvents() {
         setTimeout(attachPriceEvents, 500);
     }
 }
-// تشغيل المراقبة
-attachPriceEvents();
+window.openPolicy = function(type) {
+    if (type === 'privacy') {
+        alert("PRIVACY POLICY\n\nWe respect your privacy. Your personal information is only used to process your orders and communicate with you. We do not sell or share your data with third parties.");
+    } 
+    else if (type === 'terms') {
+        alert("TERMS OF SERVICE\n\nBy using our website, you agree to our terms. All custom designs must be owned by you. We reserve the right to refuse printing any inappropriate or copyrighted materials.");
+    } 
+    else if (type === 'refund') {
+        alert("REFUND POLICY\n\nSince our products are custom-made specifically for you, we cannot accept returns or exchanges unless there is a manufacturing defect or a printing error on our part.");
+    }
+};
