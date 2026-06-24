@@ -563,8 +563,22 @@ window.trackOrder = async function(event) {
             }
         }
         
-        try { await emailjs.send("service_58ov5us", "template_kmoa9gi", { serial_number: serialNumber, email: email, total_amount: totalAmount, payment_method: paymentMethod }); } catch (emailErr) {}
-        
+// ==========================================
+        // إرسال إشعارات الإيميل (EmailJS)
+        // ==========================================
+        try { 
+            // 1. إيميل الفاتورة للعميل (نفس القديم بتاعك)
+            await emailjs.send("service_58ov5us", "template_kmoa9gi", { 
+                serial_number: serialNumber, 
+                email: email, 
+                total_amount: totalAmount, 
+                payment_method: paymentMethod 
+            }); 
+            
+            console.log("✅ Emails sent successfully!");
+        } catch (emailErr) {
+            console.error("❌ Failed to send email:", emailErr);
+        }        
         const serialEl = document.getElementById('order-serial');
         if (serialEl) { if (serialEl.tagName === 'INPUT') serialEl.value = serialNumber; else serialEl.textContent = serialNumber; }
         const emailConfirmEl = document.getElementById('user-email-confirm');
