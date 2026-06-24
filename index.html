@@ -401,16 +401,22 @@
                       <button onclick="changeGarment('t-shirt')" id="btn-tshirt" class="flex-1 py-3 text-center text-[#6e849c] hover:bg-[#1a232c] transition font-bold uppercase tracking-widest" data-tr="shop_tshirts">T-Shirt</button>
                   </div>
               </div>
-
-              <div class="mt-4">
-    <label class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2" data-tr="st_color_lbl">Requested Garment Color</label>
-    <select id="custom-color-input" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none focus:border-[#4fb3d9] transition uppercase tracking-widest cursor-pointer">
-        <option value="Black" selected>Black</option>
-        <option value="White">White</option>
-        <option value="Beige">Beige</option>
-    </select>
-    <p class="text-[#4a5f75] text-[8px] mt-2 uppercase tracking-widest" data-tr="st_color_note">* Select the color of the garment.</p>
-</div>
+<div>
+                  <h3 class="text-white text-[10px] tracking-widest uppercase font-bold mb-4 border-b border-[#1e2a36] pb-2" data-tr="st_1">01 / VIEW & COLOR</h3>
+                  
+                  <button onclick="toggleHoodieSide()" id="sideToggleBtn" class="w-1/2 border border-[#2b3a4a] text-[#8ea4be] py-3 text-[10px] tracking-widest uppercase hover:bg-[#1a232c] transition flex items-center justify-center gap-2 mb-4">
+                      <i class="fa-solid fa-rotate"></i> <span data-tr="view_back">View Back</span>
+                  </button>
+                  
+                  <div class="mt-4">
+                      <label class="text-[#6e849c] text-[9px] uppercase tracking-widest block mb-2" data-tr="st_color_lbl">Requested Garment Color</label>
+                      <select id="custom-color-input" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-white p-3 text-[10px] outline-none focus:border-[#4fb3d9] transition uppercase tracking-widest cursor-pointer">
+                          <option value="Black" selected>Black</option>
+                          <option value="White">White</option>
+                          <option value="Beige">Beige</option>
+                      </select>
+                      <p class="text-[#4a5f75] text-[8px] mt-2 uppercase tracking-widest" data-tr="st_color_note">* Select the color of the garment.</p>
+                  </div>
               </div>
 
               <div>
