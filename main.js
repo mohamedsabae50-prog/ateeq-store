@@ -991,24 +991,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const musicBtn = document.getElementById('music-toggle');
     const musicIcon = document.getElementById('music-icon');
     let isPlaying = false;
+    
     if (music && musicBtn) {
         music.volume = 0.3; 
-        let playPromise = music.play();
-        if (playPromise !== undefined) {
-            playPromise.then(_ => { isPlaying = true; musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; })
-            .catch(error => {
-                isPlaying = false; musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300';
-                document.body.addEventListener('click', function playOnFirstClick() {
-                    if (!isPlaying) { music.currentTime = 20; music.play(); isPlaying = true; musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; }
-                    document.body.removeEventListener('click', playOnFirstClick);
-                }, { once: true });
-            });
+        
+        // التحقق: هل الجهاز موبايل ولا شاشة كبيرة؟
+        const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        if (!isMobile) {
+            // تشغيل تلقائي للكمبيوتر فقط
+            let playPromise = music.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => { 
+                    isPlaying = true; 
+                    musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; 
+                }).catch(error => {
+                    isPlaying = false; 
+                    musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300';
+                });
+            }
+        } else {
+            // على الموبايل: الموسيقى مقفولة افتراضياً عشان الإشعار ميظهرش
+            isPlaying = false;
+            musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300';
         }
-        music.addEventListener('ended', function() { this.currentTime = 20; this.play(); });
+
+        music.addEventListener('ended', function() { 
+            this.currentTime = 20; 
+            if(isPlaying) this.play(); 
+        });
+        
         musicBtn.addEventListener('click', (e) => {
             e.stopPropagation(); 
-            if (isPlaying) { music.pause(); musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300'; } 
-            else { if (music.currentTime < 20) music.currentTime = 20; music.play(); musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; }
+            if (isPlaying) { 
+                music.pause(); 
+                musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300'; 
+            } else { 
+                if (music.currentTime < 20) music.currentTime = 20; 
+                music.play(); 
+                musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; 
+            }
             isPlaying = !isPlaying;
         });
     }
