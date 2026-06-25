@@ -147,6 +147,7 @@ window.loadShopProducts = async function() {
     const product = window.shopProductsData.find(p => p.id == productId);
     if(!product) return;
     document.getElementById('pdp-title').textContent = product.name;
+    document.getElementById('pdp-details').innerText = product.details;
     document.getElementById('pdp-price').textContent = product.price + ' EGP';
     document.getElementById('main-pdp-img').src = product.image_url;
     const galleryContainer = document.getElementById('pdp-gallery');
@@ -562,12 +563,7 @@ window.trackOrder = async function(event) {
                 }
             }
         }
-        
-// ==========================================
-        // إرسال إشعارات الإيميل (EmailJS)
-        // ==========================================
         try { 
-            // 1. إيميل الفاتورة للعميل (نفس القديم بتاعك)
             await emailjs.send("service_58ov5us", "template_kmoa9gi", { 
                 serial_number: serialNumber, 
                 email: email, 
@@ -994,12 +990,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (music && musicBtn) {
         music.volume = 0.3; 
-        
-        // التحقق: هل الجهاز موبايل ولا شاشة كبيرة؟
-        const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
+                const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
         if (!isMobile) {
-            // تشغيل تلقائي للكمبيوتر فقط
             let playPromise = music.play();
             if (playPromise !== undefined) {
                 playPromise.then(_ => { 
@@ -1011,16 +1003,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } else {
-            // على الموبايل: الموسيقى مقفولة افتراضياً عشان الإشعار ميظهرش
             isPlaying = false;
             musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300';
         }
-
         music.addEventListener('ended', function() { 
             this.currentTime = 20; 
             if(isPlaying) this.play(); 
-        });
-        
+        });       
         musicBtn.addEventListener('click', (e) => {
             e.stopPropagation(); 
             if (isPlaying) { 
@@ -1456,24 +1445,18 @@ window.toggleHoodieSide = function() {
     const hoodie = document.getElementById('hoodieBase');
     const flipBtn = document.getElementById('sideToggleBtn');
     if (!hoodie || !canvasInstance) return;
-    
-    // حفظ التصميم قبل التقليب
     designState[currentSide] = JSON.stringify(canvasInstance.toJSON());   
-    const ext = 'png';
-    
+    const ext = 'png';  
     if (currentSide === 'front') {
         currentSide = 'back';
         hoodie.src = `${currentProduct}-back.${ext}`; 
     } else {
         currentSide = 'front';
         hoodie.src = `${currentProduct}-front.${ext}`; 
-    }
-    
+    } 
     const textKey = currentSide === 'back' ? 'view_front' : 'view_back';
     const renderedText = siteTranslations[currentLang] ? siteTranslations[currentLang][textKey] : (currentSide === 'back' ? 'View Front' : 'View Back');
     if(flipBtn) flipBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> <span data-tr="${textKey}">${renderedText}</span>`;
-    
-    // مسح الشاشة وعرض تصميم الجنب التاني
     canvasInstance.clear();
     if (designState[currentSide]) {
         canvasInstance.loadFromJSON(designState[currentSide], canvasInstance.renderAll.bind(canvasInstance));
@@ -1481,15 +1464,12 @@ window.toggleHoodieSide = function() {
     showToast("Switched to " + currentSide + " view", "info");
     if(typeof updateDynamicPrice === 'function') updateDynamicPrice();
 };
-
 window.changeGarment = function(garment) {
     currentProduct = garment.replace('-', ''); 
     currentSide = 'front';
-    document.getElementById('hoodieBase').src = currentProduct + '-front.png';
-    
-    const btnH = document.getElementById('btn-hoodie');
-    const btnT = document.getElementById('btn-tshirt');
-    
+    document.getElementById('hoodieBase').src = currentProduct + '-front.png';    
+   const btnH = document.getElementById('btn-hoodie');
+    const btnT = document.getElementById('btn-tshirt');   
     if (currentProduct === 'hoodie') {
         btnH.classList.add('text-white'); btnH.classList.remove('text-[#6e849c]');
         btnT.classList.add('text-[#6e849c]'); btnT.classList.remove('text-white');
@@ -1497,11 +1477,9 @@ window.changeGarment = function(garment) {
         btnT.classList.add('text-white'); btnT.classList.remove('text-[#6e849c]');
         btnH.classList.add('text-[#6e849c]'); btnH.classList.remove('text-white');
     }
-    
     const sideBtn = document.getElementById('sideToggleBtn');
     const backText = siteTranslations[currentLang] ? siteTranslations[currentLang]['view_back'] : 'View Back';
-    if(sideBtn) sideBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> <span data-tr="view_back">${backText}</span>`;
-    
+    if(sideBtn) sideBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> <span data-tr="view_back">${backText}</span>`;    
     if(canvasInstance) canvasInstance.clear();
     designState = { front: null, back: null };
     if(typeof updateDynamicPrice === 'function') updateDynamicPrice();
