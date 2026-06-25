@@ -1484,3 +1484,12 @@ window.changeGarment = function(garment) {
     designState = { front: null, back: null };
     if(typeof updateDynamicPrice === 'function') updateDynamicPrice();
 };
+document.addEventListener('DOMContentLoaded', () => {
+    const menuLinks = document.querySelectorAll('#mobile-menu button, #mobile-menu a'); 
+    
+    menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+      document.getElementById('mobile-menu').classList.add('hidden');
+        });
+    });
+});
