@@ -1492,4 +1492,31 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('mobile-menu').classList.add('hidden');
         });
     });
-});
+});async function fetchInstagramPhotos() {
+    const INSTA_TOKEN = 'YOUR_INSTAGRAM_ACCESS_TOKEN'; 
+    const url = `https://graph.instagram.com/me/media?fields=id,media_type,media_url,permalink&limit=6&access_token=${INSTA_TOKEN}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.data) {
+            const instaFeed = document.getElementById('insta-feed');
+            data.data.forEach(post => {
+                if (post.media_type === 'IMAGE' || post.media_type === 'CAROUSEL_ALBUM') {
+                    const imgHTML = `
+                        <img onclick="window.open('${post.permalink}', '_blank')" 
+                             src="${post.media_url}" 
+                             class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer" 
+                             alt="Instagram Post">
+                    `;
+                    instaFeed.innerHTML += imgHTML;
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching Instagram posts:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', fetchInstagramPhotos);
