@@ -1,15 +1,10 @@
-/* =========================================
-   1. FONTS & VARIABLES
-   ========================================= */
 @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600&family=Roboto:wght@400;500&family=Aref+Ruqaa&family=Syncopate&family=Montserrat:wght@300;500;700;900&display=swap');
-
 :root {
   --bg: #030303;
   --fg: #f5f5f5;
   --accent: #ffffff;
-  --gold: #cda434; /* اللون الذهبي العتيق للاستوديو */
+  --gold: #cda434; 
 }
-
 body {
   background-color: var(--bg);
   font-family: 'Montserrat', sans-serif;
@@ -19,10 +14,6 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
 }
-
-/* =========================================
-   2. GLOBAL UTILITIES & SCROLLBAR
-   ========================================= */
 .noise {
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
@@ -31,25 +22,17 @@ body {
   opacity: 0.04;
   background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
 }
-
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #090e13; }
 ::-webkit-scrollbar-thumb { background: #1e2a36; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 ::selection { background-color: var(--accent); color: #090e13; }
-
 .hide-scroll::-webkit-scrollbar { display: none; }
-
 a, button, input, textarea, select, [onclick], .cursor-pointer, label {
   cursor: pointer;
 }
-
 .brand-ar { font-family: 'Aref Ruqaa', serif; }
 .display-font { font-family: 'Syncopate', sans-serif; letter-spacing: -1px; }
-
-/* =========================================
-   3. ANIMATIONS & EFFECTS
-   ========================================= */
 .marquee { display: flex; overflow: hidden; white-space: nowrap; }
 .marquee-content { display: flex; flex-shrink: 0; animation: scroll 30s linear infinite; }
 @keyframes scroll {
@@ -63,99 +46,69 @@ a, button, input, textarea, select, [onclick], .cursor-pointer, label {
   0% { transform: translateX(0); }
   100% { transform: translateX(calc(-50%)); }
 }
-
 #splash-screen { transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1); }
 .slide-up { transform: translateY(-100%); }
-
-/* حركة كلمة ATEEQ في الصفحة الرئيسية */
-/* شكل الكلمة وهي مطفية (شفافة ومفرغة بخط أبيض خفيف) */
 .hero-title {
-    color: transparent !important; /* لون شفاف من جوه */
-    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.3) !important; /* خط خارجي خفيف يحدد الكلمة */
-    font-weight: 900 !important; /* نحافظ على البنط العريض */
+    color: transparent !important; 
+    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.3) !important; 
+    font-weight: 900 !important; 
     text-shadow: none !important;
-    transition: all 0.5s ease !important; /* حركة ناعمة جداً */
+    transition: all 0.5s ease !important; 
 }
-
-/* شكل الكلمة لما تقف عليها بالماوس (تنور وتتملي) */
 .hero-title:hover {
-    color: #ffffff !important; /* تتملي أبيض سادة */
-    -webkit-text-stroke: 0px transparent !important; /* نلغي التحديد */
+    color: #ffffff !important; 
+    -webkit-text-stroke: 0px transparent !important; 
     text-shadow: 0 0 25px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4) !important; /* تأثير النور والتوهج */
-    transform: scale(1.02); /* تكبير بسيط بيدي فخامة */
+    transform: scale(1.02); 
 }
-
 .zoom-bg { animation: cinematicZoom 20s ease infinite alternate; }
 @keyframes cinematicZoom {
   0% { transform: scale(1); }
   100% { transform: scale(1.15); }
 }
-
 .slow-reveal {
   opacity: 0;
   transform: translateY(40px);
   transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .slow-reveal.active { opacity: 1; transform: translateY(0); }
-
-/* =========================================
-   4. UI COMPONENTS (Inputs, Forms, etc.)
-   ========================================= */
 .field {
   background: transparent; border: none; border-bottom: 1px solid #333;
   color: var(--fg); transition: border-color 0.3s ease; border-radius: 0;
 }
 .field:focus { outline: none; border-bottom-color: var(--accent); }
 .field::placeholder { color: #555; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
-
 #mobile-menu { transition: opacity 0.4s ease, visibility 0.4s ease; }
 #mobile-menu.active { opacity: 1; visibility: visible; }
-
 .podium {
   transform: rotateX(75deg);
   box-shadow: 0 0 50px 10px rgba(255, 255, 255, 0.05);
 }
-
-/* =========================================
-   5. CUSTOM LAB (STUDIO) - CORE FIXES
-   ========================================= */
-
-/* خلفية الاستوديو الـ 3D */
 #studio-bg-container {
-    background-image: url('studio-bg.png') !important; /* تأكد إن الصورة بصيغة png وموجودة بالفولدر */
+background-image: url('assets/studio-bg.png') !important;
     background-size: cover !important;
     background-position: center bottom !important; 
     background-color: transparent !important;
 }
-
-/* إخفاء المربع الرمادي المزعج اللي كان ورا الهودي */
 #inner-studio-bg {
     display: none !important;
 }
-
-/* إخفاء أي خطوط أو تحديد (Borders/Outlines) حوالين منطقة التصميم */
 #canvas-wrapper, .canvas-container, canvas {
     border: none !important;
     background-color: transparent !important;
     box-shadow: none !important;
     outline: none !important;
 }
-
-/* انيميشن الطيران للهودي فوق القاعدة */
 #studio-bg-container > .relative.max-w-\[500px\] {
     animation: floatPerfect 4s ease-in-out infinite !important;
     border: none !important;
     background: transparent !important;
 }
-
 @keyframes floatPerfect {
-    /* كبرنا الـ scale من 1.15 لـ 1.7 عشان المنتج يكون كبير وواضح جداً للتصميم */
     0% { transform: translateY(-30px) scale(1.7); }
     50% { transform: translateY(-45px) scale(1.7); }
     100% { transform: translateY(-30px) scale(1.7); }
 }
-
-/* تظبيط القص (Mask) عشان اللون يجي على مقاس الهودي بس وميعملش مربع */
 #garment-color-layer {
     -webkit-mask-size: contain !important;
     mask-size: contain !important;
@@ -164,22 +117,15 @@ a, button, input, textarea, select, [onclick], .cursor-pointer, label {
     -webkit-mask-repeat: no-repeat !important;
     mask-repeat: no-repeat !important;
 }
-
-/* =========================================
-   6. CUSTOM LAB (STUDIO) - SIDEBAR & UI
-   ========================================= */
 .color-swatches { display: flex; gap: 15px; margin-top: 10px; }
 .color-swatch-btn { cursor: pointer; outline: none; }
 .color-swatch-btn.active { border-color: var(--accent); transform: scale(1.15); }
-
 .product-selector-btn { cursor: pointer; }
 .product-selector-btn.active {
     border-color: white !important;
     color: white !important;
     background-color: #1a232c !important;
 }
-
-/* زرار الواتساب الطاير */
 .whatsapp-float {
     position: fixed;
     bottom: 30px;
@@ -200,7 +146,7 @@ a, button, input, textarea, select, [onclick], .cursor-pointer, label {
 }
 .whatsapp-float:hover {
     transform: scale(1.1);
-}/* إزالة أي خلفية رمادية أو تحديد من مربع الهودي تماماً */
+}
 #studio-bg-container > div.relative {
     background: transparent !important;
     background-color: transparent !important;
