@@ -89,6 +89,10 @@ background-image: url('./media/assets/backgrounds/studio-bg.png?v=1') !important
   background-size: cover !important;
     background-position: center bottom !important; 
     background-color: transparent !important;
+  width: 100% !important;
+  height: 100vh !important;
+  position: absolute !important;
+  z-index: -1 !important;
 }
 #inner-studio-bg {
     display: none !important;
