@@ -1454,10 +1454,10 @@ window.toggleHoodieSide = function() {
     const ext = 'png';  
     if (currentSide === 'front') {
         currentSide = 'back';
-        hoodie.src = `${currentProduct}-back.${ext}`; 
+        hoodie.src = `media/${currentProduct}-back.${ext}`; 
     } else {
         currentSide = 'front';
-        hoodie.src = `${currentProduct}-front.${ext}`; 
+hoodie.src = `media/${currentProduct}-front.${ext}`;
     } 
     const textKey = currentSide === 'back' ? 'view_front' : 'view_back';
     const renderedText = siteTranslations[currentLang] ? siteTranslations[currentLang][textKey] : (currentSide === 'back' ? 'View Front' : 'View Back');
@@ -1472,7 +1472,7 @@ window.toggleHoodieSide = function() {
 window.changeGarment = function(garment) {
     currentProduct = garment.replace('-', ''); 
     currentSide = 'front';
-    document.getElementById('hoodieBase').src = currentProduct + '-front.png';    
+document.getElementById('hoodieBase').src = 'media/' + currentProduct + '-front.png';
    const btnH = document.getElementById('btn-hoodie');
     const btnT = document.getElementById('btn-tshirt');   
     if (currentProduct === 'hoodie') {
