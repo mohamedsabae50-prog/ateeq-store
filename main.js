@@ -170,6 +170,20 @@ window.loadShopProducts = async function() {
     window.currentProductId = product.id; 
     if(typeof fetchReviews === 'function') fetchReviews(product.id); 
     if (typeof renderRelatedProducts === 'function') renderRelatedProducts(productId);    
+    const addToCartBtn = document.getElementById('main-add-btn');
+    if (addToCartBtn) {
+        if (product.stock_status === 'Out of Stock') {
+            addToCartBtn.textContent = 'SOLD OUT';
+            addToCartBtn.disabled = true;
+            addToCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            addToCartBtn.classList.remove('cursor-pointer');
+        } else {
+            addToCartBtn.textContent = 'ADD TO CART';
+            addToCartBtn.disabled = false;
+            addToCartBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            addToCartBtn.classList.add('cursor-pointer');
+        }
+    }
     switchView('pdp');
     window.scrollTo(0, 0);
 };
