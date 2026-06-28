@@ -50,10 +50,7 @@ function saveWishlist() {
 }
 window.switchView = function(viewId, addToHistory = true) {
     const mobileNavMenu = document.getElementById('mobile-menu');
-    if (mobileNavMenu) {
-        mobileNavMenu.classList.add('hidden');
-        mobileNavMenu.classList.remove('active');
-    }
+    
     document.querySelectorAll('.view-section').forEach(el => {
         
         el.classList.add('hidden');
@@ -224,16 +221,20 @@ window.toggleAuthModal = function() {
 };
 window.toggleMobileMenu = function() {
     const menu = document.getElementById('mobile-menu');
-    if (menu) {
-        if (menu.classList.contains('active')) {
-            menu.classList.remove('active');
-            menu.style.opacity = '0';
-            menu.style.visibility = 'hidden';
-        } else {
-            menu.classList.add('active');
-            menu.style.opacity = '1';
-            menu.style.visibility = 'visible';
-        }
+    if (!menu) return;
+    
+    if (menu.classList.contains('active')) {
+        menu.classList.remove('active');
+        menu.style.opacity = '0';
+        
+        setTimeout(() => {
+            menu.classList.add('invisible', 'pointer-events-none');
+        }, 300);
+        
+    } else {
+        menu.classList.remove('hidden', 'invisible', 'pointer-events-none');
+        menu.classList.add('active');
+        menu.style.opacity = '1';
     }
 };
 window.toggleSizeGuide = function() {
@@ -1402,6 +1403,7 @@ window.shareDesign = async function() {
 };
 
 async function fetchInstagramFeed() {
+    return;
     const feedContainer = document.getElementById('insta-feed');
     if (!feedContainer) return;
 
@@ -1505,6 +1507,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });async function fetchInstagramPhotos() {
+    return;
     const INSTA_TOKEN = 'YOUR_INSTAGRAM_ACCESS_TOKEN'; 
     const url = `https://graph.instagram.com/me/media?fields=id,media_type,media_url,permalink&limit=6&access_token=${INSTA_TOKEN}`;
 
