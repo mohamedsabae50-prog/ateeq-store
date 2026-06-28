@@ -46,18 +46,19 @@ async function trackAbandonedCart() {
 }
 function saveWishlist() {
     localStorage.setItem('ateeq_wishlist', JSON.stringify(wishlist));
-    if(typeof renderWishlist === 'function') renderWishlist();}
+    if(typeof renderWishlist === 'function') renderWishlist();
+}
 window.switchView = function(viewId, addToHistory = true) {
-    const mobileMenu = document.getElementById('mobile-menu');
-    if (mobileMenu) {
-        mobileMenu.classList.add('hidden');
-        mobileMenu.classList.remove('active');
+    const mobileNavMenu = document.getElementById('mobile-menu');
+    if (mobileNavMenu) {
+        mobileNavMenu.classList.add('hidden');
+        mobileNavMenu.classList.remove('active');
     }
     document.querySelectorAll('.view-section').forEach(el => {
+        
         el.classList.add('hidden');
-        el.classList.remove('block', 'flex');
+        el.classList.remove('block', 'flex'); 
     });
-    
     const targetView = document.getElementById(viewId + '-view');
     if (targetView) {
         if (viewId === 'studio') {
