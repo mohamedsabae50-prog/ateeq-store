@@ -225,16 +225,17 @@ window.toggleMobileMenu = function() {
     
     if (menu.classList.contains('active')) {
         menu.classList.remove('active');
-        menu.style.opacity = '0';
-        
+        menu.style.opacity = '0';       
+        menu.classList.add('pointer-events-none');         
         setTimeout(() => {
-            menu.classList.add('invisible', 'pointer-events-none');
-        }, 300);
-        
+            menu.classList.add('hidden', 'invisible');
+        }, 300);       
     } else {
-        menu.classList.remove('hidden', 'invisible', 'pointer-events-none');
-        menu.classList.add('active');
-        menu.style.opacity = '1';
+        menu.classList.remove('hidden', 'invisible', 'pointer-events-none');       
+        setTimeout(() => {
+            menu.classList.add('active');
+            menu.style.opacity = '1';
+        }, 10);
     }
 };
 window.toggleSizeGuide = function() {
