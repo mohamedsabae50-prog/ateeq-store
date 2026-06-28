@@ -49,6 +49,11 @@ function saveWishlist() {
     if(typeof renderWishlist === 'function') renderWishlist();
 }window.switchView = function(viewId, addToHistory = true) {
     document.querySelectorAll('.view-section').forEach(el => {
+        const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) {
+        mobileMenu.classList.add('hidden');
+        mobileMenu.classList.remove('active');
+    }
         el.classList.add('hidden');
         el.classList.remove('block', 'flex'); 
     });
@@ -129,7 +134,7 @@ window.loadShopProducts = async function() {
                         <span class="text-[10px] text-white font-bold tracking-widest uppercase">View Details</span>
                     </div>
                 </div>
-                <h4 class="text-white display-font text-xl uppercase truncate">${product.name}</h4>
+<h4 class="text-white display-font text-sm md:text-xl uppercase ">${product.name}</h4>
                 <div class="flex justify-between items-center mt-1">
                     <p class="text-gray-400 text-xs tracking-widest uppercase font-bold">${product.price} EGP</p>
                     ${stockBadge}
@@ -181,7 +186,7 @@ window.renderRelatedProducts = function(currentId) {
         <div class="relative bg-[#0e141a] border border-[#1e2a36] aspect-[3/4] mb-3 overflow-hidden flex items-center justify-center">
             <img src="${p.image_url || 'blanks.jpg'}" onerror="this.src='blanks.jpg'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
         </div>
-        <h4 class="text-white text-[9px] md:text-[10px] tracking-widest uppercase font-bold mb-1 truncate">${p.name}</h4>
+<h4 class="text-white text-[8px] md:text-[10px] tracking-widest uppercase font-bold mb-1">${p.name}</h4>
         <p class="text-[#8ea4be] text-[9px] tracking-widest uppercase">${p.price} EGP</p>
     </div>
     `).join('');
@@ -1420,9 +1425,9 @@ async function fetchInstagramFeed() {
     }
 }
 
-//document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
-//document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
-//document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
+document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
+document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
+document.addEventListener('DOMContentLoaded', fetchInstagramFeed);
 function dataURLtoBlob(dataurl) {
     let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
         bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
