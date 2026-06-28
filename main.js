@@ -147,13 +147,16 @@ window.loadShopProducts = async function() {
     } catch (error) {
         container.innerHTML = '<div class="col-span-full text-center text-red-500 py-10">Failed to load products.</div>';
     }
-};window.goToPDP = function(productId) {
+};
+window.goToPDP = function(productId) {
     const product = window.shopProductsData.find(p => p.id == productId);
     if(!product) return;
+    
     document.getElementById('pdp-title').textContent = product.name;
     document.getElementById('pdp-details').innerText = product.details;
     document.getElementById('pdp-price').textContent = product.price + ' EGP';
     document.getElementById('main-pdp-img').src = product.image_url;
+    
     const galleryContainer = document.getElementById('pdp-gallery');
     let galleryHTML = `<img src="${product.image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 transition">`;
     if (product.hover_image_url) {
@@ -165,11 +168,14 @@ window.loadShopProducts = async function() {
         });
     }
     galleryContainer.innerHTML = galleryHTML;
+    
     const categoryName = product.category ? product.category.toLowerCase() : 'hoodies';
     if(typeof renderSizes === 'function') renderSizes('pdp-size-container', categoryName, 'pdp-size');
+    
     window.currentProductId = product.id; 
     if(typeof fetchReviews === 'function') fetchReviews(product.id); 
-    if (typeof renderRelatedProducts === 'function') renderRelatedProducts(productId);    
+    if (typeof renderRelatedProducts === 'function') renderRelatedProducts(productId);   
+    
     const addToCartBtn = document.getElementById('main-add-btn');
     if (addToCartBtn) {
         if (product.stock_status === 'Out of Stock') {
@@ -184,6 +190,10 @@ window.loadShopProducts = async function() {
             addToCartBtn.classList.add('cursor-pointer');
         }
     }
+    
+    // تحديث أيقونات المفضلة للمنتج الحالي بذكاء
+    if(typeof window.syncHeartIcons === 'function') window.syncHeartIcons();
+    
     switchView('pdp');
     window.scrollTo(0, 0);
 };
@@ -801,31 +811,81 @@ window.saveProfileData = async function(e) {
         if (icon) icon.className = "fa-regular fa-heart text-white";
     }
 }
-window.fetchUserWishlist = async function() {
-    if (!isLoggedIn || !currentUser) return;
+window.fetchUserWishlist = function() {
     const container = document.getElementById('wishlist-container');
     if (!container) return;
-    container.innerHTML = '<p class="text-center col-span-full text-gray-500 text-xs tracking-widest uppercase py-10"><i class="fa-solid fa-circle-notch fa-spin text-xl"></i></p>';
-    try {
-        const { data: wishlistItems, error } = await supabaseClient.from('wishlist').select(`product_id, products (*)`).eq('user_id', currentUser.id);
-        if (error) throw error;
-        if (!wishlistItems || wishlistItems.length === 0) {
-            container.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center text-center py-10"><i class="fa-regular fa-heart text-4xl text-[#222] mb-4"></i><p class="text-gray-500 text-xs tracking-widest uppercase">Your wishlist is empty.</p></div>`;
-            return;
-        }
-        container.innerHTML = wishlistItems.map(item => {
-            const prod = item.products;
-            if (!prod) return '';
-            return `<div class="group relative bg-[#050505] border border-[#111] p-4 transition hover:border-[#222]"><div class="relative overflow-hidden aspect-square mb-4 cursor-pointer" onclick="goToPDP('${prod.id}')"><img src="${prod.image_url}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-500"></div><div class="flex justify-between items-start"><div><h4 class="text-xs uppercase text-white font-bold tracking-wider">${prod.name}</h4><p class="text-[10px] text-gray-500 mt-1">${prod.price} EGP</p></div><button onclick="toggleWishlist('${prod.id}', event, this)" class="border border-[#333] hover:border-white w-14 h-14 flex items-center justify-center transition text-white"><i class="fa-solid fa-heart text-red-500"></i></button></div></div>`;
-        }).join('');
-    } catch(err) {
-        container.innerHTML = '<p class="text-center col-span-full text-red-500 text-xs tracking-widest uppercase">Error loading wishlist.</p>';
+    
+    let currentWishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
+
+    if (currentWishlist.length === 0) {
+        container.innerHTML = '<div class="p-8 border border-dashed border-[#1e2a36] text-center bg-[#131b23] col-span-full"><p class="text-[#6e849c] text-xs tracking-widest uppercase">Your wishlist is empty.</p></div>';
+        return;
     }
-}
-window.toggleWishlistFromPDP = function(event, btnElement) {
-    if(!window.currentProductId) return;
-    toggleWishlist(window.currentProductId, event, btnElement);
-}
+
+    let html = '';
+    currentWishlist.forEach(id => {
+        const prod = window.shopProductsData.find(p => p.id == id);
+        if (prod) {
+            html += `
+                <div class="bg-[#111a22] border border-[#1e2a36] p-4 flex flex-col relative group">
+                    <button onclick="toggleWishlistFromWishlistPage('${prod.id}', event)" class="absolute top-2 right-2 z-10 text-red-500 hover:text-white transition bg-[#090e13] p-2 rounded-full w-8 h-8 flex items-center justify-center border border-[#1e2a36]">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <img src="${prod.image_url}" class="w-full aspect-[4/5] object-cover mb-4 cursor-pointer" onclick="goToPDP('${prod.id}')">
+                    <h4 class="text-white text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1 truncate cursor-pointer" onclick="goToPDP('${prod.id}')">${prod.name}</h4>
+                    <p class="text-[#8ea4be] text-[10px] uppercase font-bold tracking-widest">${prod.price} EGP</p>
+                </div>`;
+        }
+    });
+    container.innerHTML = html;
+};
+
+window.toggleWishlistFromWishlistPage = function(id, event) {
+    if (event) { event.preventDefault(); event.stopPropagation(); } 
+    
+    let currentWishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
+    const index = currentWishlist.findIndex(itemId => itemId == id); 
+    
+    if (index > -1) {
+        currentWishlist.splice(index, 1);
+        localStorage.setItem('ateeq_wishlist', JSON.stringify(currentWishlist));
+        window.wishlist = currentWishlist; 
+        fetchUserWishlist(); 
+        if(typeof showToast === 'function') showToast("Removed from wishlist", "info");
+    }
+};
+window.toggleWishlistFromPDP = function(event, btn) {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+    if (!window.currentProductId) return;
+    
+    // جلب المفضلة من الذاكرة مباشرة عشان نضمن إنها أحدث حاجة
+    let currentWishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
+    
+    const productIdStr = window.currentProductId.toString();
+    const index = currentWishlist.findIndex(id => id == productIdStr);
+    
+    const pdpHeartIcons = document.querySelectorAll('#pdp-view .fa-heart, #sticky-cart-bar .fa-heart');
+
+    if (index > -1) {
+        currentWishlist.splice(index, 1); // مسح
+        pdpHeartIcons.forEach(icon => {
+            icon.classList.remove('fa-solid', 'text-red-500');
+            icon.classList.add('fa-regular');
+        });
+        if(typeof showToast === 'function') showToast("Removed from wishlist", "info");
+    } else {
+        currentWishlist.push(productIdStr); // إضافة
+        pdpHeartIcons.forEach(icon => {
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid', 'text-red-500');
+        });
+        if(typeof showToast === 'function') showToast("Added to wishlist", "success");
+    }
+    
+    // حفظ التعديل
+    localStorage.setItem('ateeq_wishlist', JSON.stringify(currentWishlist));
+    window.wishlist = currentWishlist; 
+};
 window.removeFromWishlist = function(index) {
     wishlist.splice(index, 1); saveWishlist(); showToast('Removed from wishlist.', 'info');
 };
@@ -1550,3 +1610,132 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 document.addEventListener('DOMContentLoaded', fetchInstagramPhotos);
+window.renderWishlist = function() {
+    const container = document.getElementById('wishlist-container');
+    if (!container) return;
+    
+    let currentWishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
+
+    if (currentWishlist.length === 0) {
+        container.innerHTML = '<div class="p-8 border border-dashed border-[#1e2a36] text-center bg-[#131b23] col-span-full"><p class="text-[#6e849c] text-xs tracking-widest uppercase">Your wishlist is empty.</p></div>';
+        return;
+    }
+
+    let html = '';
+    currentWishlist.forEach(id => {
+        const prod = window.shopProductsData.find(p => p.id == id);
+        if (prod) {
+            html += `
+                <div class="bg-[#111a22] border border-[#1e2a36] p-4 flex flex-col relative group">
+                    <button onclick="toggleWishlistFromWishlistPage('${prod.id}', event)" class="absolute top-2 right-2 z-10 text-red-500 hover:text-white transition bg-[#090e13] p-2 rounded-full w-8 h-8 flex items-center justify-center border border-[#1e2a36]">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <img src="${prod.image_url}" class="w-full aspect-[4/5] object-cover mb-4 cursor-pointer" onclick="goToPDP('${prod.id}')">
+                    <h4 class="text-white text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1 truncate cursor-pointer" onclick="goToPDP('${prod.id}')">${prod.name}</h4>
+                    <p class="text-[#8ea4be] text-[10px] uppercase font-bold tracking-widest">${prod.price} EGP</p>
+                </div>`;
+        }
+    });
+    container.innerHTML = html;
+};
+
+document.getElementById('nav-profile-btn').addEventListener('click', function() {
+    renderWishlist();
+});
+// ==========================================
+// WISHLIST SYSTEM (100% LocalStorage)
+// ==========================================
+
+// 1. تلوين القلب بناءً على المنتج المفتوح
+window.syncHeartIcons = function() {
+    if (!window.currentProductId) return;
+    const currentWishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
+    const isWishlisted = currentWishlist.includes(window.currentProductId.toString());
+    
+    const pdpHeartIcons = document.querySelectorAll('#pdp-view .fa-heart, #sticky-cart-bar .fa-heart');
+    pdpHeartIcons.forEach(icon => {
+        if (isWishlisted) {
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid', 'text-red-500');
+        } else {
+            icon.classList.add('fa-regular');
+            icon.classList.remove('fa-solid', 'text-red-500');
+        }
+    });
+};
+
+// 2. زرار الإضافة/الحذف من صفحة المنتج
+window.toggleWishlistFromPDP = function(event, btn) {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+    if (!window.currentProductId) return;
+    
+    let currentWishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
+    const prodId = window.currentProductId.toString();
+    const index = currentWishlist.indexOf(prodId);
+    
+    if (index > -1) {
+        currentWishlist.splice(index, 1);
+        if(typeof showToast === 'function') showToast("Removed from wishlist", "info");
+    } else {
+        currentWishlist.push(prodId);
+        if(typeof showToast === 'function') showToast("Added to wishlist", "success");
+    }
+    
+    localStorage.setItem('ateeq_wishlist', JSON.stringify(currentWishlist));
+    window.wishlist = currentWishlist; 
+    
+    window.syncHeartIcons(); // تحديث الأيقونات فوراً
+    if (typeof window.fetchUserWishlist === 'function') window.fetchUserWishlist(); // تحديث البروفايل
+};
+
+// 3. عرض المفضلة في صفحة حسابي
+window.fetchUserWishlist = async function() {
+    const container = document.getElementById('wishlist-container');
+    if (!container) return;
+    
+    let currentWishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
+
+    if (currentWishlist.length === 0) {
+        container.innerHTML = '<div class="p-8 border border-dashed border-[#1e2a36] text-center bg-[#131b23] col-span-full"><p class="text-[#6e849c] text-xs tracking-widest uppercase">Your wishlist is empty.</p></div>';
+        return;
+    }
+
+    // التأكد إن المنتجات متحملة
+    if (!window.shopProductsData || window.shopProductsData.length === 0) {
+        try {
+            const { data } = await supabaseClient.from('products').select('*');
+            window.shopProductsData = data || [];
+        } catch(e) {}
+    }
+
+    let html = '';
+    currentWishlist.forEach(id => {
+        const prod = window.shopProductsData.find(p => p.id == id);
+        if (prod) {
+            html += `
+                <div class="bg-[#111a22] border border-[#1e2a36] p-4 flex flex-col relative group">
+                    <button onclick="toggleWishlistFromWishlistPage('${prod.id}', event)" class="absolute top-2 right-2 z-10 text-red-500 hover:text-white transition bg-[#090e13] p-2 rounded-full w-8 h-8 flex items-center justify-center border border-[#1e2a36]">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <img src="${prod.image_url}" class="w-full aspect-[4/5] object-cover mb-4 cursor-pointer" onclick="goToPDP('${prod.id}')">
+                    <h4 class="text-white text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1 truncate cursor-pointer" onclick="goToPDP('${prod.id}')">${prod.name}</h4>
+                    <p class="text-[#8ea4be] text-[10px] uppercase font-bold tracking-widest">${prod.price} EGP</p>
+                </div>`;
+        }
+    });
+    container.innerHTML = html;
+};
+
+window.toggleWishlistFromWishlistPage = function(id, event) {
+    if (event) { event.preventDefault(); event.stopPropagation(); } 
+    let currentWishlist = JSON.parse(localStorage.getItem('ateeq_wishlist')) || [];
+    const index = currentWishlist.indexOf(id.toString());
+    
+    if (index > -1) {
+        currentWishlist.splice(index, 1);
+        localStorage.setItem('ateeq_wishlist', JSON.stringify(currentWishlist));
+        window.wishlist = currentWishlist; 
+        window.fetchUserWishlist(); 
+        if(typeof showToast === 'function') showToast("Removed from wishlist", "info");
+    }
+};
