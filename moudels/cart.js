@@ -143,9 +143,15 @@ export const addPdpToCart = function() {
     const priceText = priceEl ? priceEl.textContent : '0 EGP';
     const price = parseFloat(priceText.replace(' EGP', '')) || 0;
 
-    if (!Array.isArray(window.cart)) window.cart = [];
-    window.cart.push({ id: Date.now(), type: 'STORE', title: title, size: size, price: price });
-
+    window.cart.push({ 
+    id: Date.now(), 
+    product_id: window.currentProductId,
+    type: 'STORE', 
+    title: finalTitle, 
+    size: size, 
+    price: price,
+    preorder: isPreorder 
+});
     saveCart();
 
     if (typeof window.toggleCart === 'function') window.toggleCart();
