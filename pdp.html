@@ -1,0 +1,36 @@
+<main id="pdp-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 pb-16 md:pb-24 relative z-20">
+  <div class="max-w-7xl mx-auto px-6">
+    <button onclick="switchView('shop')" class="mb-6 md:mb-8 text-[10px] md:text-xs tracking-widest uppercase font-bold hover:opacity-50 transition text-[#8ea4be]"><i class="fa-solid fa-arrow-left"></i> <span data-tr="pdp_back">Back</span></button>
+    <div class="flex flex-col lg:flex-row gap-6 lg:gap-16">
+      <div class="w-full lg:w-1/2 flex flex-col-reverse lg:flex-row gap-4">
+        <div id="pdp-gallery" class="w-full lg:w-20 flex flex-row lg:flex-col gap-3 md:gap-4 overflow-x-auto lg:overflow-y-auto hide-scroll h-auto lg:h-[60vh] pb-2 lg:pb-0"></div>
+        <div class="flex-grow bg-[#0e141a] border border-[#1e2a36] p-4 md:p-10 flex items-center justify-center">
+          <img id="main-pdp-img" src="" class="w-full h-auto max-h-[50vh] md:max-h-[70vh] object-contain" alt="Main Product">
+        </div>
+      </div>
+      <div class="w-full lg:w-1/2 text-white mt-4 lg:mt-0">
+        <h1 id="pdp-title" class="display-font text-3xl md:text-5xl uppercase mb-2">Product Title</h1>
+        <div class="flex items-center gap-4 mb-4 md:mb-6">
+          <p id="pdp-price" class="font-bold text-lg md:text-xl tracking-widest">0 EGP</p>
+        </div>
+        <p id="pdp-details" class="text-[#8ea4be] text-xs md:text-sm leading-relaxed mb-6 md:mb-8"></p>
+        <div class="mb-6 md:mb-8 border-t border-b border-[#1e2a36] py-4 md:py-6">
+          <div class="flex justify-between items-center mb-4">
+            <span class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-[#8ea4be]" data-tr="shop_size">Size</span>
+            <button onclick="toggleSizeGuide()" class="text-[9px] md:text-[10px] tracking-widest uppercase underline text-white" data-tr="size_guide_title">Size Guide</button>
+          </div>
+          <div class="grid grid-cols-4 gap-2 md:gap-4">
+            <label class="cursor-pointer"><input type="radio" name="pdp-size" value="M" class="hidden peer"><div class="py-2 md:py-3 text-center border border-[#2b3a4a] text-xs md:text-sm tracking-widest font-bold transition uppercase peer-checked:bg-white peer-checked:text-black">M</div></label>
+            <label class="cursor-pointer"><input type="radio" name="pdp-size" value="L" class="hidden peer" checked><div class="py-2 md:py-3 text-center border border-[#2b3a4a] text-xs md:text-sm tracking-widest font-bold transition uppercase peer-checked:bg-white peer-checked:text-black">L</div></label>
+            <label class="cursor-pointer"><input type="radio" name="pdp-size" value="XL" class="hidden peer"><div class="py-2 md:py-3 text-center border border-[#2b3a4a] text-xs md:text-sm tracking-widest font-bold transition uppercase peer-checked:bg-white peer-checked:text-black">XL</div></label>
+            <label class="cursor-pointer"><input type="radio" name="pdp-size" value="XXL" class="hidden peer"><div class="py-2 md:py-3 text-center border border-[#2b3a4a] text-xs md:text-sm tracking-widest font-bold transition uppercase peer-checked:bg-white peer-checked:text-black">XXL</div></label>
+          </div>
+        </div>
+        <div class="flex gap-3 md:gap-4">
+          <button id="main-add-btn" onclick="addPdpToCart()" class="flex-grow bg-white text-black py-4 md:py-5 text-[10px] md:text-sm tracking-widest font-bold uppercase hover:bg-gray-300 transition" data-tr="pdp_add_cart">Add To Cart</button>
+          <button onclick="toggleWishlistFromPDP(event, this)" class="w-14 md:w-16 flex items-center justify-center border border-[#2b3a4a] hover:border-[#4fb3d9] transition group"><i class="fa-regular fa-heart text-lg md:text-xl group-hover:text-red-500 transition"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

@@ -1,0 +1,170 @@
+<div id="toast-notification" class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[300] bg-[#131b23] border border-[#2b3a4a] px-4 py-3 md:px-6 md:py-4 flex items-center gap-3 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-none shadow-2xl w-[90%] md:w-auto">
+  <i id="toast-icon" class="fa-solid fa-circle-info text-white text-lg"></i>
+  <span id="toast-message" class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-white"></span>
+</div>
+<div class="noise"></div>
+<div id="splash-screen" class="fixed inset-0 z-[120] bg-[#090e13] flex flex-col items-center justify-center">
+  <h1 id="splash-text" class="brand-ar text-5xl md:text-7xl text-white tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] animate-pulse opacity-0 transition-opacity duration-300">عـتـيـق</h1>
+</div>
+<div id="success-modal" class="fixed inset-0 bg-[#090e13] z-[200] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500 p-6 text-center">
+  <i class="fa-solid fa-circle-check text-5xl md:text-6xl text-white mb-6 animate-bounce"></i>
+  <h2 class="display-font text-3xl md:text-4xl text-white uppercase mb-4" data-tr="order_confirmed">Order Confirmed</h2>
+  <p class="text-[#8ea4be] text-xs md:text-sm tracking-widest uppercase mb-2" data-tr="order_serial_lbl">Your Order Serial Number is:</p>
+  <p id="order-serial" class="text-white text-xl md:text-3xl tracking-widest font-bold border border-[#2b3a4a] px-6 py-3 md:px-8 md:py-4 bg-[#131b23] mb-6 shadow-[0_0_20px_rgba(255,255,255,0.1)]"></p>
+  <p class="text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase mb-10 max-w-md" data-tr="order_email_msg">An automated email with your invoice and carrier tracking number has been sent to <span id="user-email-confirm" class="text-white font-bold"></span>.</p>
+  <button onclick="closeSuccessModal()" class="text-xs tracking-widest uppercase font-bold text-black bg-white hover:bg-gray-300 transition px-8 py-4" data-tr="return_home">Return to Home</button>
+</div>
+<div id="auth-modal" class="fixed inset-0 bg-black/90 z-[200] hidden flex-col items-center justify-center p-4 backdrop-blur-sm">
+  <button onclick="toggleAuthModal()" class="absolute top-6 right-6 md:top-8 md:right-8 text-white text-2xl md:text-3xl hover:text-[#6e849c] transition"><i class="fa-solid fa-xmark"></i></button>
+  <div class="w-full max-w-md bg-[#0e141a] border border-[#1e2a36] p-6 md:p-10 relative">
+    <div id="login-form-container" class="block">
+      <h2 class="display-font text-4xl md:text-5xl text-white uppercase mb-2" data-tr="nav_login">Log In</h2>
+      <p class="text-[10px] md:text-xs text-[#6e849c] tracking-widest uppercase mb-8" data-tr="login_subtitle">Access your orders and wishlist</p>
+      <form onsubmit="window.parent.handleLogin(event)" class="flex flex-col gap-6">
+        <div class="border-b border-[#2b3a4a] pb-2">
+          <input type="email" id="login-email" data-tr="ph_email" placeholder="Email Address" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+        </div>
+        <div class="border-b border-[#2b3a4a] pb-2">
+          <input type="password" id="login-password" data-tr="ph_password" placeholder="Password" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+        </div>
+        <button type="submit" class="w-full bg-white text-black py-4 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition mt-2" data-tr="nav_login">Sign In</button>
+      </form>
+      <p class="text-center text-[10px] text-[#6e849c] tracking-widest uppercase mt-6" data-tr="dont_have_acc">Don't have an account? <button type="button" onclick="document.getElementById('login-form-container').classList.add('hidden'); document.getElementById('register-form-container').classList.remove('hidden');" class="text-white hover:text-[#8ea4be] border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition" data-tr="register_btn">REGISTER</button></p>
+    </div>
+    <div id="register-form-container" class="hidden">
+      <h2 class="display-font text-4xl md:text-5xl text-white uppercase mb-2" data-tr="register_btn">Register</h2>
+      <p class="text-[10px] md:text-xs text-[#6e849c] tracking-widest uppercase mb-8" data-tr="register_subtitle">Create an account to track orders</p>
+      <form onsubmit="window.parent.handleRegister(event)" class="flex flex-col gap-6">
+        <div class="border-b border-[#2b3a4a] pb-2">
+          <input type="text" id="reg-name" data-tr="ph_fullname" placeholder="Full Name" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+        </div>
+        <div class="border-b border-[#2b3a4a] pb-2">
+          <input type="email" id="reg-email" data-tr="ph_email" placeholder="Email Address" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+        </div>
+        <div class="border-b border-[#2b3a4a] pb-2">
+          <input type="password" id="reg-password" data-tr="ph_password" placeholder="Password" class="w-full bg-transparent text-white text-[10px] md:text-xs tracking-widest outline-none" required>
+        </div>
+        <button type="submit" class="w-full bg-white text-black py-4 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-200 transition mt-2" data-tr="create_acc_btn">Create Account</button>
+      </form>
+      <p class="text-center text-[10px] text-[#6e849c] tracking-widest uppercase mt-6" data-tr="already_have_acc">Already have an account? <button type="button" onclick="document.getElementById('register-form-container').classList.add('hidden'); document.getElementById('login-form-container').classList.remove('hidden');" class="text-white hover:text-[#8ea4be] border-b border-white hover:border-gray-400 pb-0.5 ml-1 transition" data-tr="nav_login">LOG IN</button></p>
+    </div>
+  </div>
+</div>
+<div id="size-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-4">
+  <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-2xl p-6 md:p-12 relative">
+    <button onclick="toggleSizeGuide()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white text-xl hover:text-[#8ea4be]"><i class="fa-solid fa-xmark"></i></button>
+    <h2 class="display-font text-2xl md:text-3xl text-white uppercase mb-6" data-tr="size_guide_title">Size Guide</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs md:text-sm text-[#8ea4be]">
+        <thead class="text-[10px] md:text-xs uppercase bg-[#1a232c] text-white tracking-widest">
+          <tr><th class="p-3 md:p-4 border-b border-[#2b3a4a]" data-tr="size_lbl">Size</th><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Chest (cm)</th><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Length (cm)</th><th class="p-3 md:p-4 border-b border-[#2b3a4a]">Sleeve (cm)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">M</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">59</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">69</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">58</td></tr>
+          <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">L</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">62</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">72</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">60</td></tr>
+          <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">XL</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">65</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">75</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">62</td></tr>
+          <tr><td class="p-3 md:p-4 border-b border-[#1e2a36] text-white">XXL</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">68</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">78</td><td class="p-3 md:p-4 border-b border-[#1e2a36]">64</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-[#6e849c] text-[9px] md:text-[10px] tracking-widest uppercase mt-6" data-tr="size_note">* All measurements are approximate. Fit is deliberately oversized.</p>
+  </div>
+</div>
+<div id="settings-modal" class="fixed inset-0 bg-black/90 z-[150] flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm p-4">
+  <div class="bg-[#0e141a] border border-[#2b3a4a] w-full max-w-md p-6 md:p-8 relative max-h-[90vh] flex flex-col">
+    <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white text-xl hover:text-[#8ea4be] z-10"><i class="fa-solid fa-xmark"></i></button>
+    <div class="flex items-center gap-4 mb-4 border-b border-[#1e2a36] pb-4 shrink-0">
+      <div class="w-12 h-12 md:w-14 md:h-14 bg-[#1a1a1a] rounded-full border border-[#2b3a4a] flex items-center justify-center text-lg md:text-xl">
+        <i class="fa-solid fa-user-pen text-[#8ea4be]"></i>
+      </div>
+      <div>
+        <h2 class="display-font text-lg md:text-xl text-white uppercase" data-tr="settings_title">Settings</h2>
+        <p class="text-[#6e849c] text-[9px] md:text-[10px] tracking-widest uppercase"><i class="fa-solid fa-circle-check text-green-500 mr-1"></i> <span data-tr="verified_member">Verified Member</span></p>
+      </div>
+    </div>
+    <div class="overflow-y-auto hide-scroll pr-2 mb-4 space-y-6 md:space-y-8">
+      <div class="bg-[#131b23] border border-[#1e2a36] p-4 md:p-6 text-center">
+        <h3 class="display-font text-white text-base md:text-lg uppercase mb-2" data-tr="track_order_title">Track Your Order</h3>
+        <p class="text-[#6e849c] text-[9px] md:text-[10px] tracking-widest uppercase mb-4" data-tr="track_order_subtitle">Enter your serial number below</p>
+        <input type="text" id="track-serial" data-tr="ph_serial_input" placeholder="ATQ-2026-..." class="w-full bg-black border border-[#2b3a4a] text-white p-3 text-center text-xs outline-none focus:border-[#4fb3d9] transition mb-3 uppercase tracking-wider">
+        <button onclick="trackOrder(event)" class="w-full border border-[#2b3a4a] text-white py-3 text-[10px] tracking-widest font-bold uppercase hover:bg-white hover:text-black transition flex items-center justify-center gap-2" data-tr="track_status_btn">Track Status</button>
+        <div id="track-result" class="mt-4 text-[10px] md:text-xs hidden border-t border-[#1e2a36] pt-4 text-left"></div>
+      </div>
+      <form onsubmit="window.parent.saveProfileData(event)" class="space-y-3 md:space-y-4 text-sm tracking-widest uppercase border-t border-[#1e2a36] pt-6">
+        <h3 class="display-font text-white text-xs md:text-sm uppercase mb-3 text-center" data-tr="edit_profile_title">Edit Profile</h3>
+        <div>
+          <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1" data-tr="ph_fullname">Full Name</label>
+          <input type="text" id="edit-name" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition" required>
+        </div>
+        <div>
+          <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1" data-tr="ph_email">Email Address</label>
+          <input type="email" id="edit-email" class="w-full bg-[#1a232c] border border-[#2b3a4a] text-[#6e849c] p-2 md:p-3 text-xs tracking-widest outline-none cursor-not-allowed" readonly>
+        </div>
+        <div class="flex gap-4">
+          <div class="w-2/3">
+            <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1" data-tr="phone_lbl">Phone Number</label>
+            <input type="tel" id="edit-phone" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition">
+          </div>
+          <div class="w-1/3">
+            <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1" data-tr="age_lbl">Age</label>
+            <input type="number" id="edit-age" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition">
+          </div>
+        </div>
+        <div>
+          <label class="text-[#6e849c] text-[9px] md:text-[10px] block mb-1" data-tr="gov_lbl">City / Governorate</label>
+          <input type="text" id="edit-city" class="w-full bg-transparent border border-[#2b3a4a] text-white p-2 md:p-3 text-xs tracking-widest outline-none focus:border-[#4fb3d9] transition">
+        </div>
+      </form>
+    </div>
+    <div class="shrink-0 border-t border-[#1e2a36] pt-4 mt-2 flex flex-col gap-3">
+      <button type="button" onclick="saveProfileData()" id="save-profile-btn" class="w-full bg-[#4fb3d9] text-[#0e141a] py-3 text-[10px] tracking-widest uppercase font-bold hover:bg-white transition">Save Changes</button>
+      <button onclick="handleLogout()" class="w-full border border-red-900 text-red-500 py-3 text-[10px] tracking-widest uppercase hover:bg-red-900/20 transition">LOG OUT</button>
+    </div>
+  </div>
+</div>
+<div id="cart-overlay" class="fixed inset-0 bg-black/80 z-[100] opacity-0 pointer-events-none transition-opacity duration-300" onclick="toggleCart()"></div>
+<div id="cart-panel" class="fixed top-0 right-0 h-full w-full md:w-[400px] bg-[#0e141a] border-l border-[#1e2a36] z-[101] transform translate-x-full transition-transform duration-500 flex flex-col">
+  <div class="flex justify-between items-center p-6 md:p-8 border-b border-[#1e2a36]">
+    <h2 class="display-font text-2xl md:text-3xl text-white uppercase" data-tr="nav_cart">CART</h2>
+    <button onclick="toggleCart()" class="text-white text-xl md:text-2xl hover:text-[#8ea4be] transition"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div id="cart-items" class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6"></div>
+  <div class="p-6 md:p-8 border-t border-[#1e2a36] bg-[#131b23]">
+    <div class="flex justify-between text-white font-bold tracking-widest uppercase text-[10px] md:text-sm mb-6">
+      <span data-tr="total_price">Total</span>
+      <span id="cart-total">0 EGP</span>
+    </div>
+    <button onclick="goToCheckout()" class="w-full bg-white text-black py-4 md:py-5 text-[10px] md:text-xs tracking-widest font-bold uppercase hover:bg-gray-300 transition flex items-center justify-center gap-3" data-tr="proceed_checkout">PROCEED TO CHECKOUT</button>
+  </div>
+</div>
+<nav class="fixed top-0 left-0 w-full z-40 mix-blend-difference px-4 py-4 md:px-6 md:py-6 flex justify-between items-center text-white">
+  <div class="hidden md:flex items-center gap-8 text-xs tracking-widest uppercase font-bold w-1/3">
+    <a href="#" onclick="switchView('home'); return false;" class="hover:opacity-50 transition" data-tr="nav_home">Home</a>
+    <a href="#" onclick="switchView('shop'); return false;" class="hover:opacity-50 transition" data-tr="nav_shop">Shop</a>
+    <a href="#" onclick="switchView('about'); return false;" class="hover:opacity-50 transition" data-tr="nav_story">Story</a>
+  </div>
+  <div class="md:hidden w-1/3 flex justify-start">
+    <button onclick="toggleMobileMenu()" class="text-white text-xl"><i class="fa-solid fa-bars"></i></button>
+  </div>
+  <div class="w-1/3 flex justify-center">
+    <a href="#" onclick="switchView('home'); return false;" class="brand-ar text-3xl md:text-5xl hover:opacity-70 transition cursor-pointer leading-none mt-1">عـتـيـق</a>
+  </div>
+  <div class="w-1/3 flex justify-end items-center gap-4 md:gap-6 text-[10px] md:text-xs tracking-widest uppercase font-bold relative z-50">
+    <button onclick="toggleLang()" id="lang-toggle-btn" class="hover:opacity-50 transition text-xs font-bold border border-white/20 px-2 py-1 bg-white/5 backdrop-blur-sm">ع</button>
+    <a href="#" id="nav-auth-btn" onclick="toggleAuthModal(); return false;" class="hidden md:block hover:opacity-50 transition uppercase" data-tr="nav_login">Log In</a>
+    <a href="#" id="nav-profile-btn" onclick="switchView('profile'); toggleSettingsModal(); return false;" class="hover:opacity-50 transition" style="display: none;"><i class="fa-regular fa-user text-base md:text-lg"></i></a>
+    <a href="#" onclick="switchView('profile'); return false;" class="hover:text-red-500 transition text-base md:text-lg flex items-center" title="Wishlist"><i class="fa-regular fa-heart"></i></a>
+    <a href="#" onclick="toggleCart(); return false;" class="hover:opacity-50 transition flex items-center gap-1.5 md:gap-2 cursor-pointer transition-transform duration-300" data-tr="nav_cart_lbl">CART <span id="cart-count" class="bg-white text-black rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center text-[8px] md:text-[10px]">0</span></a>
+  </div>
+</nav>
+<div id="mobile-menu" class="fixed inset-0 z-50 bg-[#090e13] opacity-0 invisible flex flex-col justify-center px-8 transition-all duration-300">
+  <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+  <nav class="flex flex-col gap-6 display-font text-3xl text-white uppercase relative z-50">
+    <a href="#" onclick="switchView('home'); toggleMobileMenu(); return false;" class="hover:text-[#6e849c] transition" data-tr="nav_home">Home</a>
+    <a href="#" onclick="switchView('shop'); toggleMobileMenu(); return false;" class="hover:text-[#6e849c] transition" data-tr="nav_shop">Shop All</a>
+    <a href="#" onclick="switchView('about'); toggleMobileMenu(); return false;" class="hover:text-[#6e849c] transition" data-tr="nav_story">Our Story</a>
+    <a href="#" onclick="switchView('profile'); toggleMobileMenu(); return false;" class="hover:text-[#6e849c] transition" data-tr="prof_wishlist">Wishlist</a>
+    <a href="#" id="mobile-profile-btn" onclick="switchView('profile'); toggleMobileMenu(); return false;" class="hidden hover:text-[#6e849c] transition" data-tr="my_account_lbl">My Account</a>
+    <a href="#" id="mobile-auth-btn" onclick="toggleAuthModal(); toggleMobileMenu(); return false;" class="hover:text-[#6e849c] transition" data-tr="nav_login">Log In</a>
+  </nav>
+</div>

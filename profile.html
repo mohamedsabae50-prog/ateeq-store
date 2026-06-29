@@ -1,0 +1,33 @@
+<main id="profile-view" class="view-section hidden w-full min-h-screen bg-[#0e141a] pb-24 relative z-20" style="padding-top: 140px;">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="flex justify-between items-end mb-10 border-b border-[#1e2a36] pb-4">
+      <div>
+        <h1 class="display-font text-4xl md:text-5xl text-white uppercase" data-tr="my_account">My Account</h1>
+        <p class="text-[#6e849c] text-[10px] md:text-xs tracking-widest uppercase mt-2" data-tr="welcome_back">Welcome back to ATEEQ</p>
+      </div>
+      <button onclick="toggleSettingsModal()" class="text-[#8ea4be] hover:text-[#4fb3d9] transition text-xs md:text-sm tracking-widest uppercase flex items-center gap-2 border border-[#1e2a36] px-4 py-2 bg-[#131b23]">
+        <i class="fa-solid fa-gear"></i> <span class="hidden md:inline" data-tr="settings_btn">Settings</span>
+      </button>
+    </div>
+    <div class="mb-16">
+      <h2 class="text-white text-lg md:text-xl uppercase tracking-widest mb-6 flex items-center gap-3">
+        <i class="fa-solid fa-box text-[#8ea4be]"></i> <span data-tr="my_orders">My Orders</span>
+      </h2>
+      <div id="orders-container" class="flex flex-col gap-4">
+        <div class="p-8 border border-dashed border-[#1e2a36] text-center bg-[#131b23]">
+          <p class="text-[#6e849c] text-xs tracking-widest uppercase" data-tr="no_orders">No orders found yet.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h2 class="text-white text-lg md:text-xl uppercase tracking-widest mb-6 flex items-center gap-3">
+        <i class="fa-regular fa-heart text-[#8ea4be]"></i> <span data-tr="wishlist_title">Wishlist & Suggestions</span>
+      </h2>
+      <div id="wishlist-container" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-8 border border-dashed border-[#1e2a36] text-center bg-[#131b23] col-span-full">
+          <p class="text-[#6e849c] text-xs tracking-widest uppercase" data-tr="empty_wishlist">Your wishlist is empty.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

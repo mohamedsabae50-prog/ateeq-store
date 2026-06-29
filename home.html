@@ -1,0 +1,80 @@
+<main id="home-view" class="view-section block w-full min-h-screen">
+  <section class="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-[#090e13]">
+    <div class="absolute inset-0 w-full h-full">
+      <img src="media/hero.jpg" alt="Hero Image" class="absolute inset-0 w-full h-full object-cover">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/50"></div>
+    <h1 id="main-hero-title" data-tr="hero_main_title" class="relative z-10 display-font text-7xl md:text-[18vw] leading-none uppercase text-center mt-10 hero-title tracking-tighter transition-all duration-500">ATEEQ</h1>
+    <div class="absolute bottom-8 left-6 hidden md:block text-[10px] tracking-widest uppercase text-[#6e849c] w-48 text-left" data-tr="hero_t1">Redefining modern silhouettes. <br>Crafted from ultra-heavyweight premium blends.</div>
+    <div class="absolute bottom-8 right-6 hidden md:block text-[10px] tracking-widest uppercase text-[#6e849c] text-right" data-tr="hero_t2">Alexandria, EG <br> Est. 2026</div>
+  </section>
+  <section id="featured-shop" class="w-full flex flex-col md:flex-row min-h-[70vh] md:min-h-[80vh] border-b border-[#1e2a36] slow-reveal">
+    <div onclick="window.goToShop()" class="relative w-full md:w-1/2 h-[40vh] md:h-auto group cursor-pointer overflow-hidden border-b md:border-b-0 md:border-r border-[#1e2a36]">
+      <img src="media/blanks.jpg" alt="Blanks Collection" class="absolute inset-0 w-full h-full object-cover">
+      <div class="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
+        <div class="w-full flex flex-col items-start gap-4 mt-auto">
+          <h2 class="display-font text-4xl md:text-6xl text-white group-hover:translate-x-3 transition-transform duration-300">BLANKS</h2>
+          <span class="text-xs md:text-sm font-bold tracking-widest uppercase border-2 border-white px-6 py-3 w-max rounded-full backdrop-blur-md bg-black/40 text-white group-hover:bg-white group-hover:text-black transition-all duration-300">View Collection</span>
+        </div>
+      </div>
+    </div>
+    <div onclick="switchView('studio');" class="relative w-full md:w-1/2 h-[40vh] md:h-auto group cursor-pointer overflow-hidden">
+      <img src="media/custom.png" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:opacity-80 transition-opacity duration-500">
+      <div class="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
+        <div class="w-full flex flex-col items-start gap-4 mt-auto">
+          <h2 class="display-font text-4xl md:text-6xl text-white group-hover:translate-x-3 transition-transform duration-300">CUSTOM DESIGN</h2>
+          <span class="text-xs md:text-sm font-bold tracking-widest uppercase border-2 border-white px-6 py-3 w-max rounded-full backdrop-blur-md bg-black/40 text-white group-hover:bg-white group-hover:text-black transition-all duration-300">Request Custom</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="relative w-full min-h-[60vh] md:min-h-screen bg-[#0e141a] border-b border-[#1e2a36] flex flex-col items-center justify-center overflow-hidden py-16 md:py-20 slow-reveal">
+    <div class="relative w-full max-w-4xl h-[40vh] md:h-[70vh] flex items-center justify-center mt-12 md:mt-10">
+      <div class="absolute bottom-6 md:bottom-10 w-[80%] md:w-[60%] h-[20vw] md:h-[15vw] bg-[#1a1a1a] rounded-full blur-2xl podium border border-[#2b3a4a] z-0"></div>
+      <video autoplay loop muted playsinline width="100%" class="relative z-10 pointer-events-none">
+        <source src="media/hoodie.mp4" type="video/mp4">
+      </video>
+    </div>
+  </section>
+  <section class="w-full py-16 md:py-24 bg-[#090e13] border-b border-[#1e2a36] overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6 md:px-8 mb-10 md:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <div>
+        <h2 class="display-font text-2xl md:text-5xl text-white uppercase flex items-center gap-3 md:gap-4" dir="ltr">
+          <i class="fa-brands fa-instagram text-[#8ea4be]"></i> @ateeq__eg
+        </h2>
+        <p class="text-[#6e849c] text-[10px] md:text-xs tracking-widest uppercase mt-2" data-tr="instagram_txt">Follow us for the latest drops & behind the scenes</p>
+      </div>
+      <a href="https://www.instagram.com/ateeq__eg/" target="_blank" class="text-[10px] md:text-xs tracking-widest uppercase font-bold text-[#8ea4be] hover:text-white transition border-b border-[#2b3a4a] pb-1 w-max">View on Instagram</a>
+    </div>
+    <div class="relative w-full overflow-hidden" dir="ltr">
+      <div class="absolute top-0 left-0 w-12 md:w-32 h-full bg-gradient-to-r from-[#030303] to-transparent z-10 pointer-events-none"></div>
+      <div class="absolute top-0 right-0 w-12 md:w-32 h-full bg-gradient-to-l from-[#030303] to-transparent z-10 pointer-events-none"></div>
+      <style>
+        @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(calc(-50% - 8px))}}
+        .animate-marquee{display:flex;width:max-content;animation:marquee 25s linear infinite}
+        .animate-marquee:hover{animation-play-state:paused}
+      </style>
+      <div class="animate-marquee gap-4 pb-8">
+        <div id="insta-feed" class="flex gap-4 shrink-0">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/3.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/4.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/5.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/6.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/9.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/10.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+        </div>
+        <div id="insta-feed-clone" class="flex gap-4 shrink-0" aria-hidden="true">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/3.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/4.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/5.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/6.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/9.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+          <img onclick="window.open('https://www.instagram.com/ateeq__eg/', '_blank')" src="media/10.png" class="h-48 md:h-72 w-48 md:w-72 object-cover shrink-0 opacity-70 hover:opacity-100 transition duration-300 cursor-pointer">
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="w-full flex justify-center mt-12 mb-16 px-6">
+    <button onclick="switchView('shop')" class="bg-white text-black py-4 px-10 text-sm md:text-base font-bold tracking-widest uppercase hover:bg-gray-200 transition">Shop All Collection</button>
+  </div>
+</main>

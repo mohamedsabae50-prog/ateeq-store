@@ -1,0 +1,37 @@
+<main id="shop-view" class="view-section hidden w-full min-h-screen bg-[#090e13] pt-24 md:pt-32 relative z-20">
+  <div class="max-w-7xl mx-auto px-6 pb-16 md:pb-24 flex flex-col md:flex-row gap-8 md:gap-10">
+    <aside class="w-full md:w-1/4 flex flex-col gap-6 border-b md:border-b-0 md:border-r border-[#1e2a36] pb-6 md:pb-0 md:pr-6">
+      <div>
+        <h3 class="text-white tracking-widest uppercase font-bold text-xs md:text-sm mb-3 border-b border-[#1e2a36] pb-2 md:pb-0 md:border-none" data-tr="shop_cat">Category</h3>
+        <div class="flex flex-row flex-wrap md:flex-col gap-4 md:gap-2 text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase">
+          <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max"><input type="checkbox" value="all" class="filter-category-checkbox" checked> <span data-tr="shop_all">All</span></label>
+          <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max"><input type="checkbox" value="hoodies" class="filter-category-checkbox"> <span data-tr="shop_hoodies">Hoodies</span></label>
+          <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max"><input type="checkbox" value="t-shirts" class="filter-category-checkbox"> <span data-tr="shop_tshirts">T-Shirts</span></label>
+          <label class="flex items-center gap-2 cursor-pointer hover:text-[#4fb3d9] w-max"><input type="checkbox" value="pants" class="filter-category-checkbox"> <span data-tr="shop_pants">Pants</span></label>
+        </div>
+      </div>
+      <div class="hidden md:block"><div class="flex flex-col gap-2 text-[#8ea4be] text-[10px] md:text-xs tracking-widest uppercase"></div></div>
+    </aside>
+    <div class="w-full md:w-3/4">
+      <div class="flex justify-between items-center mb-6 border-b border-[#1e2a36] pb-4 gap-2">
+        <h3 class="text-white display-font text-2xl md:text-3xl uppercase" data-tr="shop_prod">Products</h3>
+        <div class="flex items-center gap-2 md:gap-6">
+          <span id="results-count" class="text-[#6e849c] text-[9px] md:text-xs tracking-widest uppercase hidden sm:inline" data-tr="results">0 Results</span>
+          <select id="sort-select" class="bg-transparent text-white text-[9px] md:text-xs tracking-widest uppercase font-bold border border-[#2b3a4a] p-1.5 md:p-2 focus:outline-none cursor-pointer">
+            <option value="default" class="bg-black" data-tr="featured">Featured</option>
+            <option value="price-asc" class="bg-black" data-tr="price_low">Price: Low - High</option>
+            <option value="price-desc" class="bg-black" data-tr="price_high">Price: High - Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="w-full bg-[#111a22] border border-[#1e2a36] p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 rounded-sm">
+        <div class="text-center md:text-left">
+          <h3 class="text-white text-base md:text-lg tracking-widest uppercase mb-1">Looking for a Unique Piece?</h3>
+          <p class="text-[#8ea4be] text-xs md:text-sm">We create custom designs tailored exactly to your style.</p>
+        </div>
+        <button onclick="switchView('studio')" class="whitespace-nowrap bg-transparent border border-white text-white py-3 px-6 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition">Request Custom</button>
+      </div>
+      <div class="grid grid-cols-2 gap-4 md:gap-8 mb-16" id="products-container"></div>
+    </div>
+  </div>
+</main>
