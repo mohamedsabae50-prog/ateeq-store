@@ -65,7 +65,7 @@ export const submitOrder = async function(event) {
             const { error: designError } = await window.supabaseClient.storage.from('custom-designs').upload(designFileName, blob, { contentType: 'image/png' });
             if (designError) throw new Error("Storage Error: " + designError.message);
             customDesignUrl = window.supabaseClient.storage.from('custom-designs').getPublicUrl(designFileName).data.publicUrl;
-           }
+        }
         const cleanCartForDB = await Promise.all(cartItems.map(async item => {
             if (item.type === 'CUSTOM') {
                 let uploadedHqUrl = null;
@@ -96,13 +96,20 @@ export const submitOrder = async function(event) {
         }]);
         if (error) throw error;
         for (const item of cartItems) {
-            if (item.type === 'STORE' && item.title) {
-                const { data: prod } = await window.supabaseClient.from('products').select('stock_count').eq('name', item.title).single();
-                if (prod) {
-                    let newCount = prod.stock_count - 1;
-                    let newStatus = newCount <= 0 ? 'Out of Stock' : 'In Stock';
-                    await window.supabaseClient.from('products').update({ stock_count: newCount, stock_status: newStatus }).eq('name', item.title);
-                }}}
+            if (item.type === 'STORE' && item.product_id && !item.preorder) {
+                try {
+                    const { data: prod } = await window.supabaseClient.from('products').select('stock').eq('id', item.product_id).single();
+                    if (prod) {
+                        const currentStock = parseInt(prod.stock) || 0;
+                        if (currentStock > 0) {
+                            const newCount = currentStock - 1;
+                            const newStatus = newCount <= 0 ? 'Out of Stock' : 'In Stock';
+                            await window.supabaseClient.from('products').update({ stock: newCount, stock_status: newStatus }).eq('id', item.product_id);
+                        }
+                    }
+                } catch(e) {}
+            }
+        }
         try { 
             await window.emailjs.send("service_58ov5us", "template_kmoa9gi", { 
                 serial_number: serialNumber, 
@@ -110,9 +117,9 @@ export const submitOrder = async function(event) {
                 total_amount: totalAmount, 
                 payment_method: paymentMethod 
             }); 
-         console.log("✅ Emails sent successfully!");
+            console.log("✅ Emails sent successfully!");
         } catch (emailErr) {
-          console.error("❌ Failed to send email:", emailErr);
+            console.error("❌ Failed to send email:", emailErr);
         }            
         const serialEl = document.getElementById('order-serial');
         if (serialEl) { if (serialEl.tagName === 'INPUT') serialEl.value = serialNumber; else serialEl.textContent = serialNumber; }
