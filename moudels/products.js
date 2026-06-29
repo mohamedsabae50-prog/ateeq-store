@@ -51,7 +51,22 @@ export const goToPDP = function(productId) {
     if (detailsEl) detailsEl.innerText = product.details;
     if (priceEl) priceEl.textContent = product.price + ' EGP';
     if (mainImageEl) mainImageEl.src = product.image_url;
+const pdpStockStatusEl = document.getElementById('pdp-stock-status');
+const pdpAddToCartBtnEl = document.getElementById('pdp-add-to-cart-btn');
 
+if (pdpStockStatusEl && pdpAddToCartBtnEl) {
+    const stockCount = product.stock || 0;
+    
+    if (stockCount > 0) {
+        pdpStockStatusEl.innerHTML = `<span class="text-green-500"><i class="fa-solid fa-fire mr-1"></i> Only ${stockCount} left in stock!</span>`;
+        pdpAddToCartBtnEl.innerHTML = 'ADD TO CART';
+        window.currentProductIsPreorder = false; 
+    } else {
+        pdpStockStatusEl.innerHTML = `<span class="text-orange-500"><i class="fa-solid fa-clock mr-1"></i> Out of stock. Pre-order now and we will notify you when ready!</span>`;
+        pdpAddToCartBtnEl.innerHTML = 'PRE-ORDER NOW';
+        window.currentProductIsPreorder = true; 
+    }
+}
     const galleryContainer = document.getElementById('pdp-gallery');
     let galleryHTML = `<img src="${product.image_url}" onclick="document.getElementById('main-pdp-img').src=this.src" class="w-full aspect-[4/5] object-cover border border-[#333] cursor-pointer opacity-50 hover:opacity-100 transition">`;
     if (product.hover_image_url) {
