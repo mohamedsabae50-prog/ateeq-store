@@ -137,25 +137,35 @@ export const removeFromCart = function(index) {
 export const addPdpToCart = function() {
     const sizeInput = document.querySelector('input[name="pdp-size"]:checked');
     const size = sizeInput ? sizeInput.value : 'L';
+    
     const titleEl = document.getElementById('pdp-title');
-    const priceEl = document.getElementById('pdp-price');
     const title = titleEl ? titleEl.textContent : 'Product';
+    
+    const priceEl = document.getElementById('pdp-price');
     const priceText = priceEl ? priceEl.textContent : '0 EGP';
     const price = parseFloat(priceText.replace(' EGP', '')) || 0;
 
-    window.cart.push({ 
-    id: Date.now(), 
-    product_id: window.currentProductId,
-    type: 'STORE', 
-    title: finalTitle, 
-    size: size, 
-    price: price,
-    preorder: isPreorder 
-});
-    saveCart();
+    const isPreorder = window.currentProductIsPreorder || false;
+    let finalTitle = title;
+    if (isPreorder) {
+        finalTitle = `[PRE-ORDER] ${title}`;
+    }
 
+    if (!Array.isArray(window.cart)) window.cart = [];
+
+    window.cart.push({ 
+        id: Date.now(), 
+        product_id: window.currentProductId,
+        type: 'STORE', 
+        title: finalTitle, 
+        size: size, 
+        price: price,
+        preorder: isPreorder 
+    });
+    
+    if (typeof window.saveCart === 'function') window.saveCart();
     if (typeof window.toggleCart === 'function') window.toggleCart();
-    if (typeof window.animateCartIcon === 'function') window.animateCartIcon();
+    if (typeof window.animateCartIcon === 'function') window.animateCartIcon(); 
 };
 
 export const animateCartIcon = function() {
