@@ -74,5 +74,27 @@
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <script>
+    window.toggleMusic = function() {
+      const music = document.getElementById('bg-music');
+      const icon = document.getElementById('music-icon');
+      if (!music) return;
+      
+      if (music.paused) {
+        music.play().catch(err => console.log("Audio error:", err));
+        if (icon) {
+          icon.classList.remove('fa-volume-xmark');
+          icon.classList.add('fa-volume-high');
+        }
+      } else {
+        music.pause();
+        if (icon) {
+          icon.classList.remove('fa-volume-high');
+          icon.classList.add('fa-volume-xmark');
+        }
+      }
+    };
+  </script>
 </body>
 </html>
