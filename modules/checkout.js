@@ -1,5 +1,6 @@
 export const submitOrder = async function(event) {
     event.preventDefault();
+    window.cart = Array.isArray(window.cart) ? window.cart : [];
     const emailEl = document.getElementById('chk-email');
     const email = (emailEl && emailEl.value) ? emailEl.value : (window.currentUser ? window.currentUser.email : '');
     const paymentInput = document.querySelector('input[name="payment"]:checked');
@@ -137,6 +138,7 @@ export const submitOrder = async function(event) {
     }
 };
 export const goToCheckout = function() {
+    window.cart = Array.isArray(window.cart) ? window.cart : [];
     if (!window.isLoggedIn) {
         if (typeof window.toggleCart === 'function') window.toggleCart(); 
         if (typeof window.toggleAuthModal === 'function') window.toggleAuthModal(); 
