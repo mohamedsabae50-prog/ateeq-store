@@ -1,34 +1,15 @@
 <main id="home-view" class="view-section block w-full min-h-screen">
   <section class="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-[#090e13]">
     <div class="absolute inset-0 w-full h-full">
-      <img src="media/hero.jpg" alt="Hero Image" class="absolute inset-0 w-full h-full object-cover">
+      <img src="media/hero.jpg" alt="Hero Image" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
     </div>
     <div class="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/50"></div>
     <h1 id="main-hero-title" data-tr="hero_main_title" class="relative z-10 display-font text-7xl md:text-[18vw] leading-none uppercase text-center mt-10 hero-title tracking-tighter transition-all duration-500">ATEEQ</h1>
-    <div class="absolute bottom-8 left-6 hidden md:block text-[10px] tracking-widest uppercase text-[#6e849c] w-48 text-left" data-tr="hero_t1">Redefining modern silhouettes. <br>Crafted from ultra-heavyweight premium blends.</div>
-    <div class="absolute bottom-8 right-6 hidden md:block text-[10px] tracking-widest uppercase text-[#6e849c] text-right" data-tr="hero_t2">Alexandria, EG <br> Est. 2026</div>
+    <div class="absolute bottom-8 left-6 block text-[10px] tracking-widest uppercase text-[#6e849c] w-48 text-left" data-tr="hero_t1">Redefining modern silhouettes. <br>Crafted from ultra-heavyweight premium blends.</div>
+    <div class="absolute bottom-8 right-6 block text-[10px] tracking-widest uppercase text-[#6e849c] text-right" data-tr="hero_t2">Alexandria, EG <br> Est. 2026</div>
   </section>
-  <section id="featured-shop" class="w-full flex flex-col md:flex-row min-h-[70vh] md:min-h-[80vh] border-b border-[#1e2a36] slow-reveal">
-    <div onclick="window.goToShop()" class="relative w-full md:w-1/2 h-[40vh] md:h-auto group cursor-pointer overflow-hidden border-b md:border-b-0 md:border-r border-[#1e2a36]">
-      <img src="media/blanks.jpg" alt="Blanks Collection" class="absolute inset-0 w-full h-full object-cover">
-      <div class="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
-        <div class="w-full flex flex-col items-start gap-4 mt-auto">
-          <h2 class="display-font text-4xl md:text-6xl text-white group-hover:translate-x-3 transition-transform duration-300">BLANKS</h2>
-          <span class="text-xs md:text-sm font-bold tracking-widest uppercase border-2 border-white px-6 py-3 w-max rounded-full backdrop-blur-md bg-black/40 text-white group-hover:bg-white group-hover:text-black transition-all duration-300">View Collection</span>
-        </div>
-      </div>
-    </div>
-    <div onclick="switchView('studio');" class="relative w-full md:w-1/2 h-[40vh] md:h-auto group cursor-pointer overflow-hidden">
-      <img src="media/custom.png" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:opacity-80 transition-opacity duration-500">
-      <div class="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
-        <div class="w-full flex flex-col items-start gap-4 mt-auto">
-          <h2 class="display-font text-4xl md:text-6xl text-white group-hover:translate-x-3 transition-transform duration-300">CUSTOM DESIGN</h2>
-          <span class="text-xs md:text-sm font-bold tracking-widest uppercase border-2 border-white px-6 py-3 w-max rounded-full backdrop-blur-md bg-black/40 text-white group-hover:bg-white group-hover:text-black transition-all duration-300">Request Custom</span>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section class="relative w-full min-h-[60vh] md:min-h-screen bg-[#0e141a] border-b border-[#1e2a36] flex flex-col items-center justify-center overflow-hidden py-16 md:py-20 slow-reveal">
+
+  <section class="relative w-full min-h-[60vh] md:min-h-screen bg-[#0e141a] border-b border-[#1e2a36] flex flex-col items-center justify-center overflow-hidden py-16 md:py-20">
     <div class="relative w-full max-w-4xl h-[40vh] md:h-[70vh] flex items-center justify-center mt-12 md:mt-10">
       <div class="absolute bottom-6 md:bottom-10 w-[80%] md:w-[60%] h-[20vw] md:h-[15vw] bg-[#1a1a1a] rounded-full blur-2xl podium border border-[#2b3a4a] z-0"></div>
       <video autoplay loop muted playsinline width="100%" class="relative z-10 pointer-events-none">
@@ -36,6 +17,38 @@
       </video>
     </div>
   </section>
+
+  <section class="w-full py-20 md:py-32 bg-[#0a0a0a] border-b border-[#1e2a36] relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6 md:px-8 relative z-10 flex flex-col md:flex-row items-center gap-12">
+      <div class="w-full md:w-1/2">
+        <img src="media/4.png" alt="Blank Essentials" class="w-full h-auto object-cover border border-[#222] grayscale hover:grayscale-0 transition duration-700" onerror="this.style.display='none'">
+      </div>
+      <div class="w-full md:w-1/2 text-left">
+        <h2 data-tr="blank_title" class="display-font text-3xl md:text-6xl text-white uppercase mb-4 tracking-tighter">Blank<br>Essentials</h2>
+        <p data-tr="blank_desc" class="text-[#6e849c] text-xs md:text-sm tracking-widest uppercase mb-8 leading-relaxed">Pure minimalism. Uncompromised quality. Our heavyweight blanks are designed for the perfect drape and ultimate comfort.</p>
+        <button data-tr="blank_btn" onclick="switchView('shop')" class="bg-transparent border border-white text-white py-4 px-10 text-xs md:text-sm font-bold tracking-widest uppercase hover:bg-white hover:text-black transition">Explore Blanks</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="w-full py-20 md:py-32 bg-[#050505] border-b border-[#1e2a36] relative overflow-hidden text-center">
+    <div class="absolute inset-0 bg-cover bg-center opacity-10" style="background-image: url('media/studio-bg.png');"></div>
+    <div class="max-w-4xl mx-auto px-6 md:px-8 relative z-10">
+      <h2 data-tr="studio_title" class="display-font text-4xl md:text-7xl text-white uppercase mb-6 tracking-tighter">Ateeq<br>Studio</h2>
+      <p data-tr="studio_desc" class="text-[#6e849c] text-xs md:text-sm tracking-widest uppercase mb-10 leading-relaxed max-w-2xl mx-auto">Don't just wear it, create it. Use our interactive design studio to upload your artwork, add text, and customize our premium pieces.</p>
+      <button data-tr="studio_btn" onclick="switchView('studio')" class="bg-white text-black border border-white py-4 px-12 text-xs md:text-sm font-bold tracking-widest uppercase hover:bg-gray-200 transition shadow-[0_0_30px_rgba(255,255,255,0.1)]">Open Design Studio</button>
+    </div>
+  </section>
+
+  <section class="w-full py-20 md:py-32 bg-[#050505] border-b border-[#1e2a36] relative overflow-hidden text-center">
+    <div class="absolute inset-0 bg-cover bg-center opacity-10" style="background-image: url('media/studio-bg.png');"></div>
+    <div class="max-w-4xl mx-auto px-6 md:px-8 relative z-10">
+      <h2 class="display-font text-4xl md:text-7xl text-white uppercase mb-6 tracking-tighter">Ateeq<br>Studio</h2>
+      <p class="text-[#6e849c] text-xs md:text-sm tracking-widest uppercase mb-10 leading-relaxed max-w-2xl mx-auto">Don't just wear it, create it. Use our interactive design studio to upload your artwork, add text, and customize our premium pieces.</p>
+      <button onclick="switchView('studio')" class="bg-white text-black border border-white py-4 px-12 text-xs md:text-sm font-bold tracking-widest uppercase hover:bg-gray-200 transition shadow-[0_0_30px_rgba(255,255,255,0.1)]">Open Design Studio</button>
+    </div>
+  </section>
+
   <section class="w-full py-16 md:py-24 bg-[#090e13] border-b border-[#1e2a36] overflow-hidden">
     <div class="max-w-7xl mx-auto px-6 md:px-8 mb-10 md:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
       <div>
@@ -74,7 +87,8 @@
       </div>
     </div>
   </section>
+
   <div class="w-full flex justify-center mt-12 mb-16 px-6">
-    <button onclick="switchView('shop')" class="bg-white text-black py-4 px-10 text-sm md:text-base font-bold tracking-widest uppercase hover:bg-gray-200 transition">Shop All Collection</button>
+    <button onclick="switchView('shop')" class="bg-white text-black py-4 px-10 text-sm md:text-base font-bold tracking-widest uppercase hover:bg-gray-200 transition shadow-[0_0_15px_rgba(255,255,255,0.2)]">Shop All Collection</button>
   </div>
 </main>
