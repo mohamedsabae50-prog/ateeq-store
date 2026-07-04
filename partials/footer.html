@@ -30,8 +30,8 @@
 <audio id="bg-music" loop>
     <source src="https://kkbejeioqltbllshhlcp.supabase.co/storage/v1/object/public/site-media/bg-music.mp3" type="audio/mpeg">
 </audio>
-<button id="music-toggle" class="fixed top-20 md:top-28 left-4 md:left-6 z-50 bg-white/5 border border-white/10 w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition shadow-lg backdrop-blur-md">
-  <i class="fa-solid fa-volume-high text-[10px] md:text-xs text-gray-300" id="music-icon"></i>
+<button id="music-toggle" onclick="toggleMusic()" class="fixed top-20 md:top-28 left-4 md:left-6 z-50 bg-white/5 border border-white/10 w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition shadow-lg backdrop-blur-md">
+  <i class="fa-solid fa-volume-xmark text-[10px] md:text-xs text-gray-300" id="music-icon"></i>
 </button>
 <div class="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[100]">
   <button onclick="openWhatsApp()" class="bg-[#25D366] hover:bg-green-600 text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] transition hover:scale-110">
