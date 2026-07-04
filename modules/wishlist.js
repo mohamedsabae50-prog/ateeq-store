@@ -1,5 +1,22 @@
 window.isWishlistActionRunning = false;
 
+const readStoredWishlist = function() {
+    try {
+        const rawValue = localStorage.getItem('ateeq_wishlist');
+        if (rawValue === null || rawValue === undefined || rawValue === '') return [];
+        const parsed = JSON.parse(rawValue);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        return [];
+    }
+};
+
+const writeStoredWishlist = function(items) {
+    try {
+        localStorage.setItem('ateeq_wishlist', JSON.stringify(Array.isArray(items) ? items : []));
+    } catch (error) {}
+};
+
 const normalizeWishlistItems = function(items = []) {
     return [...new Set((Array.isArray(items) ? items : []).map(item => String(item)).filter(Boolean))];
 };
@@ -55,7 +72,7 @@ const matchesWishlistProduct = function(existingRow, productId) {
 
 const persistWishlistState = function(items, options = {}) {
     const normalizedItems = normalizeWishlistItems(items);
-    localStorage.setItem('ateeq_wishlist', JSON.stringify(normalizedItems));
+    writeStoredWishlist(normalizedItems);
     window.wishlist = normalizedItems;
 
     if (options.triggerRefresh !== false && typeof window.fetchUserWishlist === 'function') {
@@ -103,7 +120,7 @@ const updateWishlistHeartUi = function(productId, isActive, button = null) {
 };
 
 export const fetchUserWishlist = async function() {
-    const localWishlist = normalizeWishlistItems(JSON.parse(localStorage.getItem('ateeq_wishlist')) || []);
+    const localWishlist = normalizeWishlistItems(readStoredWishlist());
 
     if (window.isLoggedIn && window.currentUser) {
         try {
@@ -111,14 +128,14 @@ export const fetchUserWishlist = async function() {
             if (Array.isArray(data) && data.length > 0) {
                 const dbWishlist = normalizeWishlistItems(data.map(item => String(item.product_id)));
                 const mergedWishlist = normalizeWishlistItems([...new Set([...localWishlist, ...dbWishlist])]);
-                localStorage.setItem('ateeq_wishlist', JSON.stringify(mergedWishlist));
+                writeStoredWishlist(mergedWishlist);
                 window.wishlist = mergedWishlist;
             } else {
-                localStorage.setItem('ateeq_wishlist', JSON.stringify(localWishlist));
+                writeStoredWishlist(localWishlist);
                 window.wishlist = localWishlist;
             }
         } catch (err) {
-            localStorage.setItem('ateeq_wishlist', JSON.stringify(localWishlist));
+            writeStoredWishlist(localWishlist);
             window.wishlist = localWishlist;
         }
     }
@@ -126,7 +143,7 @@ export const fetchUserWishlist = async function() {
     const container = document.getElementById('wishlist-container');
     if (!container) return;
 
-    let currentWishlist = normalizeWishlistItems(JSON.parse(localStorage.getItem('ateeq_wishlist')) || []);
+    let currentWishlist = normalizeWishlistItems(readStoredWishlist());
 
     if (currentWishlist.length === 0) {
         container.innerHTML = '<div class="p-8 border border-dashed border-[#1e2a36] text-center bg-[#131b23] col-span-full"><p class="text-[#6e849c] text-xs tracking-widest uppercase">Your wishlist is empty.</p></div>';
@@ -180,7 +197,7 @@ export const toggleWishlist = async function(productId, event, btnElement = null
 
         const { data: existingRows } = await window.supabaseClient.from('wishlist').select('id, product_id').eq('user_id', window.currentUser.id);
         const isCurrentlyWishlisted = Boolean(existingRows && existingRows.some(item => matchesWishlistProduct(item, normalizedProductId)));
-        const currentWishlist = normalizeWishlistItems(JSON.parse(localStorage.getItem('ateeq_wishlist')) || []);
+        const currentWishlist = normalizeWishlistItems(readStoredWishlist());
         const nextWishlist = isCurrentlyWishlisted
             ? currentWishlist.filter(item => item !== prodIdStr)
             : [...currentWishlist, prodIdStr];
@@ -206,7 +223,7 @@ export const toggleWishlist = async function(productId, event, btnElement = null
         if(typeof window.fetchUserWishlist === 'function') window.fetchUserWishlist();
 
     } catch(err) {
-        const fallbackWishlist = normalizeWishlistItems(JSON.parse(localStorage.getItem('ateeq_wishlist')) || []);
+        const fallbackWishlist = normalizeWishlistItems(readStoredWishlist());
         persistWishlistState(fallbackWishlist, { triggerRefresh: false });
         updateWishlistHeartUi(prodIdStr, fallbackWishlist.includes(prodIdStr), button);
         if (icon) icon.className = "fa-regular fa-heart text-white";
@@ -232,7 +249,7 @@ export const toggleWishlistFromPDP = async function(event, btn) {
     try {
         const { data: existingRows } = await window.supabaseClient.from('wishlist').select('id, product_id').eq('user_id', window.currentUser.id);
         const isCurrentlyWishlisted = Boolean(existingRows && existingRows.some(item => matchesWishlistProduct(item, normalizedProductId)));
-        const currentWishlist = normalizeWishlistItems(JSON.parse(localStorage.getItem('ateeq_wishlist')) || []);
+        const currentWishlist = normalizeWishlistItems(readStoredWishlist());
         const nextWishlist = isCurrentlyWishlisted
             ? currentWishlist.filter(item => item !== prodIdStr)
             : [...currentWishlist, prodIdStr];
@@ -257,7 +274,7 @@ export const toggleWishlistFromPDP = async function(event, btn) {
         
         if(typeof window.fetchUserWishlist === 'function') window.fetchUserWishlist();
     } catch(e) {
-        const fallbackWishlist = normalizeWishlistItems(JSON.parse(localStorage.getItem('ateeq_wishlist')) || []);
+        const fallbackWishlist = normalizeWishlistItems(readStoredWishlist());
         persistWishlistState(fallbackWishlist, { triggerRefresh: false });
         updateWishlistHeartUi(prodIdStr, fallbackWishlist.includes(prodIdStr), btn);
     } finally {
@@ -273,7 +290,7 @@ export const toggleWishlistFromWishlistPage = async function(id, event) {
     const idStr = String(id);
 
     try {
-        const currentWishlist = normalizeWishlistItems(JSON.parse(localStorage.getItem('ateeq_wishlist')) || []);
+        const currentWishlist = normalizeWishlistItems(readStoredWishlist());
         const nextWishlist = currentWishlist.filter(item => String(item) !== idStr);
         persistWishlistState(nextWishlist, { triggerRefresh: false });
 
@@ -290,7 +307,7 @@ export const toggleWishlistFromWishlistPage = async function(id, event) {
 };
 
 export const removeFromWishlist = async function(index) {
-    let currentWishlist = normalizeWishlistItems(JSON.parse(localStorage.getItem('ateeq_wishlist')) || []);
+    let currentWishlist = normalizeWishlistItems(readStoredWishlist());
     if (currentWishlist.length > index) {
         const idToRemove = String(currentWishlist[index]);
         const nextWishlist = currentWishlist.filter((_, wishlistIndex) => wishlistIndex !== index);
