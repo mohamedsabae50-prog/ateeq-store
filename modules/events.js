@@ -69,14 +69,24 @@ export const initAppEvents = function() {
         const musicBtn = document.getElementById('music-toggle');
         const musicIcon = document.getElementById('music-icon');
         let isPlaying = false;
-        if (music && musicBtn) {
-            music.volume = 0.3;
+        if (musicBtn && musicIcon) {
             musicBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (isPlaying) { music.pause(); musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300'; }
-                else { if (music.currentTime < 20) music.currentTime = 20; music.play(); musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300'; }
-                isPlaying = !isPlaying;
+                if (music && typeof music.play === 'function' && typeof music.pause === 'function') {
+                    if (isPlaying) {
+                        music.pause();
+                        musicIcon.className = 'fa-solid fa-volume-xmark text-xs text-gray-300';
+                    } else {
+                        if (music.currentTime < 20) music.currentTime = 20;
+                        music.play().catch(() => {});
+                        musicIcon.className = 'fa-solid fa-volume-high text-xs text-gray-300';
+                    }
+                    isPlaying = !isPlaying;
+                }
             });
+        }
+        if (music) {
+            music.volume = 0.3;
         }
         document.addEventListener('mousemove', (e) => {
             const cursor = document.getElementById('custom-cursor');
