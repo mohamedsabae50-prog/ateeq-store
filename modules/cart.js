@@ -1,3 +1,9 @@
+const safeWriteStoredArray = function(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify(Array.isArray(value) ? value : []));
+    } catch (error) {}
+};
+
 export const updateCartUI = function() {
     const cartCount = document.getElementById('cart-count');
     const cartItemsContainer = document.getElementById('cart-items');
@@ -68,7 +74,7 @@ export const trackAbandonedCart = async function() {
 
 export const saveWishlist = function() {
     window.wishlist = Array.isArray(window.wishlist) ? window.wishlist : [];
-    localStorage.setItem('ateeq_wishlist', JSON.stringify(window.wishlist));
+    safeWriteStoredArray('ateeq_wishlist', window.wishlist);
     if (typeof window.renderWishlist === 'function') window.renderWishlist();
 };
 
@@ -122,7 +128,7 @@ export const toggleCart = function() {
 
 export const saveCart = function() {
     window.cart = Array.isArray(window.cart) ? window.cart : [];
-    localStorage.setItem('ateeq_cart', JSON.stringify(window.cart));
+    safeWriteStoredArray('ateeq_cart', window.cart);
     if (typeof window.updateCartUI === 'function') window.updateCartUI();
     if (typeof window.trackAbandonedCart === 'function') window.trackAbandonedCart();
 };
