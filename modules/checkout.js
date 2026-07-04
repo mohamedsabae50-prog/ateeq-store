@@ -102,8 +102,10 @@ export const submitOrder = async function(event) {
                     const { data: prod } = await window.supabaseClient.from('products').select('stock').eq('id', item.product_id).single();
                     if (prod) {
                         const currentStock = parseInt(prod.stock) || 0;
+                        const qty = (item.quantity || item.qty || 1);
                         if (currentStock > 0) {
-                            const newCount = currentStock - 1;
+                            let newCount = currentStock - qty;
+                            if (newCount < 0) newCount = 0;
                             const newStatus = newCount <= 0 ? 'Out of Stock' : 'In Stock';
                             await window.supabaseClient.from('products').update({ stock: newCount, stock_status: newStatus }).eq('id', item.product_id);
                         }
