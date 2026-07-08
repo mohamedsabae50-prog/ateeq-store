@@ -46,3 +46,21 @@
     <p id="policy-text" class="text-[#8ea4be] text-[12px] leading-relaxed tracking-wide uppercase"></p>
   </div>
 </div>
+<script>
+    const bgMusic = document.getElementById("bg-music");
+    let wasPlaying = false;
+
+    bgMusic.addEventListener('play', () => { wasPlaying = true; });
+    bgMusic.addEventListener('pause', () => { 
+        if (!document.hidden) { wasPlaying = false; } 
+    });
+    document.addEventListener("visibilitychange", function() {
+        if (document.hidden) {
+            bgMusic.pause();
+        } else {
+            if (wasPlaying) {
+                bgMusic.play();
+            }
+        }
+    });
+</script>
