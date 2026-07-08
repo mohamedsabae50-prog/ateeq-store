@@ -88,3 +88,19 @@ try { if (window.parent) { window.parent.handleLogin = __handleLogin; window.par
 initAppEvents();
 attachPriceEvents();
 if (typeof window.loadShopProducts === 'function') window.loadShopProducts();
+let musicWasPlaying = false;
+
+document.addEventListener("visibilitychange", function() {
+    const bgMusic = document.getElementById("bg-music");
+    
+    if (!bgMusic) return; 
+
+    if (document.hidden) {
+        musicWasPlaying = !bgMusic.paused;
+        bgMusic.pause();
+    } else {
+        if (musicWasPlaying) {
+            bgMusic.play().catch(e => console.log("المتصفح منع التشغيل التلقائي"));
+        }
+    }
+});
