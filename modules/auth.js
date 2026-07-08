@@ -1,3 +1,44 @@
+export const restoreSession = async function() {
+    // بنستنى لحد ما Supabase يحمل
+    if (!window.supabaseClient) {
+        setTimeout(restoreSession, 100); 
+        return;
+    }
+
+    try {
+        const { data: { session }, error } = await window.supabaseClient.auth.getSession();
+        
+        if (session && session.user) {
+            window.isLoggedIn = true;
+            window.currentUser = session.user;
+
+            const navAuthBtn = document.getElementById('nav-auth-btn');
+            const navProfileBtn = document.getElementById('nav-profile-btn');
+            if (navAuthBtn) navAuthBtn.style.display = 'none';
+            if (navProfileBtn) {
+                navProfileBtn.classList.remove('hidden');
+                navProfileBtn.style.display = 'block';
+            }
+            const mobAuthBtn = document.getElementById('mobile-auth-btn');
+            const mobProfBtn = document.getElementById('mobile-profile-btn');
+            if (mobAuthBtn && mobProfBtn) {
+                mobAuthBtn.classList.add('hidden');
+                mobProfBtn.classList.remove('hidden');
+            }
+
+            if (typeof window.fetchUserWishlist === 'function') window.fetchUserWishlist();
+        }
+    } catch (e) {
+        console.error("Session restore error:", e);
+    }
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', restoreSession);
+} else {
+    restoreSession();
+}
+
 export const handleLogout = async function() {
     const mobAuthBtn = document.getElementById('mobile-auth-btn');
     const mobProfBtn = document.getElementById('mobile-profile-btn');
